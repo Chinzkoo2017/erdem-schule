@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эрдэм Сургууль - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Gotham+Pro&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- ҮНДСЭН ТОХИРГОО --- */
+        body {
+            background-color: #232527; /* Roblox Dark Theme Background */
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- ЦЭСНИЙ ХЭСЭГ (NAVBAR) --- */
+        header {
+            background-color: #191B1D;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #393B3D;
+        }
+        
+        .logo {
+            font-family: 'Fredoka One', cursive; /* Бүдүүн тоглоомон фонт */
+            font-size: 28px;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        nav a:hover {
+            color: #00b06f; /* Hover хийхэд ногоорох */
+        }
+
+        /* --- ГЛАВНЫЙ 3D ТОВЧ (PLAY BUTTON) --- */
+        .play-btn {
+            background-color: #00b06f; /* Roblox Green */
+            color: white;
+            padding: 12px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Fredoka One', cursive;
+            font-size: 20px;
+            border: none;
+            box-shadow: 0 5px 0 #008c58; /* 3D сүүдэр */
+            transition: all 0.1s;
+            display: inline-block;
+        }
+
+        .play-btn:active {
+            box-shadow: 0 2px 0 #008c58;
+            transform: translateY(3px); /* Дарахад доош шигдэнэ */
+        }
+
+        /* --- ҮНДСЭН ХЭСЭГ --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h2 {
+            font-family: 'Fredoka One', cursive;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        /* --- КАРТУУД (GAMES STYLE) --- */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background-color: #393B3D;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: scale(1.05); /* Хулгана очиход томрох */
+        }
+
+        .card-img {
+            width: 100%;
+            height: 150px;
+            background-color: #555; /* Зураг байхгүй үед харагдах өнгө */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+        }
+        
+        /* Зураг оруулах бол доорх кодыг ашиглана */
+        /* .card-img { background-image: url('image.jpg'); background-size: cover; } */
+
+        .card-info {
+            padding: 12px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .card-stats {
+            font-size: 12px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+        }
+        
+        .online-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #00b06f;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">ERDEM SCHULE</div>
+        <nav>
+            <a href="#">Нүүр</a>
+            <a href="#">Бүтээлүүд</a> <a href="#">Мэдээ</a>
+            <a href="https://classroom.google.com" class="play-btn">▶ НЭВТРЭХ</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+<br><br><hr style="border-color: #393B3D;"><br>
+
+    <h3 style="font-family: 'Fredoka One', cursive; margin-bottom: 15px;">🎨 БҮТЭЭЛИЙН САН (Inventory)</h3>
+    
+    <div style="background-color: #191B1D; padding: 20px; border-radius: 15px; border: 2px solid #393B3D;">
+        
+        <div style="display: flex; align-items: center; margin-bottom: 20px;">
+            <div style="background: #00b06f; width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px;">
+                ✏️
+            </div>
+            <div>
+                <h4 style="margin: 0; font-size: 18px;">Өөрийн бүтээлээ оруулаарай!</h4>
+                <p style="margin: 5px 0 0 0; color: #aaa; font-size: 14px;">Зураг, шүлэг, даалгавраа энд нэмээрэй. Багш шалгаад нийтлэх болно.</p>
+            </div>
+        </div>
+
+        <div style="border: 4px dashed #393B3D; border-radius: 10px; padding: 5px; overflow: hidden;">
+            <div class="padlet-embed" style="border:1px solid rgba(0,0,0,0.1);border-radius:2px;box-sizing:border-box;overflow:hidden;position:relative;width:100%;background:#F4F4F4">
+                <p style="padding:0;margin:0">
+                    <iframe src="https://padlet.com/embed/ugo6dmns3qc0wdnr" frameborder="0" allow="camera;microphone;geolocation;display-capture;clipboard-write" style="width:100%;height:608px;display:block;padding:0;margin:0"></iframe>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <br><br>
+            
+        <div class="games-grid">
+            
+            <div class="game-card">
+                <div class="card-img" style="background-color: #FF6B6B;">📚</div>
+                <div class="card-info">
+                    <span class="card-title">Монгол Хэл</span>
+                    <div class="card-stats">
+                        <span class="online-dot"></span> 12 сурагч идэвхтэй
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="card-img" style="background-color: #4ECDC4;">📐</div>
+                <div class="card-info">
+                    <span class="card-title">Монгол Бүжиг</span>
+                    <div class="card-stats">
+                        <span class="online-dot"></span> Шинэ даалгавартай!
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="card-img" style="background-color: #FFE66D; color: #333;">⚔️</div>
+                <div class="card-info">
+                    <span class="card-title">Монголын Түүх</span>
+                    <div class="card-stats">
+                        88% Үнэлгээтэй
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="card-img" style="background-color: #A06CD5;">🎨</div>
+                <div class="card-info">
+                    <span class="card-title">Уран зураг</span>
+                    <div class="card-stats">
+                        Бүтээлээ оруулаарай
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <br><br><hr style="border-color: #393B3D;"><br>
+
+        <h3>БАГШ НАР (Admins)</h3>
+        <div style="display: flex; gap: 15px;">
+            <div style="text-align: center;">
+                <div style="width: 80px; height: 80px; background: #555; border-radius: 50%; margin-bottom: 5px;"></div>
+                <span style="font-size: 14px;">Багш А.</span>
+            </div>
+            <div style="text-align: center;">
+                <div style="width: 80px; height: 80px; background: #555; border-radius: 50%; margin-bottom: 5px;"></div>
+                <span style="font-size: 14px;">Багш Б.</span>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

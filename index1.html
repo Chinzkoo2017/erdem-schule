@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Erdem Schule – Монгол Сургууль</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Lato', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          colors: {
+            primary: '#0a2342',      // Үндсэн хөх өнгө
+            primarySoft: '#102f60',  // Бүдэг хөх
+            gold: '#c59d5f',         // Алтлаг өнгө
+            goldSoft: '#f5e4c7',     // Бүдэг алтлаг
+          },
+          boxShadow: {
+            soft: '0 18px 45px rgba(15, 35, 66, 0.18)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+
+<body class="font-sans text-gray-800 bg-white antialiased overflow-x-hidden w-full">
+
+<header class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur shadow z-50 transition-all duration-300">
+  <div class="w-full max-w-6xl mx-auto px-4 flex items-center justify-between h-20">
+
+    <a href="#hero" class="flex items-center gap-3 group">
+      <img src="images/logo.jpg" alt="Logo" class="w-14 h-14 rounded-full shadow border border-gray-100 group-hover:scale-105 transition-transform" />
+      <div class="leading-tight">
+        <div class="font-serif text-lg font-bold text-primary tracking-wide">
+          Erdem Schule
+        </div>
+        <div class="text-[11px] uppercase text-gray-500 tracking-[0.18em]">
+          Mongolische Schule Nürnberg
+        </div>
+      </div>
+    </a>
+
+    <nav id="navLinks" class="hidden md:flex md:static md:bg-transparent md:shadow-none md:flex-row md:items-center md:gap-8 absolute top-20 left-0 right-0 bg-white shadow-md flex-col gap-4 px-6 py-6 border-t md:border-t-0">
+      
+      <div class="flex flex-col md:flex-row md:items-center md:gap-8 gap-4">
+        <a href="#about" data-lang="about" class="text-gray-700 hover:text-primary font-medium transition text-sm md:text-base">Бидний тухай</a>
+        <a href="#program" data-lang="program" class="text-gray-700 hover:text-primary font-medium transition text-sm md:text-base">Хөтөлбөр</a>
+        <a href="https://www.facebook.com/erdemschule" target="_blank" data-lang="news" class="text-gray-700 hover:text-primary font-medium transition text-sm md:text-base">Мэдээ</a>
+      </div>
+
+      <div class="flex items-center gap-3 pt-4 border-t md:pt-0 md:border-t-0 md:border-l md:pl-6 border-gray-200">
+        <button class="lang-btn text-xs font-bold text-primary underline underline-offset-4" onclick="changeLang('mn')">MN</button>
+        <button class="lang-btn text-xs font-bold text-gray-400 hover:text-primary" onclick="changeLang('de')">DE</button>
+      </div>
+
+      <a href="classroom.html" class="mt-2 md:mt-0 bg-gold text-white px-6 py-2.5 rounded-full font-bold shadow hover:bg-[#b08b50] transition-all flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-rocket text-xs"></i>
+        <span data-lang="login">Сурагч нэвтрэх</span>
+      </a>
+    </nav>
+
+    <button onclick="toggleNav()" class="md:hidden text-primary text-2xl p-2">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+  </div>
+</header>
+
+<section id="hero" class="relative w-full bg-primary text-white pt-28 pb-20 md:py-24 flex items-center overflow-hidden">
+  
+  <div class="absolute inset-0 bg-gradient-to-br from-primary/95 to-primarySoft/90 z-0"></div>
+  
+  <div class="relative z-10 w-full max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-center">
+    
+    <div class="w-full">
+      <div class="inline-block border border-white/20 bg-white/5 rounded-full px-3 py-1 mb-4">
+        <span class="uppercase tracking-[0.25em] text-gold text-[10px] font-bold">ЭХ ХЭЛ • СОЁЛ • ЭРДЭМ</span>
+      </div>
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-serif font-bold leading-tight mb-6 drop-shadow-md" data-lang="hero-title">
+        Нюрнберг дэх <br />Монгол Сургууль
+      </h1>
+      <p class="text-gray-200 mb-8 text-sm md:text-base max-w-lg font-light leading-relaxed" data-lang="hero-desc">
+        Герман улсад амьдарч буй монгол хүүхдүүдэд эх хэл, өв соёлыг өвлүүлэн үлдээх зорилготой.
+      </p>
+      
+      <div class="flex flex-wrap gap-4 mb-8">
+        <a href="classroom.html" class="bg-gold text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-gold/20 flex items-center gap-2 hover:-translate-y-1 transition-all text-sm">
+          <i class="fa-solid fa-door-open"></i><span data-lang="hero-btn">Цахим ангид нэвтрэх</span>
+        </a>
+        <a href="#about" class="group border border-white/60 px-6 py-3 rounded-full flex items-center gap-2 text-white hover:bg-white hover:text-primary transition-all text-sm font-medium">
+          <i class="fa-regular fa-circle-play group-hover:scale-110 transition-transform"></i><span data-lang="hero-about-btn">Сургуулийн тухай</span>
+        </a>
+      </div>
+      
+      <div class="flex flex-wrap gap-6 text-xs text-gray-200 border-t border-white/10 pt-6 w-full">
+        <div>
+          <div class="uppercase tracking-[0.18em] text-[10px] text-gray-400 mb-1" data-lang="hero-info-children-label">Хүүхдүүд</div>
+          <div class="font-bold text-white tracking-wide" data-lang="hero-info-children-value">1–5 анги</div>
+        </div>
+        <div>
+          <div class="uppercase tracking-[0.18em] text-[10px] text-gray-400 mb-1" data-lang="hero-info-time-label">Хэзээ</div>
+          <div class="font-bold text-white tracking-wide" data-lang="hero-info-time-value">Бямба, Ням гариг</div>
+        </div>
+        <div>
+          <div class="uppercase tracking-[0.18em] text-[10px] text-gray-400 mb-1" data-lang="hero-info-location-label">Хаана</div>
+          <div class="font-bold text-white tracking-wide" data-lang="hero-info-location-value">Нюрнберг, Герман</div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="w-full bg-[#0e2a4e]/80 border border-white/10 p-6 rounded-2xl shadow-soft backdrop-blur-md text-sm mt-6 md:mt-0 relative">
+      <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <h2 class="text-base font-serif text-white" data-lang="hero-card-title">2025 / 2026 оны хичээлийн жил</h2>
+        <span class="text-[10px] font-bold uppercase tracking-wide bg-gold/20 text-gold px-2 py-1 rounded-full border border-gold/50 whitespace-nowrap" data-lang="hero-card-chip">Элсэлт нээлттэй</span>
+      </div>
+      <ul class="space-y-3 text-gray-300 text-xs md:text-sm">
+        <li class="flex gap-3 items-start">
+          <i class="fa-solid fa-check text-gold text-[10px] mt-1 flex-shrink-0"></i>
+          <span data-lang="hero-card-li1">Монгол хэл бичиг, уншлага, уран зохиолын түвшинтэй сургалт</span>
+        </li>
+        <li class="flex gap-3 items-start">
+           <i class="fa-solid fa-check text-gold text-[10px] mt-1 flex-shrink-0"></i>
+          <span data-lang="hero-card-li2">Монгол өв соёл, урлаг, тоглоом наадгайгаар суралцах</span>
+        </li>
+        <li class="flex gap-3 items-start">
+           <i class="fa-solid fa-check text-gold text-[10px] mt-1 flex-shrink-0"></i>
+          <span data-lang="hero-card-li3">Германд байгаа монгол хүүхдүүд хамтдаа нөхөрлөн, хөгжих орчин</span>
+        </li>
+      </ul>
+      <div class="border-t border-white/10 mt-5 pt-3 text-[10px] md:text-xs text-gray-400 flex justify-between items-center font-medium">
+        <span data-lang="hero-card-time">⏱ Бямба &amp; Ням — 2–3 цаг</span>
+        <a href="https://www.facebook.com/erdemschule" target="_blank" class="text-gold hover:text-white transition-colors flex items-center gap-1.5">
+          <i class="fa-brands fa-facebook-f"></i> Facebook
+        </a>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+<section id="about" class="py-24 bg-white relative">
+  <div class="w-full max-w-6xl mx-auto px-6">
+    
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="uppercase text-[11px] font-bold tracking-[0.25em] text-gold mb-3">ERDEM SCHULE E.V.</p>
+      <h2 class="font-serif text-3xl md:text-4xl font-bold text-primary mb-4" data-lang="about-title">Бидний тухай</h2>
+      <div class="w-20 h-1 bg-gradient-to-r from-gold to-transparent mx-auto mb-6 rounded-full"></div>
+      <p class="text-sm md:text-base text-gray-600 leading-relaxed" data-lang="about-intro">
+        "Эрдэм" сургууль нь Нюрнберг хот болон ойр орчмын Монгол хүүхдүүдэд эх хэл, соёлоо хадгалж, бахархалтай хүний хувьд төлөвшихөд нь туслах зорилготой.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div class="order-2 md:order-1">
+        <p class="text-primary font-bold text-lg mb-4" data-lang="about-tagline">Монгол хэл, Монгол сэтгэл, Монгол боловсрол</p>
+        <p class="text-sm md:text-base text-gray-600 mb-4 leading-relaxed" data-lang="about-text1">
+          "Эрдэм" сургууль нь Нюрнберг хот болон түүний ойр орчимд амьдарч буй Монгол гэр бүлүүдийн үр хүүхдүүдэд монгол хэл, соёлын боловсрол олгох зорилгоор үйл ажиллагаагаа явуулдаг.
+        </p>
+        <p class="text-sm md:text-base text-gray-600 mb-8 leading-relaxed" data-lang="about-text2">
+          Бид мэргэжлийн багш нар, тохилог орчин, сургалтын орчин үеийн хөтөлбөрөөр хүүхэд бүрийн хөгжлийг дэмжин ажиллаж байна.
+        </p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+            <div class="font-bold text-primary text-base mb-1" data-lang="about-meta-1-title">1–5 ангийн сурагчид</div>
+            <p class="text-gray-500 text-xs leading-relaxed" data-lang="about-meta-1-desc">Нас, түвшинд нь тохируулсан бүлэг хичээл.</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+            <div class="font-bold text-primary text-base mb-1" data-lang="about-meta-2-title">Жил бүрийн баяр</div>
+            <p class="text-gray-500 text-xs leading-relaxed" data-lang="about-meta-2-desc">Цагаан сар, Урлагийн тоглолт, Эцэг эхийн өдөр.</p>
+          </div>
+        </div>
+        
+        <a href="#program" class="inline-flex items-center gap-2 text-primary font-bold text-sm md:text-base hover:translate-x-2 transition-transform">
+          <span data-lang="read-more">Дэлгэрэнгүй унших</span> <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="relative order-1 md:order-2">
+        <div class="rounded-2xl overflow-hidden shadow-2xl border-4 border-white transform md:rotate-2 hover:rotate-0 transition-transform duration-500">
+          <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80" alt="Classroom" class="w-full h-full object-cover"/>
+        </div>
+        <div class="absolute -bottom-6 -left-6 bg-white shadow-xl rounded-xl p-5 border-l-4 border-gold hidden sm:block max-w-[250px]">
+          <div class="font-bold text-primary text-sm mb-1">Erdem Schule Nürnberg</div>
+          <div class="text-gray-500 text-xs leading-snug" data-lang="about-badge-text">Германд амьдарч буй монгол хүүхдүүдийн хамтын “жижиг Монгол” орчин.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="program" class="py-24 bg-[#f8f9fb] relative">
+  <div class="w-full max-w-6xl mx-auto px-6">
+    
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="uppercase text-[11px] font-bold tracking-[0.25em] text-gold mb-3" data-lang="services-label">ХӨТӨЛБӨР</p>
+      <h2 class="font-serif text-3xl md:text-4xl font-bold text-primary mb-4" data-lang="services-title">Сургалтын чиглэл</h2>
+      <div class="w-20 h-1 bg-gradient-to-r from-gold to-transparent mx-auto mb-6 rounded-full"></div>
+      <p class="text-sm md:text-base text-gray-600" data-lang="services-desc">Бид хүүхдийн нас сэтгэхүйн онцлогт тохирсон хөтөлбөрүүдийг санал болгодог.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      
+      <article class="bg-white rounded-[18px] shadow-sm border border-gray-100 p-8 hover:shadow-xl hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 group">
+        <div class="w-14 h-14 rounded-2xl bg-goldSoft/50 flex items-center justify-center mb-6 group-hover:bg-gold group-hover:text-white transition-colors">
+          <i class="fa-solid fa-book-open text-primary text-xl group-hover:text-white"></i>
+        </div>
+        <h3 class="font-serif font-bold text-primary mb-3 text-lg md:text-xl" data-lang="card1-title">Монгол Хэл</h3>
+        <p class="text-sm text-gray-600 leading-relaxed" data-lang="card1-desc">Кирилл үсэг, зөв бичих дүрмээс эхлээд уран зохиолын гүнзгийрүүлсэн сургалт.</p>
+      </article>
+
+      <article class="bg-white rounded-[18px] shadow-sm border border-gray-100 p-8 hover:shadow-xl hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 group">
+        <div class="w-14 h-14 rounded-2xl bg-goldSoft/50 flex items-center justify-center mb-6 group-hover:bg-gold group-hover:text-white transition-colors">
+          <i class="fa-solid fa-palette text-primary text-xl group-hover:text-white"></i>
+        </div>
+        <h3 class="font-serif font-bold text-primary mb-3 text-lg md:text-xl" data-lang="card2-title">Өв Соёл &amp; Урлаг</h3>
+        <p class="text-sm text-gray-600 leading-relaxed" data-lang="card2-desc">Монгол ардын бүжиг, дуу хөгжим, уран зураг болон гар урлалын хичээлүүд.</p>
+      </article>
+
+      <article class="bg-white rounded-[18px] shadow-sm border border-gray-100 p-8 hover:shadow-xl hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 group">
+        <div class="w-14 h-14 rounded-2xl bg-goldSoft/50 flex items-center justify-center mb-6 group-hover:bg-gold group-hover:text-white transition-colors">
+          <i class="fa-solid fa-globe text-primary text-xl group-hover:text-white"></i>
+        </div>
+        <h3 class="font-serif font-bold text-primary mb-3 text-lg md:text-xl" data-lang="card3-title">Олон Нийтийн Ажил</h3>
+        <p class="text-sm text-gray-600 leading-relaxed" data-lang="card3-desc">Нюрнберг хотын бусад сургуулиудтай хамтарсан өдөрлөг, баяр ёслолын арга хэмжээнүүд.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<footer class="bg-primary text-white pt-16 pb-8 mt-10">
+  <div class="w-full max-w-6xl mx-auto px-6">
+    <div class="grid md:grid-cols-3 gap-12 mb-12">
+      
+      <div>
+        <div class="font-serif text-2xl font-bold mb-4">Erdem Schule</div>
+        <p class="text-gray-400 text-sm leading-relaxed max-w-xs" data-lang="footer-slogan">Бидний ирээдүй – Монгол хүүхдүүд.</p>
+      </div>
+
+      <div>
+        <h4 class="font-bold uppercase tracking-wider text-xs text-gold mb-6" data-lang="footer-links">Холбоос</h4>
+        <ul class="space-y-3 text-sm text-gray-300">
+          <li><a href="#hero" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="home">Нүүр хуудас</a></li>
+          <li><a href="#about" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="about">Бидний тухай</a></li>
+          <li><a href="#program" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="program">Хөтөлбөр</a></li>
+          <li><a href="classroom.html" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="login">Сурагч нэвтрэх</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-bold uppercase tracking-wider text-xs text-gold mb-6" data-lang="contact">Холбоо барих</h4>
+        <ul class="space-y-4 text-sm text-gray-300">
+          <li class="flex items-start gap-3">
+            <i class="fa-solid fa-location-dot mt-1 text-gold"></i><span>Nürnberg, Germany</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i class="fa-solid fa-envelope mt-1 text-gold"></i><span>info@erdemschule.de</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+      <span data-lang="copyright">&copy; 2024 Erdem Schule e.V. Бүх эрх хуулиар хамгаалагдсан.</span>
+      <a href="https://www.facebook.com/erdemschule" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-full border border-white/20 text-gray-400 hover:bg-white hover:text-primary transition-all"><i class="fa-brands fa-facebook-f"></i></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const translations = {
+    // MONGOLIAN TRANSLATIONS
+    mn: {
+      about: 'Бидний тухай',
+      program: 'Хөтөлбөр',
+      news: 'Мэдээ',
+      login: 'Сурагч нэвтрэх',
+      'hero-title': 'Нюрнберг дэх<br>Монгол Сургууль',
+      'hero-desc': 'Герман улсад амьдарч буй монгол хүүхдүүдэд эх хэл, өв соёлыг өвлүүлэн үлдээх зорилготой.',
+      'hero-btn': 'Цахим ангид нэвтрэх',
+      'hero-about-btn': 'Сургуулийн тухай',
+      'hero-info-children-label': 'Хүүхдүүд',
+      'hero-info-children-value': '1–5 анги',
+      'hero-info-time-label': 'Хэзээ',
+      'hero-info-time-value': 'Бямба, Ням гариг',
+      'hero-info-location-label': 'Хаана',
+      'hero-info-location-value': 'Нюрнберг хот, Герман',
+      'hero-card-title': '2025 / 2026 оны хичээлийн жил',
+      'hero-card-chip': 'Элсэлт нээлттэй',
+      'hero-card-li1': 'Монгол хэл бичиг, уншлага, уран зохиолын түвшинтэй сургалт',
+      'hero-card-li2': 'Монгол өв соёл, урлаг, тоглоом наадгайгаар суралцах',
+      'hero-card-li3': 'Германд байгаа монгол хүүхдүүд хамтдаа нөхөрлөн, хөгжих орчин',
+      'hero-card-time': '⏱ Бямба & Ням — 2–3 цаг',
+      'about-title': 'Бидний тухай',
+      'about-intro': '"Эрдэм" сургууль нь Нюрнберг хот болон ойр орчмын Монгол хүүхдүүдэд эх хэл, соёлоо хадгалж, бахархалтай хүний хувьд төлөвшихөд нь туслах зорилготой.',
+      'about-tagline': 'Монгол хэл, Монгол сэтгэл, Монгол боловсрол',
+      'about-text1': '"Эрдэм" сургууль нь Нюрнберг хот болон түүний ойр орчимд амьдарч буй Монгол гэр бүлүүдийн үр хүүхдүүдэд монгол хэл, соёлын боловсрол олгох зорилгоор үйл ажиллагаагаа явуулдаг.',
+      'about-text2': 'Бид мэргэжлийн багш нар, тохилог орчин, сургалтын орчин үеийн хөтөлбөрөөр хүүхэд бүрийн хөгжлийг дэмжин ажиллаж байна.',
+      'about-meta-1-title': '1–5 ангийн сурагчид',
+      'about-meta-1-desc': 'нас, түвшинд нь тохируулсан бүлэг хичээл',
+      'about-meta-2-title': 'Жил бүрийн баяр',
+      'about-meta-2-desc': 'Наурыз, Цагаан сар, Урлагийн тоглолт',
+      'about-badge-text': 'Германд амьдарч буй монгол хүүхдүүдийн<br>хамтын “жижиг Монгол” орчин.',
+      'read-more': 'Дэлгэрэнгүй унших',
+      'services-label': 'ХӨТӨЛБӨР',
+      'services-title': 'Сургалтын чиглэл',
+      'services-desc': 'Бид хүүхдийн нас сэтгэхүйн онцлогт тохирсон хөтөлбөрүүдийг санал болгодог.',
+      'card1-title': 'Монгол Хэл',
+      'card1-desc': 'Кирилл үсэг, зөв бичих дүрмээс эхлээд уран зохиолын гүнзгийрүүлсэн сургалт.',
+      'card2-title': 'Өв Соёл & Урлаг',
+      'card2-desc': 'Монгол ардын бүжиг, дуу хөгжим, уран зураг болон гар урлалын хичээлүүд.',
+      'card3-title': 'Олон Нийтийн Ажил',
+      'card3-desc': 'Нюрнберг хотын бусад сургуулиудтай хамтарсан өдөрлөг, баяр ёслолын арга хэмжээнүүд.',
+      'footer-slogan': 'Бидний ирээдүй – Монгол хүүхдүүд.',
+      'footer-links': 'Холбоос',
+      home: 'Нүүр хуудас',
+      contact: 'Холбоо барих',
+      'copyright': '&copy; 2024 Erdem Schule e.V. Бүх эрх хуулиар хамгаалагдсан.'
+    },
+    // GERMAN TRANSLATIONS
+    de: {
+      about: "Über uns",
+      program: "Programm",
+      news: "Neuigkeiten",
+      login: "Schüler-Login",
+      "hero-title": "Mongolische Schule<br>in Nürnberg",
+      "hero-desc": "Unser Ziel ist es, mongolischen Kindern in Deutschland ihre Muttersprache, Kultur und Traditionen zu vermitteln.",
+      "hero-btn": "Zum Online-Klassenzimmer",
+      "hero-about-btn": "Über die Schule",
+      "hero-info-children-label": "Kinder",
+      "hero-info-children-value": "Klassen 1–5",
+      "hero-info-time-label": "Wann",
+      "hero-info-time-value": "Samstag & Sonntag",
+      "hero-info-location-label": "Ort",
+      "hero-info-location-value": "Nürnberg, Deutschland",
+      "hero-card-title": "Schuljahr 2025 / 2026",
+      "hero-card-chip": "Einschreibung offen",
+      "hero-card-li1": "Unterricht in mongolischer Sprache, Lesen und Literatur auf verschiedenen Niveaus",
+      "hero-card-li2": "Mongolische Kultur, Kunst, Spiele und traditionelle Aktivitäten",
+      "hero-card-li3": "Eine Umgebung, in der mongolische Kinder in Deutschland gemeinsam lernen und Freundschaften schließen",
+      "hero-card-time": "⏱ Samstag & Sonntag — 2–3 Stunden",
+      "about-title": "Über uns",
+      "about-intro": "Die Erdem Schule hat das Ziel, mongolischen Kindern in Nürnberg und Umgebung zu helfen, ihre Muttersprache und Kultur zu bewahren und stolz darauf zu sein.",
+      "about-tagline": "Mongolische Sprache, mongolischer Geist, mongolische Bildung",
+      "about-text1": "Die Erdem Schule bietet mongolische Sprach- und Kulturerziehung für Kinder mongolischer Familien in und um Nürnberg.",
+      "about-text2": "Wir unterstützen die Entwicklung jedes Kindes mit professionellen Lehrern, einer angenehmen Umgebung und modernen Lehrplänen.",
+      "about-meta-1-title": "Schüler der Klassen 1–5",
+      "about-meta-1-desc": "Alters- und niveaugerechter Unterricht",
+      "about-meta-2-title": "Jährliche Feste",
+      "about-meta-2-desc": "Nauryz, Tsagaan Sar, Kunstaufführungen",
+      "about-badge-text": "Ein 'kleines Mongolei'-Umfeld<br>für Kinder in Deutschland.",
+      "read-more": "Mehr lesen",
+      'services-label': 'PROGRAMM',
+      "services-title": "Unsere Kurse",
+      "services-desc": "Wir bieten Programme an, die auf das Alter und die Denkweise der Kinder zugeschnitten sind.",
+      "card1-title": "Mongolische Sprache",
+      "card1-desc": "Vom Kyrillischen Alphabet und Rechtschreibung bis hin zu vertieftem Literaturunterricht.",
+      "card2-title": "Kultur & Kunst",
+      "card2-desc": "Mongolischer Volkstanz, Musik, Malerei und Handwerksunterricht.",
+      "card3-title": "Gemeinschaft",
+      "card3-desc": "Gemeinsame Veranstaltungen und Feiern mit anderen Schulen in Nürnberg.",
+      "footer-slogan": "Unsere Zukunft - Mongolische Kinder.",
+      "footer-links": "Links",
+      home: "Startseite",
+      contact: "Kontakt",
+      'copyright': '&copy; 2024 Erdem Schule e.V. Alle Rechte vorbehalten.'
+    }
+  };
+
+  // Function to change language
+  function changeLang(lang) {
+    const elements = document.querySelectorAll('[data-lang]');
+    elements.forEach((el) => {
+      const key = el.getAttribute('data-lang');
+      if (translations[lang][key]) {
+        el.innerHTML = translations[lang][key];
+      }
+    });
+    
+    // Change Active Button Style
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
+      btn.classList.remove('text-primary', 'underline');
+      btn.classList.add('text-gray-400');
+    });
+    if (lang === 'mn') {
+      document.querySelector('.lang-btn[onclick="changeLang(\'mn\')"]').classList.add('text-primary', 'underline');
+      document.querySelector('.lang-btn[onclick="changeLang(\'mn\')"]').classList.remove('text-gray-400');
+    } else {
+      document.querySelector('.lang-btn[onclick="changeLang(\'de\')"]').classList.add('text-primary', 'underline');
+      document.querySelector('.lang-btn[onclick="changeLang(\'de\')"]').classList.remove('text-gray-400');
+    }
+    
+    // Save Language Preference
+    localStorage.setItem('erdemLang', lang);
+  }
+
+  // Function to toggle Mobile Navigation
+  function toggleNav() {
+    const nav = document.getElementById('navLinks');
+    nav.classList.toggle('hidden');
+    nav.classList.toggle('flex');
+  }
+
+  // Initialize Language on Load
+  window.onload = () => {
+    const savedLang = localStorage.getItem('erdemLang') || 'mn';
+    changeLang(savedLang);
+  };
+</script>
+</body>
+</html>

@@ -37,50 +37,76 @@
 
 <!-- HEADER -->
 <header class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur shadow z-50 transition-all duration-300">
-  <div class="w-full max-w-6xl mx-auto px-4 flex items-center justify-between h-20">
+  <div class="w-full max-w-7xl mx-auto px-4 flex items-center justify-between h-20 gap-4">
 
-    <a href="#hero" class="flex items-center gap-3 group">
-      <img src="images/logo.jpg" alt="Logo" class="w-14 h-14 rounded-full shadow border border-gray-100 group-hover:scale-105 transition-transform" />
+    <!-- ЛОГО -->
+    <a href="#hero" class="flex items-center gap-3 group shrink-0">
+      <img src="images/logo.jpg" alt="Logo"
+           class="w-12 h-12 rounded-full shadow border border-gray-100 group-hover:scale-105 transition-transform" />
       <div class="leading-tight">
-        <div class="font-serif text-lg font-bold text-primary tracking-wide"
-        data-lang="logo-title"
-        >
+        <div class="font-serif text-base md:text-lg font-bold text-primary tracking-wide"
+             data-lang="logo-title">
           Erdem Schule
         </div>
-
-        <div 
-          class="text-[11px] uppercase tracking-[0.18em] text-gray-500"
-          data-lang="logo-subtitle"
-        >
-            MONGOLISCHE SCHULE NÜRNBERG
+        <div class="text-[10px] md:text-[11px] uppercase tracking-[0.18em] text-gray-500"
+             data-lang="logo-subtitle">
+          MONGOLISCHE SCHULE NÜRNBERG
         </div>
-
       </div>
     </a>
 
-    <nav id="navLinks" class="hidden md:flex md:static md:bg-transparent md:shadow-none md:flex-row md:items-center md:gap-8 absolute top-20 left-0 right-0 bg-white shadow-md flex-col gap-4 px-6 py-6 border-t md:border-t-0">
-      <div class="flex flex-col md:flex-row md:items-center md:gap-8 gap-4">
-        <a href="#about" data-lang="about" class="text-gray-700 hover:text-primary font-medium transition text-sm md:text-base">Бидний тухай</a>
-        <a href="#program" data-lang="program" class="text-gray-700 hover:text-primary font-medium transition text-sm md:text-base">Хөтөлбөр</a>
-        <a href="https://www.facebook.com/erdemschule" target="_blank" data-lang="news" class="text-gray-700 hover:text-primary font-medium transition text-sm md:text-base">Мэдээ</a>
+    <!-- МЕНЮ -->
+    <nav id="navLinks"
+         class="hidden md:flex md:static md:bg-transparent md:shadow-none
+                md:flex-row md:items-center md:gap-6 md:flex-nowrap
+                absolute top-20 left-0 right-0 bg-white shadow-md
+                flex-col gap-4 px-6 py-6 border-t md:border-t-0">
+
+      <!-- Линкүүд -->
+      <div class="flex flex-col md:flex-row md:items-center md:gap-6 gap-4">
+        <a href="#about" data-lang="about"
+           class="text-gray-700 hover:text-primary font-medium transition text-sm">
+          Бидний тухай
+        </a>
+        <a href="#program" data-lang="program"
+           class="text-gray-700 hover:text-primary font-medium transition text-sm">
+          Хөтөлбөр
+        </a>
+        <a href="schedule.html" data-lang="nav-schedule"
+           class="text-gray-700 hover:text-primary font-medium transition text-sm whitespace-nowrap">
+          Хичээлийн хуваарь
+        </a>
+        <a href="https://www.facebook.com/erdemschule" target="_blank" data-lang="news"
+           class="text-gray-700 hover:text-primary font-medium transition text-sm">
+          Мэдээ
+        </a>
       </div>
 
-      <div class="flex items-center gap-3 pt-4 border-t md:pt-0 md:border-t-0 md:border-l md:pl-6 border-gray-200">
-        <button class="lang-btn text-xs font-bold text-primary underline underline-offset-4" onclick="changeLang('mn')">MN</button>
-        <button class="lang-btn text-xs font-bold text-gray-400 hover:text-primary" onclick="changeLang('de')">DE</button>
+      <!-- Хэл солигч -->
+      <div class="flex items-center gap-3 md:ml-4 pt-4 border-t md:pt-0 md:border-t-0 md:border-l md:pl-4 border-gray-200">
+        <button class="lang-btn text-xs font-bold text-primary underline underline-offset-4"
+                onclick="changeLang('mn')">MN</button>
+        <button class="lang-btn text-xs font-bold text-gray-400 hover:text-primary"
+                onclick="changeLang('de')">DE</button>
       </div>
 
-      <a href="classroom.html" class="mt-2 md:mt-0 bg-gold text-white px-6 py-2.5 rounded-full font-bold shadow hover:bg-[#b08b50] transition-all flex items-center gap-2 text-sm">
+      <!-- CTA товч -->
+      <a href="classroom.html"
+         class="mt-2 md:mt-0 bg-gold text-white px-4 py-2 rounded-full
+                font-bold shadow hover:bg-[#b08b50] transition-all
+                flex items-center gap-2 text-xs md:text-sm shrink-0 whitespace-nowrap">
         <i class="fa-solid fa-rocket text-xs"></i>
         <span data-lang="login">Сурагч нэвтрэх</span>
       </a>
     </nav>
 
+    <!-- Mobile menu button -->
     <button onclick="toggleNav()" class="md:hidden text-primary text-2xl p-2">
       <i class="fa-solid fa-bars"></i>
     </button>
   </div>
 </header>
+
 
 <!-- HERO -->
 <section id="hero" class="relative w-full bg-primary text-white pt-28 pb-16 md:pt-28 md:pb-20 overflow-hidden scroll-mt-24">
@@ -260,6 +286,7 @@
           <li><a href="#hero" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="home">Нүүр хуудас</a></li>
           <li><a href="#about" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="about">Бидний тухай</a></li>
           <li><a href="#program" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="program">Хөтөлбөр</a></li>
+          <li><a href="schedule.html" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="nav-schedule">Хичээлийн хуваарь</a></li>
           <li><a href="classroom.html" class="hover:text-white transition-colors hover:translate-x-1 inline-block" data-lang="login">Сурагч нэвтрэх</a></li>
         </ul>
       </div>
@@ -314,6 +341,7 @@
       program: 'Хөтөлбөр',
       news: 'Мэдээ',
       login: 'Сурагч нэвтрэх',
+      'nav-schedule': 'Хичээлийн хуваарь',
       "logo-title": "Эрдэм Сургууль",
       "logo-subtitle": "Нюрнберг дэхь Монгол Сургууль",
       "hero-tagline": "ЭХ ХЭЛ • СОЁЛ • ЭРДЭМ",
@@ -364,6 +392,7 @@
       program: 'Programm',
       news: 'Neuigkeiten',
       login: 'Schüler-Login',
+      'nav-schedule': 'Stundenplan',
       "logo-title": "Erdem Schule",
       "logo-subtitle": "Mongolische Schule Nürnberg",
       "hero-tagline": "MUTTERSPRACHE • KULTUR • WISSEN",

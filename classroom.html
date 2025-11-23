@@ -1,244 +1,331 @@
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Эрдэм Сургууль - Home</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Gotham+Pro&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- ҮНДСЭН ТОХИРГОО --- */
-        body {
-            background-color: #232527; /* Roblox Dark Theme Background */
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Erdem Schule – Classroom</title>
 
-        /* --- ЦЭСНИЙ ХЭСЭГ (NAVBAR) --- */
-        header {
-            background-color: #191B1D;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #393B3D;
-        }
-        
-        .logo {
-            font-family: 'Fredoka One', cursive; /* Бүдүүн тоглоомон фонт */
-            font-size: 28px;
-            color: #ffffff;
-            letter-spacing: 1px;
-        }
+  <!-- Fredoka (Roblox-style font) -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet" />
 
-        nav a {
-            color: #ffffff;
-            text-decoration: none;
-            margin-left: 30px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        
-        nav a:hover {
-            color: #00b06f; /* Hover хийхэд ногоорох */
-        }
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        /* --- ГЛАВНЫЙ 3D ТОВЧ (PLAY BUTTON) --- */
-        .play-btn {
-            background-color: #00b06f; /* Roblox Green */
-            color: white;
-            padding: 12px 40px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-family: 'Fredoka One', cursive;
-            font-size: 20px;
-            border: none;
-            box-shadow: 0 5px 0 #008c58; /* 3D сүүдэр */
-            transition: all 0.1s;
-            display: inline-block;
-        }
-
-        .play-btn:active {
-            box-shadow: 0 2px 0 #008c58;
-            transform: translateY(3px); /* Дарахад доош шигдэнэ */
-        }
-
-        /* --- ҮНДСЭН ХЭСЭГ --- */
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        h2 {
-            font-family: 'Fredoka One', cursive;
-            margin-bottom: 20px;
-            font-size: 32px;
-        }
-
-        /* --- КАРТУУД (GAMES STYLE) --- */
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .game-card {
-            background-color: #393B3D;
-            border-radius: 10px;
-            overflow: hidden;
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-
-        .game-card:hover {
-            transform: scale(1.05); /* Хулгана очиход томрох */
-        }
-
-        .card-img {
-            width: 100%;
-            height: 150px;
-            background-color: #555; /* Зураг байхгүй үед харагдах өнгө */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-        }
-        
-        /* Зураг оруулах бол доорх кодыг ашиглана */
-        /* .card-img { background-image: url('image.jpg'); background-size: cover; } */
-
-        .card-info {
-            padding: 12px;
-        }
-
-        .card-title {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .card-stats {
-            font-size: 12px;
-            color: #aaa;
-            display: flex;
-            align-items: center;
-        }
-        
-        .online-dot {
-            height: 8px;
-            width: 8px;
-            background-color: #00b06f;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-
-    </style>
+  <style>
+    .font-fredoka {
+      font-family: "Fredoka One", sans-serif;
+    }
+  </style>
 </head>
-<body>
 
-    <header>
-        <div class="logo">ERDEM SCHULE</div>
-        <nav>
-            <a href="#">Нүүр</a>
-            <a href="#">Бүтээлүүд</a> <a href="#">Мэдээ</a>
-            <a href="https://classroom.google.com" class="play-btn">▶ НЭВТРЭХ</a>
-        </nav>
-    </header>
+<body class="bg-slate-900 text-slate-50 min-h-screen">
 
-    <div class="container">
-        
-<br><br><hr style="border-color: #393B3D;"><br>
+<!-- ========================= NAVBAR ========================= -->
+<header class="border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
 
-    <h3 style="font-family: 'Fredoka One', cursive; margin-bottom: 15px;">🎨 БҮТЭЭЛИЙН САН (Inventory)</h3>
-    
-    <div style="background-color: #191B1D; padding: 20px; border-radius: 15px; border: 2px solid #393B3D;">
-        
-        <div style="display: flex; align-items: center; margin-bottom: 20px;">
-            <div style="background: #00b06f; width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px;">
-                ✏️
-            </div>
-            <div>
-                <h4 style="margin: 0; font-size: 18px;">Өөрийн бүтээлээ оруулаарай!</h4>
-                <p style="margin: 5px 0 0 0; color: #aaa; font-size: 14px;">Зураг, шүлэг, даалгавраа энд нэмээрэй. Багш шалгаад нийтлэх болно.</p>
-            </div>
-        </div>
+    <!-- LOGO + TITLE -->
+    <a href="index.html" class="flex items-center gap-3">
+      <img src="images/logo.jpg" class="h-10 w-10 rounded-xl object-cover shadow-md" />
+      <div class="leading-tight">
+        <span class="font-fredoka text-xl tracking-wide" id="nav_title">
+          ERDEM SCHULE
+        </span>
+        <span class="block text-[11px] uppercase tracking-[0.25em] text-slate-400" id="nav_subtitle">
+          Mongolische Schule Nürnberg
+        </span>
+      </div>
+    </a>
 
-        <div style="border: 4px dashed #393B3D; border-radius: 10px; padding: 5px; overflow: hidden;">
-            <div class="padlet-embed" style="border:1px solid rgba(0,0,0,0.1);border-radius:2px;box-sizing:border-box;overflow:hidden;position:relative;width:100%;background:#F4F4F4">
-                <p style="padding:0;margin:0">
-                    <iframe src="https://padlet.com/embed/ugo6dmns3qc0wdnr" frameborder="0" allow="camera;microphone;geolocation;display-capture;clipboard-write" style="width:100%;height:608px;display:block;padding:0;margin:0"></iframe>
-                </p>
-            </div>
-        </div>
+    <!-- NAV ITEMS -->
+    <nav class="flex items-center gap-4 text-sm">
 
+      <a href="index.html" id="nav_home"
+         class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
+
+      <a href="#" id="nav_gallery"
+         class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
+
+      <a href="#" id="nav_news"
+         class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
+
+      <a href="#" id="nav_schedule"
+         class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
+
+      <!-- ACTIVE PAGE -->
+      <span
+        id="nav_student_login"
+        class="hidden sm:inline-flex items-center rounded-full border border-emerald-500/60 px-3 py-1 
+               text-xs font-semibold text-emerald-400 bg-emerald-500/10">
+      </span>
+
+      <!-- Google Classroom button -->
+      <a href="https://classroom.google.com"
+         id="btn_google_classroom"
+         class="inline-flex items-center justify-center rounded-full bg-emerald-500 
+                text-slate-950 text-xs sm:text-sm font-semibold px-4 py-2 shadow-lg hover:bg-emerald-400 transition">
+      </a>
+
+      <!-- LANGUAGE SWITCH -->
+      <button id="langToggle"
+              class="ml-2 px-3 py-1 rounded-full border border-slate-600 text-xs hover:bg-slate-700 transition">
+        DE
+      </button>
+
+    </nav>
+  </div>
+</header>
+
+<!-- ========================= MAIN ========================= -->
+<main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+  <!-- Breadcrumb -->
+  <div class="text-xs text-slate-400 flex items-center gap-2">
+    <a href="index.html" class="hover:text-emerald-400" id="breadcrumb_home"></a>
+    <span>/</span>
+    <span class="text-slate-200" id="breadcrumb_current"></span>
+  </div>
+
+  <!-- HEADER TEXT -->
+  <section class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+    <div>
+      <p class="text-[11px] uppercase tracking-[0.25em] text-emerald-400 mb-1" id="year_text"></p>
+
+      <h1 class="font-fredoka text-3xl md:text-4xl mb-1" id="page_title"></h1>
+
+      <p class="text-sm md:text-base text-slate-300 max-w-xl" id="page_subtitle"></p>
     </div>
 
-    <br><br>
-            
-        <div class="games-grid">
-            
-            <div class="game-card">
-                <div class="card-img" style="background-color: #FF6B6B;">📚</div>
-                <div class="card-info">
-                    <span class="card-title">Монгол Хэл</span>
-                    <div class="card-stats">
-                        <span class="online-dot"></span> 12 сурагч идэвхтэй
-                    </div>
-                </div>
-            </div>
-
-            <div class="game-card">
-                <div class="card-img" style="background-color: #4ECDC4;">📐</div>
-                <div class="card-info">
-                    <span class="card-title">Монгол Бүжиг</span>
-                    <div class="card-stats">
-                        <span class="online-dot"></span> Шинэ даалгавартай!
-                    </div>
-                </div>
-            </div>
-
-            <div class="game-card">
-                <div class="card-img" style="background-color: #FFE66D; color: #333;">⚔️</div>
-                <div class="card-info">
-                    <span class="card-title">Монголын Түүх</span>
-                    <div class="card-stats">
-                        88% Үнэлгээтэй
-                    </div>
-                </div>
-            </div>
-
-            <div class="game-card">
-                <div class="card-img" style="background-color: #A06CD5;">🎨</div>
-                <div class="card-info">
-                    <span class="card-title">Уран зураг</span>
-                    <div class="card-stats">
-                        Бүтээлээ оруулаарай
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        
-        <br><br><hr style="border-color: #393B3D;"><br>
-
-        <h3>БАГШ НАР (Admins)</h3>
-        <div style="display: flex; gap: 15px;">
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: #555; border-radius: 50%; margin-bottom: 5px;"></div>
-                <span style="font-size: 14px;">Багш А.</span>
-            </div>
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; background: #555; border-radius: 50%; margin-bottom: 5px;"></div>
-                <span style="font-size: 14px;">Багш Б.</span>
-            </div>
-        </div>
-
+    <div class="flex flex-col items-start md:items-end gap-2">
+      <button
+        type="button"
+        id="btn_student_help"
+        class="inline-flex items-center justify-center rounded-full bg-emerald-500 text-slate-950
+               text-sm font-semibold px-5 py-2.5 shadow-lg hover:bg-emerald-400 transition">
+      </button>
     </div>
+  </section>
+
+  <!-- GRID: Padlet + Side panel -->
+  <section class="grid lg:grid-cols-3 gap-6">
+
+    <!-- PADLET -->
+    <div class="lg:col-span-2 space-y-3">
+      <div class="flex items-center gap-2 text-xs font-semibold text-emerald-300">
+        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+        <span id="padlet_title"></span>
+      </div>
+
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 shadow-xl overflow-hidden">
+        <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-800 bg-slate-950/70">
+          <div class="h-10 w-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-2xl shadow">
+            ✏️
+          </div>
+
+          <div>
+            <h2 class="text-sm font-semibold" id="padlet_header"></h2>
+            <p class="text-[11px] text-slate-400" id="padlet_desc"></p>
+          </div>
+        </div>
+
+        <div class="p-3">
+          <div class="border-2 border-dashed border-slate-700 rounded-2xl overflow-hidden bg-slate-900">
+            <div class="aspect-[16/9]">
+              <iframe
+                src="https://padlet.com/embed/ugo6dmns3qc0wdnr"
+                class="w-full h-full border-0"
+                allow="camera;microphone;geolocation;display-capture;clipboard-write"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <aside class="space-y-4">
+      
+      <!-- LOGIN -->
+      <div class="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 space-y-2">
+        <h2 class="text-sm font-semibold" id="login_title"></h2>
+        <ol class="text-xs text-slate-300 space-y-1.5" id="login_steps"></ol>
+      </div>
+
+      <!-- TODAY TASKS -->
+      <div class="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 space-y-2">
+        <h2 class="text-sm font-semibold" id="tasks_title"></h2>
+        <ul class="text-xs text-slate-300 space-y-1.5" id="tasks_list"></ul>
+      </div>
+
+      <!-- NEXT CLASS -->
+      <div class="rounded-2xl border border-emerald-500/50 bg-emerald-500/10 p-4 space-y-2">
+        <h2 class="text-sm font-semibold" id="next_title"></h2>
+        <p class="text-xs text-emerald-100" id="next_info"></p>
+
+        <a href="#" id="next_btn"
+           class="inline-flex mt-2 items-center justify-center w-full rounded-full
+                  bg-emerald-500 text-slate-950 text-xs font-semibold py-2.5
+                  hover:bg-emerald-400 transition shadow"></a>
+
+        <p class="text-[10px] text-emerald-100/70 mt-1" id="next_note"></p>
+      </div>
+
+    </aside>
+
+  </section>
+
+</main>
+
+<!-- ========================= I18N SCRIPT ========================= -->
+<script>
+  const words = {
+    mn: {
+      nav_title: "ЭРДЭМ СУРГУУЛЬ",
+      nav_subtitle: "Монгол сургууль Нюрнберг",
+
+      nav_home: "Нүүр",
+      nav_gallery: "Бүтээлүүд",
+      nav_news: "Мэдээ",
+      nav_schedule: "Хичээлийн хуваарь",
+      nav_student_login: "Сурагч нэвтрэх",
+      btn_google_classroom: "▶ Google Classroom",
+
+      breadcrumb_home: "Нүүр",
+      breadcrumb_current: "Сурагч нэвтрэх",
+
+      year_text: "2025 / 2026 оны хичээлийн жил",
+      page_title: "Онлайн ангид тавтай морил!",
+      page_subtitle: "Тавтай морил эцэг эхчүүд ээ. Сурагчдын бүтээлтэй танилцана уу.",
+
+      btn_student_help: "Сурагч нэвтрэх заавар",
+
+      padlet_title: "🎨 БҮТЭЭЛИЙН САН",
+      padlet_header: "Өөрийн бүтээлээ оруулаарай!",
+      padlet_desc: "Зураг, шүлэг, бичвэр, даалгавраа Padlet дээр нийтлэнэ.",
+
+      login_title: "Сурагч нэвтрэх",
+      login_steps: [
+        "1. Padlet → баруун дээд булан → Log in",
+        "2. Google аккаунтаар нэвтрэх",
+        "3. Жинхэнэ нэрээ бичих",
+        "4. Соёлтой сэтгэгдэл үлдээх"
+      ],
+
+      tasks_title: "Өнөөдөр хийх зүйлс",
+      tasks_list: [
+        "✔ Видео хичээлээ үзэх",
+        "✔ Даалгавраа Padlet дээр постлох",
+        "✔ Найзынхаа бүтээл дээр сэтгэгдэл бичих"
+      ],
+
+      next_title: "Дараагийн онлайн хичээл",
+      next_info: "Бямба – 10:40, Монгол хэл (Section 1)",
+      next_btn: "Хичээлийн өрөө нээх",
+      next_note: "* Zoom / Meet линк энд холбогдоно."
+    },
+
+    de: {
+      nav_title: "ERDEM SCHULE",
+      nav_subtitle: "Mongolische Schule Nürnberg",
+
+      nav_home: "Startseite",
+      nav_gallery: "Galerie",
+      nav_news: "Nachrichten",
+      nav_schedule: "Stundenplan",
+      nav_student_login: "Schüler-Login",
+      btn_google_classroom: "▶ Google Classroom",
+
+      breadcrumb_home: "Startseite",
+      breadcrumb_current: "Schüler-Login",
+
+      year_text: "Schuljahr 2025 / 2026",
+      page_title: "Willkommen im Online-Klassenraum!",
+      page_subtitle: "Willkommen liebe Eltern. Bitte sehen Sie sich die Arbeiten der Schüler an.",
+
+      btn_student_help: "Login-Anleitung",
+
+      padlet_title: "🎨 ARBEITEN DER SCHÜLER",
+      padlet_header: "Bitte laden Sie Ihre Werke hoch!",
+      padlet_desc: "Bilder, Texte und Aufgaben können im Padlet hochgeladen werden.",
+
+      login_title: "Schüler-Login",
+      login_steps: [
+        "1. Padlet → oben rechts → Log in",
+        "2. Mit Google-Konto anmelden",
+        "3. Echten Namen eingeben",
+        "4. Höfliche Kommentare schreiben"
+      ],
+
+      tasks_title: "Heutige Aufgaben",
+      tasks_list: [
+        "✔ Unterrichtsvideo ansehen",
+        "✔ Aufgabe im Padlet posten",
+        "✔ Kommentar bei einem Klassenkameraden schreiben"
+      ],
+
+      next_title: "Nächster Online-Unterricht",
+      next_info: "Samstag – 10:40, Mongolisch (Section 1)",
+      next_btn: "Online-Klasse öffnen",
+      next_note: "* Zoom / Meet Link befindet sich hier."
+    }
+  };
+
+  let current = "mn";
+
+  function applyLang() {
+    const w = words[current];
+
+    // Лого хажуугийн текст
+    document.getElementById("nav_title").textContent = w.nav_title;
+    document.getElementById("nav_subtitle").textContent = w.nav_subtitle;
+
+    // NAV
+    document.getElementById("nav_home").textContent = w.nav_home;
+    document.getElementById("nav_gallery").textContent = w.nav_gallery;
+    document.getElementById("nav_news").textContent = w.nav_news;
+    document.getElementById("nav_schedule").textContent = w.nav_schedule;
+    document.getElementById("nav_student_login").textContent = w.nav_student_login;
+    document.getElementById("btn_google_classroom").textContent = w.btn_google_classroom;
+
+    // Breadcrumb + header
+    document.getElementById("breadcrumb_home").textContent = w.breadcrumb_home;
+    document.getElementById("breadcrumb_current").textContent = w.breadcrumb_current;
+    document.getElementById("year_text").textContent = w.year_text;
+    document.getElementById("page_title").textContent = w.page_title;
+    document.getElementById("page_subtitle").textContent = w.page_subtitle;
+
+    // Buttons / side texts
+    document.getElementById("btn_student_help").textContent = w.btn_student_help;
+
+    document.getElementById("padlet_title").textContent = w.padlet_title;
+    document.getElementById("padlet_header").textContent = w.padlet_header;
+    document.getElementById("padlet_desc").textContent = w.padlet_desc;
+
+    document.getElementById("login_title").textContent = w.login_title;
+    document.getElementById("login_steps").innerHTML = w.login_steps
+      .map(s => `<li>${s}</li>`).join("");
+
+    document.getElementById("tasks_title").textContent = w.tasks_title;
+    document.getElementById("tasks_list").innerHTML = w.tasks_list
+      .map(s => `<li>${s}</li>`).join("");
+
+    document.getElementById("next_title").textContent = w.next_title;
+    document.getElementById("next_info").textContent = w.next_info;
+    document.getElementById("next_btn").textContent = w.next_btn;
+    document.getElementById("next_note").textContent = w.next_note;
+
+    // Toggle дээр гарах текст
+    document.getElementById("langToggle").textContent =
+      current === "mn" ? "DE" : "MN";
+  }
+
+  document.getElementById("langToggle").onclick = () => {
+    current = current === "mn" ? "de" : "mn";
+    applyLang();
+  };
+
+  applyLang();
+</script>
 
 </body>
 </html>

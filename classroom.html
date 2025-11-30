@@ -169,7 +169,6 @@
 </main>
 
 <script>
-  // 1. ОРЧУУЛГЫН ҮГС
   const words = {
     mn: {
       nav_title: "ЭРДЭМ СУРГУУЛЬ",
@@ -205,18 +204,8 @@
       next_title: "Дараагийн онлайн хичээл",
       next_info: "Бямба – 10:40, Монгол хэл (Section 1)",
       next_btn: "Хичээлийн өрөө нээх",
-      next_note: "* Zoom / Meet линк энд холбогдоно.",
-
-      // --- CHRISTMAS ---
-      xmas_badge: "🎄 ЗУЛ САРЫН МЭНД",
-      xmas_title: "Адвент Календарь",
-      xmas_desc: "Өдөр бүр нэг цонх нээж, гэнэтийн бэлгээ аваарай! (12-р сарын 1-24)",
-      modal_btn_close: "Баярлалаа!",
-      gift_empty: "Энэ өдрийн бэлэг удахгүй орно! 🎅",
-      month_dec: "12-р сарын",
-      video_label: "🎥 Багшийн мэндчилгээ"
+      next_note: "* Zoom / Meet линк энд холбогдоно."
     },
-
     de: {
       nav_title: "ERDEM SCHULE",
       nav_subtitle: "Mongolische Schule Nürnberg",
@@ -251,209 +240,55 @@
       next_title: "Nächster Online-Unterricht",
       next_info: "Samstag – 10:40, Mongolisch (Section 1)",
       next_btn: "Online-Klasse öffnen",
-      next_note: "* Zoom / Meet Link befindet sich hier.",
-
-      // --- CHRISTMAS ---
-      xmas_badge: "🎄 FROHE WEIHNACHTEN",
-      xmas_title: "Adventskalender",
-      xmas_desc: "Öffne jeden Tag ein Fenster und erhalte eine Überraschung! (1.-24. Dezember)",
-      modal_btn_close: "Dankeschön!",
-      gift_empty: "Das Geschenk für diesen Tag kommt bald! 🎅",
-      month_dec: "Dezember",
-      video_label: "🎥 Grußwort des Lehrers"
+      next_note: "* Zoom / Meet Link befindet sich hier."
     }
   };
 
-  // 2. БЭЛГИЙН САН (24 ӨДӨР)
-  // ТАЙЛБАР: url: "VIDEO_ID_HERE" хэсэгт YouTube видеоны ID-г тавиарай.
-  // Жишээ: Youtube линк https://www.youtube.com/watch?v=dQw4w9WgXcQ бол url: "dQw4w9WgXcQ" байна.
-  
-  const adventGifts = [
-    { day: 1, type: 'text', content: { mn: "❄️ Эхний өдрийн мэнд! Өнөөдөр ангийнхаа найздаа урмын үг хэлээрэй.", de: "❄️ Willkommen! Mache heute einem Klassenkameraden ein Kompliment." } },
-    { day: 2, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Сургуулийн захирлын мэндчилгээ", de: "Grußwort des Schulleiters" } },
-    { day: 3, type: 'text', content: { mn: "🧩 Оньсого: Гаргүй хөлтэй мөртлөө, Цонх хаалга тогшдог тэр юу вэ? (Хариу: Салхи)", de: "🧩 Rätsel: Was hat keine Hände und Füße, klopft aber an Fenster und Türen? (Der Wind)" } },
-    { day: 4, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Монгол хэлний багшийн мэндчилгээ", de: "Grußwort des Mongolischlehrers" } },
-    { day: 5, type: 'text', content: { mn: "📜 Зүйр цэцэн үг: Эрдэмтэй хүн даруу, Их мөрөн дөлгөөн.", de: "📜 Sprichwort: Ein gebildeter Mensch ist bescheiden, wie ein großer Fluss ruhig ist." } },
-    { day: 6, type: 'image', url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcDdtY3J6Ynd4Ynd4Ynd4/3o6fJdYXew7C8qbMLC/giphy.gif", content: { mn: "🎅 Гэгээн Николаусын баярын мэнд!", de: "🎅 Alles Gute zum Nikolaustag!" } },
-    { day: 7, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Дуу хөгжмийн багшийн мэндчилгээ", de: "Grußwort des Musiklehrers" } },
-    { day: 8, type: 'text', content: { mn: "🧐 Сонирхолтой баримт: Цасан ширхэг бүр дахин давтагдашгүй хэлбэртэй байдаг.", de: "🧐 Fun Fact: Jede Schneeflocke hat eine einzigartige Form." } },
-    { day: 9, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Бага ангийн багшийн мэндчилгээ", de: "Grußwort des Grundschullehrers" } },
-    { day: 10, type: 'text', content: { mn: "🎨 Даалгавар: Өнөөдөр цаасаар цасан ширхэг хайчилж цонхоо чимэглээрэй!", de: "🎨 Aufgabe: Schneide heute Schneeflocken aus Papier und dekoriere dein Fenster!" } },
-    { day: 11, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Монгол бүжгийн багшийн мэндчилгээ", de: "Grußwort des Tanzlehrers" } },
-    { day: 12, type: 'image', url: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80", content: { mn: "🐴 Монгол өв соёл: Өвлийн идэш бэлтгэх уламжлал.", de: "🐴 Mongolische Kultur: Tradition der Wintervorräte." } },
-    { day: 13, type: 'text', content: { mn: "🎶 Дуу сурцгаая: 'Цасан, цасан, цасан охин...'", de: "🎶 Lass uns ein Lied lernen: 'Schneeflöckchen, Weißröckchen...'" } },
-    { day: 14, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Ахлах ангийн багшийн мэндчилгээ", de: "Grußwort des Oberstufenlehrers" } },
-    { day: 15, type: 'text', content: { mn: "🧩 Оньсого: Цагаан хөнжилдөө, ногоон дээлтэй. Тэр юу вэ? (Гацуур мод)", de: "🧩 Rätsel: Grüner Mantel im weißen Bett. Was ist das? (Der Tannenbaum)" } },
-    { day: 16, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Эцэг эхийн зөвлөлийн мэндчилгээ", de: "Grußwort des Elternbeirats" } },
-    { day: 17, type: 'image', url: "https://images.unsplash.com/photo-1482517967863-00e15c9b4499?auto=format&fit=crop&w=600&q=80", content: { mn: "🍪 Өнөөдөр ээжтэйгээ хамт жигнэмэг хийгээрэй!", de: "🍪 Backe heute Plätzchen mit deiner Mama!" } },
-    { day: 18, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Түүхийн багшийн мэндчилгээ", de: "Grußwort des Geschichtslehrers" } },
-    { day: 19, type: 'text', content: { mn: "💡 Мэдлэг: Монголд өвлийн хамгийн хүйтэн үеийг 'Ес эхлэх' гэж нэрлэдэг.", de: "💡 Wissen: Die kälteste Zeit im mongolischen Winter nennt man die 'Neun Neun'." } },
-    { day: 20, type: 'text', content: { mn: "✍️ Даалгавар: Өвлийн өвөөд захидал бичээрэй!", de: "✍️ Aufgabe: Schreibe einen Brief an den Weihnachtsmann!" } },
-    { day: 21, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Сургуулийн ажилтны мэндчилгээ", de: "Grußwort der Schulmitarbeiter" } },
-    { day: 22, type: 'text', content: { mn: "❤️ Сайхан сэтгэл: Өнөөдөр хэн нэгэнд туслаарай.", de: "❤️ Gute Tat: Hilf heute jemandem." } },
-    { day: 23, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Багш нарын хамтарсан мэндчилгээ!", de: "Gemeinsamer Gruß der Lehrer!" } },
-    { day: 24, type: 'image', url: "https://media.giphy.com/media/zhh9ivpOs0vtKc3Q0i/giphy.gif", content: { mn: "🎄 ЗУЛ САРЫН БАЯРЫН МЭНД! 🎁<br>Эрдэм сургуулийн хамт олноос.", de: "🎄 FROHE WEIHNACHTEN! 🎁<br>Vom Team der Erdem Schule." } }
-  ];
+  // 1. localStorage-оос хэлээ шалгах, байхгүй бол 'mn'
+  let current = localStorage.getItem('erdemLang') || 'mn';
 
-  let current = "mn";
-
-  // 3. ХЭЛ СОЛИХ ФУНКЦ
   function applyLang() {
     const w = words[current];
-    // UI элементүүдийн текстийг солих
-    const ids = [
-      "nav_title", "nav_subtitle", "nav_home", "nav_gallery", "nav_news", "nav_schedule", 
-      "nav_student_login", "btn_google_classroom", "breadcrumb_home", "breadcrumb_current", 
-      "year_text", "page_title", "page_subtitle", "btn_student_help", "padlet_title", 
-      "padlet_header", "padlet_desc", "login_title", "tasks_title", "next_title", 
-      "next_info", "next_btn", "next_note", "xmas_badge", "xmas_title", "xmas_desc", 
-      "modal_btn_close"
-    ];
 
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      if (el && w[id]) el.textContent = w[id];
-    });
+    // DOM элементүүдэд утга оноох
+    document.getElementById("nav_title").textContent = w.nav_title;
+    document.getElementById("nav_subtitle").textContent = w.nav_subtitle;
+    document.getElementById("nav_home").textContent = w.nav_home;
+    document.getElementById("nav_gallery").textContent = w.nav_gallery;
+    document.getElementById("nav_news").textContent = w.nav_news;
+    document.getElementById("nav_schedule").textContent = w.nav_schedule;
+    document.getElementById("nav_student_login").textContent = w.nav_student_login;
+    document.getElementById("btn_google_classroom").textContent = w.btn_google_classroom;
+    document.getElementById("breadcrumb_home").textContent = w.breadcrumb_home;
+    document.getElementById("breadcrumb_current").textContent = w.breadcrumb_current;
+    document.getElementById("year_text").textContent = w.year_text;
+    document.getElementById("page_title").textContent = w.page_title;
+    document.getElementById("page_subtitle").textContent = w.page_subtitle;
+    document.getElementById("btn_student_help").textContent = w.btn_student_help;
+    document.getElementById("padlet_title").textContent = w.padlet_title;
+    document.getElementById("padlet_header").textContent = w.padlet_header;
+    document.getElementById("padlet_desc").textContent = w.padlet_desc;
+    document.getElementById("login_title").textContent = w.login_title;
+    document.getElementById("login_steps").innerHTML = w.login_steps.map(s => `<li>${s}</li>`).join("");
+    document.getElementById("tasks_title").textContent = w.tasks_title;
+    document.getElementById("tasks_list").innerHTML = w.tasks_list.map(s => `<li>${s}</li>`).join("");
+    document.getElementById("next_title").textContent = w.next_title;
+    document.getElementById("next_info").textContent = w.next_info;
+    document.getElementById("next_btn").textContent = w.next_btn;
+    document.getElementById("next_note").textContent = w.next_note;
 
-    // Жагсаалтууд (List items)
-    const loginSteps = document.getElementById("login_steps");
-    if (loginSteps) loginSteps.innerHTML = w.login_steps.map(s => `<li>${s}</li>`).join("");
-
-    const tasksList = document.getElementById("tasks_list");
-    if (tasksList) tasksList.innerHTML = w.tasks_list.map(s => `<li>${s}</li>`).join("");
-
-    // Товчлуур
+    // Toggle товчны текст (Эсрэг хэлээр харагдана)
     document.getElementById("langToggle").textContent = current === "mn" ? "DE" : "MN";
   }
 
+  // Товч дарах үед хэл солих ба ХАДГАЛАХ
   document.getElementById("langToggle").onclick = () => {
     current = current === "mn" ? "de" : "mn";
+    localStorage.setItem('erdemLang', current); // <-- ЭНД ХАДГАЛНА
     applyLang();
   };
 
-// ==================== 4. КАЛЕНДАРЬ ЛОГИК (ШИНЭЧЛЭГДСЭН) ====================
-  
-  // ТУРШИЛТ: Хэрэв та ирээдүйн өдрөөр шалгах бол доорх мөрийн "//" тэмдгийг аваад огноог солиорой.
-  // const todayDate = new Date("2025-12-05"); 
-  
-  const todayDate = new Date(); // Жинхэнэ цаг (Өнөөдрөөр)
-  
-  const currentDay = todayDate.getDate();
-  const currentMonth = todayDate.getMonth() + 1; // JS дээр сар 0-ээс эхэлдэг тул +1
-  const gridContainer = document.getElementById('advent-grid');
-
-  function initCalendar() {
-    if(!gridContainer) return;
-    gridContainer.innerHTML = "";
-
-    for (let i = 1; i <= 24; i++) {
-      let statusClass = "";
-      let icon = i;
-      let isLocked = true;
-      
-      const isDecember = (currentMonth === 12); // Зөвхөн 12 сард ажиллана
-
-      // ЛОГИК:
-      if (isDecember) {
-          if (i < currentDay) {
-              // Өнгөрсөн өдрүүд -> НЭЭЛТТЭЙ (Ногоон)
-              statusClass = "bg-emerald-900/50 border-emerald-500/30 text-emerald-400 cursor-pointer hover:bg-emerald-900/70";
-              isLocked = false;
-              icon = "✓";
-          } else if (i === currentDay) {
-              // Өнөөдөр -> НЭЭЛТТЭЙ (Улаан, гэрэлтдэг)
-              statusClass = "bg-gradient-to-br from-red-600 to-red-800 border-yellow-400 text-white shadow-lg shadow-red-900/50 cursor-pointer animate-pulse";
-              isLocked = false;
-          } else {
-              // Ирээдүй -> ЦООЖТОЙ (Саарал)
-              statusClass = "bg-slate-800/50 border-slate-700 text-slate-500 opacity-70 cursor-not-allowed";
-              isLocked = true;
-              icon = "🔒";
-          }
-      } else {
-          // 12 сар биш бол (Жишээ нь 11-р сар) -> БҮГД ЦООЖТОЙ
-          statusClass = "bg-slate-800/50 border-slate-700 text-slate-500 opacity-70 cursor-not-allowed";
-          isLocked = true;
-          icon = "🔒";
-      }
-
-      const box = document.createElement('div');
-      box.className = `relative h-24 rounded-2xl border-2 flex flex-col items-center justify-center font-fredoka text-xl transition-transform transform hover:scale-105 ${statusClass}`;
-      box.innerHTML = `
-        <span class="z-10 text-2xl">${icon}</span>
-        <span class="text-[10px] uppercase tracking-wider mt-1 opacity-80">Dec ${i}</span>
-      `;
-
-      if (!isLocked) {
-        box.onclick = () => openGift(i);
-      }
-      gridContainer.appendChild(box);
-    }
-  }
-  
-  function openGift(day) {
-    const gift = adventGifts.find(g => g.day === day);
-    const modal = document.getElementById('gift-modal');
-    const contentDiv = document.getElementById('modal-content');
-    const titleDiv = document.getElementById('modal-date-title');
-    
-    const monthText = words[current].month_dec;
-    titleDiv.innerText = current === 'mn' ? `${monthText} ${day} 🎄` : `${day}. ${monthText} 🎄`;
-
-    if (gift) {
-      if (gift.type === 'image') {
-        const txt = gift.content ? gift.content[current] : "";
-        contentDiv.innerHTML = `
-          <img src="${gift.url}" class="rounded-xl mx-auto mb-3 w-full max-h-56 object-cover shadow-md"> 
-          <p class="font-bold text-red-600">${txt}</p>`;
-      } 
-      else if (gift.type === 'video') {
-        const txt = gift.content ? gift.content[current] : "";
-        const label = words[current].video_label;
-        const embedUrl = `https://www.youtube.com/embed/${gift.url}`;
-        
-        contentDiv.innerHTML = `
-          <div class="text-sm font-bold text-red-500 mb-2 uppercase tracking-widest">${label}</div>
-          <div class="aspect-video w-full rounded-xl overflow-hidden shadow-lg mb-3 bg-black">
-             <iframe width="100%" height="100%" src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          </div>
-          <p class="text-slate-800 font-medium">${txt}</p>
-        `;
-      }
-      else {
-        contentDiv.innerHTML = gift.content[current];
-      }
-    } else {
-      contentDiv.innerHTML = words[current].gift_empty;
-    }
-
-    modal.classList.remove('hidden');
-  }
-
-  function closeGift() {
-    document.getElementById('gift-modal').classList.add('hidden');
-  }
-
-  function createSnow() {
-    const container = document.getElementById('snow-container');
-    if(!container) return;
-    const snowflakeCount = 30;
-
-    for (let i = 0; i < snowflakeCount; i++) {
-        const snowflake = document.createElement('div');
-        snowflake.innerHTML = '❄';
-        snowflake.classList.add('absolute', 'text-white', 'opacity-80');
-        snowflake.style.left = Math.random() * 100 + '%';
-        snowflake.style.animation = `fall ${Math.random() * 3 + 2}s linear infinite`;
-        snowflake.style.fontSize = Math.random() * 10 + 10 + 'px';
-        snowflake.style.animationDelay = Math.random() * 5 + 's';
-        container.appendChild(snowflake);
-    }
-  }
-
-  // Init
-  initCalendar();
-  createSnow();
+  // Хуудас ачаалахад ажиллуулах
   applyLang();
 </script>
 

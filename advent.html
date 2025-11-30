@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advent Manager (Teacher View) – Erdem Schule</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    .font-fredoka { font-family: "Fredoka One", sans-serif; }
+    /* Цас орох эффект */
+    @keyframes fall {
+      0% { transform: translateY(-10px) rotate(0deg); opacity: 0.8; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-900 text-slate-50 min-h-screen font-sans">
+
+<header class="border-b border-purple-800 bg-slate-950/95 backdrop-blur sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="classroom.html" class="flex items-center gap-2 text-slate-300 hover:text-white transition text-sm font-bold bg-slate-800 px-3 py-2 rounded-full">
+        <i class="fa-solid fa-arrow-left"></i> Буцах
+      </a>
+      <div class="h-6 w-px bg-slate-700"></div>
+      <div>
+        <span class="font-fredoka text-xl tracking-wide text-purple-400">
+          ADVENT MANAGER
+        </span>
+        <span class="block text-[10px] uppercase tracking-[0.15em] text-slate-400">
+          Teacher Preview Mode 🔓
+        </span>
+      </div>
+    </div>
+
+    <button id="langToggle" class="px-3 py-1 rounded-full border border-slate-600 text-xs hover:bg-slate-700 transition">
+      DE
+    </button>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+  <section class="mb-10 relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-900 to-slate-900 p-6 shadow-2xl border border-purple-500/30">
+    
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-30" id="snow-container"></div>
+  
+    <div class="relative z-10 text-center mb-8">
+      <span class="inline-block py-1 px-3 rounded-full bg-purple-600/20 text-purple-300 text-xs font-bold tracking-widest border border-purple-500 mb-2">
+        TEACHER VIEW
+      </span>
+      <h2 class="font-fredoka text-3xl md:text-5xl text-white mb-2 drop-shadow-lg">
+        Бэлгүүдийг шалгах
+      </h2>
+      <p class="text-slate-300 text-sm md:text-base max-w-2xl mx-auto">
+        Энд бүх өдрийн цонх нээлттэй харагдана. Та контент зөв орсон эсэхийг дарж шалгаарай.
+      </p>
+    </div>
+  
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-5xl mx-auto" id="advent-grid">
+      </div>
+  
+    <div id="gift-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-3xl p-6 md:p-10 max-w-2xl w-full text-center relative overflow-hidden shadow-2xl transform transition-all scale-100 border-4 border-purple-500">
+        
+        <button onclick="closeGift()" class="absolute top-4 right-4 text-slate-400 hover:text-purple-500 transition text-2xl z-50">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+  
+        <div class="mb-4 text-6xl animate-bounce">🎁</div>
+        
+        <h3 class="font-fredoka text-2xl text-purple-700 mb-4" id="modal-date-title">Day X</h3>
+        
+        <div class="text-slate-700 text-lg leading-relaxed mb-6 max-h-[60vh] overflow-y-auto" id="modal-content">
+          </div>
+  
+        <button onclick="closeGift()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-full transition shadow-lg">
+          Хаах (Close)
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // 1. ОРЧУУЛГЫН ҮГС (Бага зэрэг товчилсон)
+  const words = {
+    mn: {
+      month_dec: "12-р сарын",
+      video_label: "🎥 Багшийн мэндчилгээ",
+      gift_empty: "Хоосон байна (Энэ өдөр дата ороогүй байна)."
+    },
+    de: {
+      month_dec: "Dezember",
+      video_label: "🎥 Grußwort des Lehrers",
+      gift_empty: "Leer (Keine Daten für diesen Tag)."
+    }
+  };
+
+  // 2. БЭЛГИЙН САН (classroom.html-ээс хуулсан)
+  // ТАЙЛБАР: "VIDEO_ID_HERE"-г жинхэнэ ID-гаар солихоо мартуузай.
+  const adventGifts = [
+    { day: 1, type: 'text', content: { mn: "❄️ Эхний өдрийн мэнд! Өнөөдөр ангийнхаа найздаа урмын үг хэлээрэй.", de: "❄️ Willkommen! Mache heute einem Klassenkameraden ein Kompliment." } },
+    { day: 2, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Сургуулийн захирлын мэндчилгээ", de: "Grußwort des Schulleiters" } },
+    { day: 3, type: 'text', content: { mn: "🧩 Оньсого: Гаргүй хөлтэй мөртлөө, Цонх хаалга тогшдог тэр юу вэ? (Хариу: Салхи)", de: "🧩 Rätsel: Was hat keine Hände und Füße, klopft aber an Fenster und Türen? (Der Wind)" } },
+    { day: 4, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Монгол хэлний багшийн мэндчилгээ", de: "Grußwort des Mongolischlehrers" } },
+    { day: 5, type: 'text', content: { mn: "📜 Зүйр цэцэн үг: Эрдэмтэй хүн даруу, Их мөрөн дөлгөөн.", de: "📜 Sprichwort: Ein gebildeter Mensch ist bescheiden, wie ein großer Fluss ruhig ist." } },
+    { day: 6, type: 'image', url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcDdtY3J6Ynd4Ynd4Ynd4/3o6fJdYXew7C8qbMLC/giphy.gif", content: { mn: "🎅 Гэгээн Николаусын баярын мэнд!", de: "🎅 Alles Gute zum Nikolaustag!" } },
+    { day: 7, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Дуу хөгжмийн багшийн мэндчилгээ", de: "Grußwort des Musiklehrers" } },
+    { day: 8, type: 'text', content: { mn: "🧐 Сонирхолтой баримт: Цасан ширхэг бүр дахин давтагдашгүй хэлбэртэй байдаг.", de: "🧐 Fun Fact: Jede Schneeflocke hat eine einzigartige Form." } },
+    { day: 9, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Бага ангийн багшийн мэндчилгээ", de: "Grußwort des Grundschullehrers" } },
+    { day: 10, type: 'text', content: { mn: "🎨 Даалгавар: Өнөөдөр цаасаар цасан ширхэг хайчилж цонхоо чимэглээрэй!", de: "🎨 Aufgabe: Schneide heute Schneeflocken aus Papier und dekoriere dein Fenster!" } },
+    { day: 11, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Монгол бүжгийн багшийн мэндчилгээ", de: "Grußwort des Tanzlehrers" } },
+    { day: 12, type: 'image', url: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80", content: { mn: "🐴 Монгол өв соёл: Өвлийн идэш бэлтгэх уламжлал.", de: "🐴 Mongolische Kultur: Tradition der Wintervorräte." } },
+    { day: 13, type: 'text', content: { mn: "🎶 Дуу сурцгаая: 'Цасан, цасан, цасан охин...'", de: "🎶 Lass uns ein Lied lernen: 'Schneeflöckchen, Weißröckchen...'" } },
+    { day: 14, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Ахлах ангийн багшийн мэндчилгээ", de: "Grußwort des Oberstufenlehrers" } },
+    { day: 15, type: 'text', content: { mn: "🧩 Оньсого: Цагаан хөнжилдөө, ногоон дээлтэй. Тэр юу вэ? (Гацуур мод)", de: "🧩 Rätsel: Grüner Mantel im weißen Bett. Was ist das? (Der Tannenbaum)" } },
+    { day: 16, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Эцэг эхийн зөвлөлийн мэндчилгээ", de: "Grußwort des Elternbeirats" } },
+    { day: 17, type: 'image', url: "https://images.unsplash.com/photo-1482517967863-00e15c9b4499?auto=format&fit=crop&w=600&q=80", content: { mn: "🍪 Өнөөдөр ээжтэйгээ хамт жигнэмэг хийгээрэй!", de: "🍪 Backe heute Plätzchen mit deiner Mama!" } },
+    { day: 18, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Түүхийн багшийн мэндчилгээ", de: "Grußwort des Geschichtslehrers" } },
+    { day: 19, type: 'text', content: { mn: "💡 Мэдлэг: Монголд өвлийн хамгийн хүйтэн үеийг 'Ес эхлэх' гэж нэрлэдэг.", de: "💡 Wissen: Die kälteste Zeit im mongolischen Winter nennt man die 'Neun Neun'." } },
+    { day: 20, type: 'text', content: { mn: "✍️ Даалгавар: Өвлийн өвөөд захидал бичээрэй!", de: "✍️ Aufgabe: Schreibe einen Brief an den Weihnachtsmann!" } },
+    { day: 21, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Сургуулийн ажилтны мэндчилгээ", de: "Grußwort der Schulmitarbeiter" } },
+    { day: 22, type: 'text', content: { mn: "❤️ Сайхан сэтгэл: Өнөөдөр хэн нэгэнд туслаарай.", de: "❤️ Gute Tat: Hilf heute jemandem." } },
+    { day: 23, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Багш нарын хамтарсан мэндчилгээ!", de: "Gemeinsamer Gruß der Lehrer!" } },
+    { day: 24, type: 'image', url: "https://media.giphy.com/media/zhh9ivpOs0vtKc3Q0i/giphy.gif", content: { mn: "🎄 ЗУЛ САРЫН БАЯРЫН МЭНД! 🎁<br>Эрдэм сургуулийн хамт олноос.", de: "🎄 FROHE WEIHNACHTEN! 🎁<br>Vom Team der Erdem Schule." } }
+  ];
+
+  let current = "mn";
+
+  // Хэл солих
+  function applyLang() {
+    document.getElementById("langToggle").textContent = current === "mn" ? "DE" : "MN";
+  }
+
+  document.getElementById("langToggle").onclick = () => {
+    current = current === "mn" ? "de" : "mn";
+    applyLang();
+  };
+
+  // ==================== MANAGER CALENDAR LOGIC ====================
+  // Энэ хэсэгт ОГНОО ШАЛГАХГҮЙ. Бүх өдөр нээлттэй.
+  
+  const gridContainer = document.getElementById('advent-grid');
+
+  function initCalendar() {
+    if(!gridContainer) return;
+    gridContainer.innerHTML = "";
+
+    for (let i = 1; i <= 24; i++) {
+      // Бүх өдөр "Нээлттэй" загвартай (Purple theme for admin)
+      const statusClass = "bg-purple-900/40 border-purple-500/50 text-purple-300 cursor-pointer hover:bg-purple-800/60 hover:scale-105 shadow-lg shadow-purple-900/20";
+      const icon = "👁️"; // Preview icon
+
+      const box = document.createElement('div');
+      box.className = `relative h-24 rounded-2xl border-2 flex flex-col items-center justify-center font-fredoka text-xl transition-transform transform ${statusClass}`;
+      
+      // Зөвхөн админд: Хэрэв дата хоосон бол анхааруулга өгөх
+      const gift = adventGifts.find(g => g.day === i);
+      const hasContent = gift && (gift.content || gift.url);
+      const statusDot = hasContent ? '<span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-green-500"></span>' : '<span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>';
+
+      box.innerHTML = `
+        ${statusDot}
+        <span class="z-10 text-2xl mb-1">${i}</span>
+        <span class="text-[10px] uppercase tracking-wider opacity-80">Open</span>
+      `;
+
+      // Шууд нээх функц дуудна
+      box.onclick = () => openGift(i);
+      gridContainer.appendChild(box);
+    }
+  }
+  
+  function openGift(day) {
+    const gift = adventGifts.find(g => g.day === day);
+    const modal = document.getElementById('gift-modal');
+    const contentDiv = document.getElementById('modal-content');
+    const titleDiv = document.getElementById('modal-date-title');
+    
+    const monthText = words[current].month_dec;
+    titleDiv.innerText = current === 'mn' ? `Preview: ${monthText} ${day}` : `Preview: ${day}. ${monthText}`;
+
+    if (gift) {
+      if (gift.type === 'image') {
+        const txt = gift.content ? gift.content[current] : "";
+        contentDiv.innerHTML = `
+          <img src="${gift.url}" class="rounded-xl mx-auto mb-3 w-full max-h-56 object-cover shadow-md"> 
+          <p class="font-bold text-purple-600">${txt}</p>`;
+      } 
+      else if (gift.type === 'video') {
+        const txt = gift.content ? gift.content[current] : "";
+        const label = words[current].video_label;
+        const embedUrl = `https://www.youtube.com/embed/${gift.url}`;
+        
+        contentDiv.innerHTML = `
+          <div class="text-sm font-bold text-purple-500 mb-2 uppercase tracking-widest">${label}</div>
+          <div class="aspect-video w-full rounded-xl overflow-hidden shadow-lg mb-3 bg-black">
+             <iframe width="100%" height="100%" src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+          <p class="text-slate-800 font-medium">${txt}</p>
+        `;
+      }
+      else {
+        contentDiv.innerHTML = gift.content[current];
+      }
+    } else {
+      contentDiv.innerHTML = `<span class="text-red-500 font-bold">${words[current].gift_empty}</span>`;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeGift() {
+    document.getElementById('gift-modal').classList.add('hidden');
+  }
+
+  function createSnow() {
+    const container = document.getElementById('snow-container');
+    if(!container) return;
+    const snowflakeCount = 20; 
+
+    for (let i = 0; i < snowflakeCount; i++) {
+        const snowflake = document.createElement('div');
+        snowflake.innerHTML = '❄';
+        snowflake.classList.add('absolute', 'text-white', 'opacity-50');
+        snowflake.style.left = Math.random() * 100 + '%';
+        snowflake.style.animation = `fall ${Math.random() * 5 + 5}s linear infinite`; // Удаан унах
+        snowflake.style.fontSize = Math.random() * 10 + 5 + 'px';
+        snowflake.style.animationDelay = Math.random() * 5 + 's';
+        container.appendChild(snowflake);
+    }
+  }
+
+  // Init
+  initCalendar();
+  createSnow();
+  applyLang();
+</script>
+
+</body>
+</html>

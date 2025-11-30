@@ -1,43 +1,96 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="mn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Хичээлийн хуваарь – Эрдэм Монгол сургууль</title>
+  <title>Хичээлийн хуваарь – Erdem Schule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+      body { font-family: 'Lato', sans-serif; }
+      h1, h2, h3 { font-family: 'Playfair Display', serif; }
+  </style>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-[#f8f9fb] text-gray-800">
 
-<section class="py-16 bg-gray-50">
-  <div class="max-w-6xl mx-auto px-4">
+<header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="images/logo.jpg" alt="Logo" class="w-10 h-10 rounded-full shadow border border-gray-100">
+        <div class="leading-tight">
+            <div class="font-serif font-bold text-[#0a2342]">Erdem Schule</div>
+            <div class="text-[10px] uppercase text-gray-500 tracking-wider">Nürnberg</div>
+        </div>
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#0a2342] transition" data-lang="home">Нүүр</a>
+        <button id="langBtn" class="px-3 py-1 rounded-full border border-gray-300 text-xs font-bold hover:bg-gray-100 transition">DE</button>
+      </div>
+    </div>
+</header>
 
-    <h2 class="text-4xl font-bold text-gray-900 mb-8">
-      Хичээлийн календарь
-    </h2>
+<section class="py-12 md:py-16">
+  <div class="max-w-4xl mx-auto px-4">
 
-    <div class="grid md:grid-cols-2 gap-8">
+    <div class="text-center mb-10">
+        <h2 class="text-3xl md:text-4xl font-bold text-[#0a2342] mb-2" data-lang="schedule-title">
+          Хичээлийн календарь
+        </h2>
+        <p class="text-gray-500" data-lang="schedule-subtitle">2025 оны 11, 12-р сарын хуваарь</p>
+    </div>
 
-      <!-- ONLINE 29 Nov -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-indigo-500">
-        <h3 class="text-xl font-semibold text-gray-900">
-          29.11.2025 — Онлайн хичээл
-        </h3>
-        <p class="text-gray-700 mt-3"><strong>Анги:</strong> Дунд, Ахлах</p>
-        <p class="text-gray-700"><strong>Багш:</strong> С.Чинзориг</p>
-        <p class="text-gray-700"><strong>Хичээл:</strong> Монгол хэл</p>
+    <div class="grid gap-6">
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 border-l-4 border-l-indigo-500 hover:shadow-md transition">
+        <div class="flex justify-between items-start mb-2">
+            <h3 class="text-lg md:text-xl font-bold text-[#0a2342]" data-lang="event1-date">
+              29.11.2025 — Онлайн хичээл
+            </h3>
+            <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-1 rounded uppercase">Online</span>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4 text-sm mt-4">
+            <div>
+                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-class">Анги</span>
+                <span class="font-medium" data-lang="event1-class">Дунд, Ахлах</span>
+            </div>
+            <div>
+                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-teacher">Багш</span>
+                <span class="font-medium">S. Chinzorig</span>
+            </div>
+            <div>
+                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-subject">Хичээл</span>
+                <span class="font-medium" data-lang="event1-subject">Монгол хэл</span>
+            </div>
+        </div>
       </div>
 
-      <!-- IN-PERSON 30 Nov -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-        <h3 class="text-xl font-semibold text-gray-900">
-          30.11.2025 — Танхимын хичээл
-        </h3>
-        <p class="text-gray-700 mt-3"><strong>Анги:</strong> Бага, Дунд, Ахлах</p>
-        <p class="text-gray-700"><strong>Багш нар:</strong> О.Тунгалаг, Ариунаа</p>
-        <p class="text-gray-700"><strong>Хичээл:</strong> Монгол хэл, Монгол бүжиг, Монгол хөгжим</p>
-        <p class="text-gray-700"><strong>Байршил:</strong> Эрланген</p>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 border-l-4 border-l-emerald-500 hover:shadow-md transition">
+        <div class="flex justify-between items-start mb-2">
+            <h3 class="text-lg md:text-xl font-bold text-[#0a2342]" data-lang="event2-date">
+              30.11.2025 — Танхимын хичээл
+            </h3>
+            <span class="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-1 rounded uppercase">Präsenz</span>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mt-4">
+            <div>
+                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-class">Анги</span>
+                <span class="font-medium" data-lang="event2-class">Бага, Дунд, Ахлах</span>
+            </div>
+            <div>
+                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-teacher">Багш нар</span>
+                <span class="font-medium">O. Tungalag, Ariunaa</span>
+            </div>
+            <div>
+                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-subject">Хичээл</span>
+                <span class="font-medium" data-lang="event2-subject">Монгол хэл, бүжиг, хөгжим</span>
+            </div>
+            <div>
+                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-location">Байршил</span>
+                <span class="font-medium">Erlangen</span>
+            </div>
+        </div>
       </div>
 
     </div>
@@ -45,55 +98,74 @@
   </div>
 </section>
 
+<footer class="text-center py-8 text-xs text-gray-400 border-t mt-12">
+    &copy; 2025 Erdem Schule e.V.
+</footer>
+
+<script>
+    const translations = {
+        mn: {
+            "home": "Нүүр",
+            "schedule-title": "Хичээлийн календарь",
+            "schedule-subtitle": "2025 оны 11, 12-р сарын хуваарь",
+            "event1-date": "29.11.2025 — Онлайн хичээл",
+            "event1-class": "Дунд, Ахлах",
+            "event1-subject": "Монгол хэл",
+            "event2-date": "30.11.2025 — Танхимын хичээл",
+            "event2-class": "Бага, Дунд, Ахлах",
+            "event2-subject": "Монгол хэл, бүжиг, хөгжим",
+            "label-class": "Анги",
+            "label-teacher": "Багш",
+            "label-subject": "Хичээл",
+            "label-location": "Байршил"
+        },
+        de: {
+            "home": "Startseite",
+            "schedule-title": "Unterrichtskalender",
+            "schedule-subtitle": "Zeitplan für November & Dezember 2025",
+            "event1-date": "29.11.2025 — Online-Unterricht",
+            "event1-class": "Mittel- & Oberstufe",
+            "event1-subject": "Mongolische Sprache",
+            "event2-date": "30.11.2025 — Präsenzunterricht",
+            "event2-class": "Alle Klassen (1-5)",
+            "event2-subject": "Sprache, Tanz, Musik",
+            "label-class": "Klasse",
+            "label-teacher": "Lehrer",
+            "label-subject": "Fach",
+            "label-location": "Ort"
+        }
+    };
+
+    function changeLang(lang) {
+        // Text солих
+        document.querySelectorAll('[data-lang]').forEach(el => {
+            const key = el.getAttribute('data-lang');
+            if (translations[lang][key]) {
+                el.innerText = translations[lang][key];
+            }
+        });
+        
+        // Товчлуурын текст шинэчлэх
+        const btn = document.getElementById('langBtn');
+        btn.innerText = lang === 'mn' ? 'DE' : 'MN';
+        
+        // localStorage-д хадгалах
+        localStorage.setItem('erdemLang', lang);
+    }
+
+    // Товчлуур дээр дарах үед
+    document.getElementById('langBtn').onclick = () => {
+        const current = localStorage.getItem('erdemLang') || 'mn';
+        const next = current === 'mn' ? 'de' : 'mn';
+        changeLang(next);
+    };
+
+    // Хуудас ачаалах үед
+    window.onload = () => {
+        const saved = localStorage.getItem('erdemLang') || 'mn';
+        changeLang(saved);
+    };
+</script>
+
 </body>
 </html>
-=======
-<!DOCTYPE html>
-<html lang="mn">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Хичээлийн хуваарь – Эрдэм Монгол сургууль</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gray-50">
-
-<section class="py-16 bg-gray-50">
-  <div class="max-w-6xl mx-auto px-4">
-
-    <h2 class="text-4xl font-bold text-gray-900 mb-8">
-      Хичээлийн календарь
-    </h2>
-
-    <div class="grid md:grid-cols-2 gap-8">
-
-      <!-- ONLINE 29 Nov -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-indigo-500">
-        <h3 class="text-xl font-semibold text-gray-900">
-          29.11.2025 — Онлайн хичээл
-        </h3>
-        <p class="text-gray-700 mt-3"><strong>Анги:</strong> Дунд, Ахлах</p>
-        <p class="text-gray-700"><strong>Багш:</strong> С.Чинзориг</p>
-        <p class="text-gray-700"><strong>Хичээл:</strong> Монгол хэл</p>
-      </div>
-
-      <!-- IN-PERSON 30 Nov -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-        <h3 class="text-xl font-semibold text-gray-900">
-          30.11.2025 — Танхимын хичээл
-        </h3>
-        <p class="text-gray-700 mt-3"><strong>Анги:</strong> Бага, Дунд, Ахлах</p>
-        <p class="text-gray-700"><strong>Багш нар:</strong> О.Тунгалаг, Ариунаа</p>
-        <p class="text-gray-700"><strong>Хичээл:</strong> Монгол хэл, Монгол бүжиг, Монгол хөгжим</p>
-        <p class="text-gray-700"><strong>Байршил:</strong> Эрланген</p>
-      </div>
-
-    </div>
-
-  </div>
-</section>
-
-</body>
-</html>
->>>>>>> 52ac5a9e2af749c4d4e4227be1c116f85360d140

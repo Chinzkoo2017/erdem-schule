@@ -35,11 +35,9 @@
 
 <body class="font-sans text-gray-800 bg-white antialiased overflow-x-hidden w-full">
 
-<!-- HEADER -->
 <header class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur shadow z-50 transition-all duration-300">
   <div class="w-full max-w-7xl mx-auto px-4 flex items-center justify-between h-20 gap-4">
 
-    <!-- ЛОГО -->
     <a href="#hero" class="flex items-center gap-3 group shrink-0">
       <img src="images/logo.jpg" alt="Logo"
            class="w-12 h-12 rounded-full shadow border border-gray-100 group-hover:scale-105 transition-transform" />
@@ -55,14 +53,12 @@
       </div>
     </a>
 
-    <!-- МЕНЮ -->
     <nav id="navLinks"
          class="hidden md:flex md:static md:bg-transparent md:shadow-none
                 md:flex-row md:items-center md:gap-6 md:flex-nowrap
                 absolute top-20 left-0 right-0 bg-white shadow-md
                 flex-col gap-4 px-6 py-6 border-t md:border-t-0">
 
-      <!-- Линкүүд -->
       <div class="flex flex-col md:flex-row md:items-center md:gap-6 gap-4">
         <a href="#about" data-lang="about"
            class="text-gray-700 hover:text-primary font-medium transition text-sm">
@@ -82,7 +78,6 @@
         </a>
       </div>
 
-      <!-- Хэл солигч -->
       <div class="flex items-center gap-3 md:ml-4 pt-4 border-t md:pt-0 md:border-t-0 md:border-l md:pl-4 border-gray-200">
         <button class="lang-btn text-xs font-bold text-primary underline underline-offset-4"
                 onclick="changeLang('mn')">MN</button>
@@ -90,7 +85,6 @@
                 onclick="changeLang('de')">DE</button>
       </div>
 
-      <!-- CTA товч -->
       <a href="classroom.html"
          class="mt-2 md:mt-0 bg-gold text-white px-4 py-2 rounded-full
                 font-bold shadow hover:bg-[#b08b50] transition-all
@@ -100,7 +94,6 @@
       </a>
     </nav>
 
-    <!-- Mobile menu button -->
     <button onclick="toggleNav()" class="md:hidden text-primary text-2xl p-2">
       <i class="fa-solid fa-bars"></i>
     </button>
@@ -108,32 +101,28 @@
 </header>
 
 
-<!-- HERO -->
 <section id="hero" class="relative w-full bg-primary text-white pt-28 pb-16 md:pt-28 md:pb-20 overflow-hidden scroll-mt-24">
   <div class="absolute inset-0 bg-gradient-to-br from-primary/95 to-primarySoft/90 z-0"></div>
 
   <div class="relative z-10 w-full max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-start">
-    <!-- LEFT -->
     <div class="w-full">
-      <!-- Hero tagline pill -->
       <div class="inline-block border border-white/20 bg-white/5 rounded-full px-3 py-1 mb-4">
         <span
           class="uppercase tracking-[0.25em] text-gold text-xs"
           data-lang="hero-tagline"
         >
-          ЭХ ХЭЛ • СОЁЛ • ЭРДЭМ
+          🎄 ШИНЭ ЖИЛ • ЭХ ХЭЛ • СОЁЛ
         </span>
       </div>
 
-      <!-- Title -->
       <h1
         class="text-3xl md:text-4xl lg:text-5xl font-serif font-bold leading-tight mb-6 drop-shadow-md"
         data-lang="hero-title"
       >
+        <span class="text-red-400 drop-shadow-lg font-serif italic whitespace-nowrap text-2xl md:text-4xl">🎄 Шинэ жилийн мэнд!</span><br />
         Нюрнберг дэх <br />Монгол Сургууль
       </h1>
 
-      <!-- Description -->
       <p
         class="text-gray-200 mb-8 text-sm md:text-base max-w-lg font-light leading-relaxed"
         data-lang="hero-desc"
@@ -142,7 +131,6 @@
       </p>
     </div>
 
-    <!-- RIGHT CARD (2-р багана) -->
     <aside class="w-full bg-[#0e2a4e]/80 border border-white/10 p-6 rounded-2xl shadow-soft backdrop-blur-md text-sm mt-6 md:mt-0 relative">
       <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
         <h2 class="text-base font-serif text-white" data-lang="hero-card-title">2025 / 2026 оны хичээлийн жил</h2>
@@ -163,7 +151,7 @@
         </li>
       </ul>
       <div class="border-t border-white/10 mt-5 pt-3 text-[10px] md:text-xs text-gray-400 flex justify-between items-center font-medium">
-        <span data-lang="hero-card-time">⏱ Бямба &amp; Ням — 2–3 цаг</span>
+        <span data-lang="hero-card-time">⏱ Бямба & Ням — 2–3 цаг</span>
         <a href="https://www.facebook.com/erdemschule" target="_blank" class="text-gold hover:text-white transition-colors flex items-center gap-1.5">
           <i class="fa-brands fa-facebook-f"></i> Facebook
         </a>
@@ -173,7 +161,6 @@
 </section>
 
 
-<!-- ABOUT -->
 <section id="about" class="py-24 bg-white relative scroll-mt-24">
   <div class="w-full max-w-6xl mx-auto px-6">
     <div class="text-center max-w-2xl mx-auto mb-16">
@@ -224,7 +211,6 @@
   </div>
 </section>
 
-<!-- PROGRAM -->
 <section id="program" class="py-24 bg-[#f8f9fb] relative scroll-mt-24">
   <div class="w-full max-w-6xl mx-auto px-6">
     <div class="text-center max-w-2xl mx-auto mb-16">
@@ -247,7 +233,7 @@
         <div class="w-14 h-14 rounded-2xl bg-goldSoft/50 flex items-center justify-center mb-6 group-hover:bg-gold group-hover:text-white transition-colors">
           <i class="fa-solid fa-palette text-primary text-xl group-hover:text-white"></i>
         </div>
-        <h3 class="font-serif font-bold text-primary mb-3 text-lg md:text-xl" data-lang="card2-title">Өв Соёл &amp; Урлаг</h3>
+        <h3 class="font-serif font-bold text-primary mb-3 text-lg md:text-xl" data-lang="card2-title">Өв Соёл & Урлаг</h3>
         <p class="text-sm text-gray-600 leading-relaxed" data-lang="card2-desc">Монгол ардын бүжиг, дуу хөгжим, уран зураг болон гар урлалын хичээлүүд.</p>
       </article>
 
@@ -262,16 +248,13 @@
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer class="bg-primary text-white pt-16 pb-8 mt-10">
   <div class="w-full max-w-6xl mx-auto px-6">
     <div class="grid md:grid-cols-3 gap-12 mb-12">
-      <!-- LEFT: logo, slogan, legal -->
       <div>
         <div class="font-serif text-2xl font-bold mb-4">Erdem Schule</div>
         <p class="text-gray-400 text-sm leading-relaxed max-w-xs" data-lang="footer-slogan">Бидний ирээдүй – Монгол хүүхдүүд.</p>
 
-        <!-- Legal links -->
         <div class="mt-4 flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
           <a href="impressum.html" class="hover:text-white transition-colors">Impressum</a>
           <span class="opacity-40">•</span>
@@ -279,7 +262,6 @@
         </div>
       </div>
 
-      <!-- MIDDLE: nav links -->
       <div>
         <h4 class="font-bold uppercase tracking-wider text-xs text-gold mb-6" data-lang="footer-links">Холбоос</h4>
         <ul class="space-y-3 text-sm text-gray-300">
@@ -291,7 +273,6 @@
         </ul>
       </div>
 
-      <!-- RIGHT: contact + map -->
       <div>
         <h4 class="font-bold uppercase tracking-wider text-xs text-gold mb-6" data-lang="contact">Холбоо барих</h4>
         <ul class="space-y-4 text-sm text-gray-300 mb-4">
@@ -305,7 +286,6 @@
           </li>
         </ul>
 
-        <!-- Google Maps embed -->
         <div>
           <div class="text-xs text-gray-400 mb-2">Standort</div>
           <div class="w-full h-48 md:h-56 rounded-lg overflow-hidden border border-white/20">
@@ -325,7 +305,7 @@
     </div>
 
     <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-      <span data-lang="copyright">&copy; 2024 Erdem Schule e.V. Бүх эрх хуулиар хамгаалагдсан.</span>
+      <span data-lang="copyright">© 2024 Erdem Schule e.V. Бүх эрх хуулиар хамгаалагдсан.</span>
       <a href="https://www.facebook.com/erdemschule" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-full border border-white/20 text-gray-400 hover:bg-white hover:text-primary transition-all">
         <i class="fa-brands fa-facebook-f"></i>
       </a>
@@ -333,9 +313,47 @@
   </div>
 </footer>
 
-<!-- SCRIPTS -->
+<style>
+  .snowflake {
+    position: fixed;
+    top: -20px;
+    color: white;
+    font-size: 1.2em;
+    font-family: Arial, sans-serif;
+    text-shadow: 0 0 5px rgba(255,255,255,0.8);
+    user-select: none;
+    z-index: 9999;
+    pointer-events: none;
+    animation-name: fall;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(105vh) rotate(360deg); }
+  }
+</style>
 <script>
-  const translations = {
+  function createSnowflake() {
+    const snow = document.createElement('div');
+    snow.classList.add('snowflake');
+    snow.textContent = Math.random() > 0.5 ? '❄' : '❅'; // Хоёр төрлийн цас
+    
+    // Random байршил, хэмжээ, хурд
+    snow.style.left = Math.random() * 100 + 'vw';
+    snow.style.fontSize = (Math.random() * 15 + 10) + 'px';
+    const duration = Math.random() * 5 + 5; // 5-10 секунд
+    snow.style.animationDuration = duration + 's';
+    snow.style.opacity = Math.random() * 0.6 + 0.2;
+
+    document.body.appendChild(snow);
+    setTimeout(() => { snow.remove(); }, duration * 1000);
+  }
+  // Цас орох давтамж
+  setInterval(createSnowflake, 300);
+</script>
+
+<script>
+const translations = {
     mn: {
       about: 'Бидний тухай',
       program: 'Хөтөлбөр',
@@ -343,9 +361,13 @@
       login: 'Сурагч нэвтрэх',
       'nav-schedule': 'Хичээлийн хуваарь',
       "logo-title": "Эрдэм Сургууль",
-      "logo-subtitle": "Нюрнберг дэхь Монгол Сургууль",
-      "hero-tagline": "ЭХ ХЭЛ • СОЁЛ • ЭРДЭМ",
-      'hero-title': 'Нюрнберг дэх<br>Монгол Сургууль',
+      "logo-subtitle": "Нюрнберг дэх Монгол Сургууль",
+      
+      "hero-tagline": "🎄 ШИНЭ ЖИЛ • ЭХ ХЭЛ • СОЁЛ",
+      
+      // ӨӨРЧЛӨЛТ: whitespace-nowrap болон text-2xl/3xl ашиглан жижигрүүлж 1 мөр болгов
+      'hero-title': '<span class="text-red-400 drop-shadow-lg font-serif italic whitespace-nowrap text-2xl md:text-4xl">🎄 Шинэ жилийн мэнд!</span><br>Нюрнберг дэх<br>Монгол Сургууль',
+      
       'hero-desc': 'Герман улсад амьдарч буй монгол хүүхдүүдэд эх хэл, өв соёлыг өвлүүлэн үлдээх зорилготой.',
       'hero-btn': 'Цахим ангид нэвтрэх',
       'hero-about-btn': 'Сургуулийн тухай',
@@ -385,7 +407,7 @@
       'footer-links': 'Холбоос',
       home: 'Нүүр хуудас',
       contact: 'Холбоо барих',
-      copyright: '&copy; 2024 Erdem Schule e.V. Бүх эрх хуулиар хамгаалагдсан.'
+      copyright: '© 2024 Erdem Schule e.V. Бүх эрх хуулиар хамгаалагдсан.'
     },
     de: {
       about: 'Über uns',
@@ -395,8 +417,12 @@
       'nav-schedule': 'Stundenplan',
       "logo-title": "Erdem Schule",
       "logo-subtitle": "Mongolische Schule Nürnberg",
-      "hero-tagline": "MUTTERSPRACHE • KULTUR • WISSEN",
-      'hero-title': 'Mongolische Schule<br>in Nürnberg',
+      
+      "hero-tagline": "🎄 WEIHNACHTEN • MUTTERSPRACHE • KULTUR",
+      
+      // ӨӨРЧЛӨЛТ: Герман үг урт тул text-xl ашиглаж гар утас дээр багтаав
+      'hero-title': '<span class="text-red-400 drop-shadow-lg font-serif italic whitespace-nowrap text-xl md:text-3xl">🎄 Fröhliche Weihnachten!</span><br>Mongolische Schule<br>in Nürnberg',
+      
       'hero-desc': 'Unser Ziel ist es, mongolischen Kindern in Deutschland ihre Muttersprache, Kultur und Traditionen zu vermitteln.',
       'hero-btn': 'Zum Online-Klassenzimmer',
       'hero-about-btn': 'Über die Schule',
@@ -436,7 +462,7 @@
       'footer-links': 'Links',
       home: 'Startseite',
       contact: 'Kontakt',
-      copyright: '&copy; 2024 Erdem Schule e.V. Alle Rechte vorbehalten.'
+      copyright: '© 2024 Erdem Schule e.V. Alle Rechte vorbehalten.'
     }
   };
 
@@ -445,6 +471,7 @@
     elements.forEach((el) => {
       const key = el.getAttribute('data-lang');
       if (translations[lang][key]) {
+        // innerHTML ашиглаж байгаа тул span болон br тагууд ажиллана
         el.innerHTML = translations[lang][key];
       }
     });

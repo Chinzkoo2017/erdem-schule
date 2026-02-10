@@ -22,16 +22,6 @@
       animation-name: fall; animation-timing-function: linear; animation-iteration-count: infinite;
       z-index: 1;
     }
-    
-    /* Төлөвүүд */
-    .day-locked { cursor: not-allowed; opacity: 0.6; filter: grayscale(100%); }
-    .day-active { animation: pulse-border 2s infinite; border-color: #fca5a5; }
-    
-    @keyframes pulse-border {
-      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
   </style>
 </head>
 
@@ -50,61 +40,45 @@
       <a href="index.html" id="nav_home" class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
       <a href="#" id="nav_gallery" class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
       <a href="#" id="nav_news" class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
-      <a href="#" id="nav_schedule" class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
+      <a href="schedule.html" id="nav_schedule" class="hidden sm:inline-block text-slate-300 hover:text-emerald-400 transition"></a>
       <span id="nav_student_login" class="hidden sm:inline-flex items-center rounded-full border border-emerald-500/60 px-3 py-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10"></span>
-      <a href="https://classroom.google.com" id="btn_google_classroom" class="inline-flex items-center justify-center rounded-full bg-emerald-500 text-slate-950 text-xs sm:text-sm font-semibold px-4 py-2 shadow-lg hover:bg-emerald-400 transition"></a>
+      <a href="https://classroom.google.com" target="_blank" id="btn_google_classroom" class="inline-flex items-center justify-center rounded-full bg-emerald-500 text-slate-950 text-xs sm:text-sm font-semibold px-4 py-2 shadow-lg hover:bg-emerald-400 transition"></a>
       <button id="langToggle" class="ml-2 px-3 py-1 rounded-full border border-slate-600 text-xs hover:bg-slate-700 transition font-bold">DE</button>
     </nav>
   </div>
 </header>
 
-<main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+<main class="max-w-6xl mx-auto px-4 py-8 space-y-8 relative overflow-hidden">
 
-  <div class="text-xs text-slate-400 flex items-center gap-2">
+  <div class="text-xs text-slate-400 flex items-center gap-2 relative z-20">
     <a href="index.html" class="hover:text-emerald-400" id="breadcrumb_home"></a>
     <span>/</span>
     <span class="text-slate-200" id="breadcrumb_current"></span>
   </div>
 
-  <section class="mb-10 relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-900 via-slate-900 to-slate-950 p-6 shadow-2xl border border-red-500/30">
-    <div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-30" id="snow-container"></div>
+  <section class="mb-10 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0a2342] via-slate-900 to-[#102f60] p-6 sm:p-10 shadow-2xl border border-[#c59d5f]/30 flex flex-col md:flex-row items-center justify-between gap-8 z-20">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-[#c59d5f] opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" id="snow-container"></div>
   
-    <div class="relative z-10 text-center mb-8">
-      <span id="xmas_badge" class="inline-block py-1 px-3 rounded-full bg-red-600/20 text-red-300 text-xs font-bold tracking-widest border border-red-500 mb-2">
-        🎄 MERRY CHRISTMAS
+    <div class="relative z-10 md:w-2/3 text-center md:text-left">
+      <span id="tsagaan_sar_badge" class="inline-block py-1 px-3 rounded-full bg-[#c59d5f]/20 text-[#f5e4c7] text-xs font-bold tracking-widest border border-[#c59d5f]/50 mb-4 shadow-sm">
+        🌙 ЦАГААН САР
       </span>
-      <h2 id="xmas_title" class="font-fredoka text-3xl md:text-5xl text-white mb-2 drop-shadow-lg">
-        Адвент Календарь
+      <h2 id="tsagaan_sar_title" class="font-fredoka text-3xl md:text-5xl text-white mb-3 drop-shadow-lg">
+        Гал морь жилийн мэнд!
       </h2>
-      <p id="xmas_desc" class="text-slate-300 text-sm md:text-base max-w-2xl mx-auto">
-        Өдөр бүр нэг цонх нээж, гэнэтийн бэлгээ аваарай! (12-р сарын 1-24)
+      <p id="tsagaan_sar_desc" class="text-slate-300 text-sm md:text-base max-w-2xl leading-relaxed">
+        Монгол түмний уламжлалт сар шинийн баярыг тохиолдуулан нийт сурагчид, эцэг эхчүүддээ сайн сайхан бүхнийг хүсэн ерөөе!
       </p>
     </div>
   
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-5xl mx-auto relative z-10" id="advent-grid">
-    </div>
-  
-    <div id="gift-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-3xl p-6 md:p-10 max-w-2xl w-full text-center relative overflow-hidden shadow-2xl transform transition-all scale-100 border-4 border-red-100">
-        
-        <button onclick="closeGift()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition text-2xl z-50">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <div class="mb-4 text-6xl animate-bounce">🎁</div>
-        <h3 class="font-fredoka text-2xl text-red-600 mb-4" id="modal-date-title">Day X</h3>
-        
-        <div class="text-slate-700 text-lg leading-relaxed mb-6 max-h-[60vh] overflow-y-auto flex flex-col items-center justify-center" id="modal-content">
-          </div>
-
-        <button id="modal_btn_close" onclick="closeGift()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-8 rounded-full transition shadow-lg">
-          Хаах
-        </button>
-      </div>
+    <div class="relative z-10 flex gap-4 w-full md:w-auto justify-center">
+      <img src="images/girl1.png" alt="Цагаан сар" class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover shadow-lg border-2 border-[#c59d5f] bg-[#c59d5f]/10">
+      <img src="images/boy1.png" alt="Цагаан сар" class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl object-cover shadow-lg border-2 border-[#c59d5f] bg-[#c59d5f]/10 translate-y-4">
     </div>
   </section>
 
-  <section class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+  <section class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 relative z-20">
     <div>
       <p class="text-[11px] uppercase tracking-[0.25em] text-emerald-400 mb-1" id="year_text"></p>
       <h1 class="font-fredoka text-3xl md:text-4xl mb-1" id="page_title"></h1>
@@ -116,7 +90,8 @@
     </div>
   </section>
 
-  <section class="grid lg:grid-cols-3 gap-6">
+  <section class="grid lg:grid-cols-3 gap-6 relative z-20">
+    
     <div class="lg:col-span-2 space-y-3">
       <div class="flex items-center gap-2 text-xs font-semibold text-emerald-300">
         <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
@@ -160,34 +135,6 @@
 </main>
 
 <script>
-  // ================= DATA: ADVENT GIFTS =================
-  const adventGifts = [
-    { day: 1, type: 'text', content: { mn: "❄️ Эхний өдрийн мэнд! Өнөөдөр ангийнхаа найздаа урмын үг хэлээрэй.", de: "❄️ Willkommen! Mache heute einem Klassenkameraden ein Kompliment." } },
-    { day: 2, type: 'video', url: "dQw4w9WgXcQ", content: { mn: "Сургуулийн захирлын мэндчилгээ", de: "Grußwort des Schulleiters" } },
-    { day: 3, type: 'text', content: { mn: "🧩 Оньсого: Гаргүй хөлтэй мөртлөө, Цонх хаалга тогшдог тэр юу вэ? (Хариу: Салхи)", de: "🧩 Rätsel: Was hat keine Hände und Füße, klopft aber an Fenster und Türen? (Der Wind)" } },
-    { day: 4, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Монгол хэлний багшийн мэндчилгээ", de: "Grußwort des Mongolischlehrers" } },
-    { day: 5, type: 'text', content: { mn: "📜 Зүйр цэцэн үг: Эрдэмтэй хүн даруу, Их мөрөн дөлгөөн.", de: "📜 Sprichwort: Ein gebildeter Mensch ist bescheiden, wie ein großer Fluss ruhig ist." } },
-    { day: 6, type: 'image', url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcDdtY3J6Ynd4Ynd4Ynd4/3o6fJdYXew7C8qbMLC/giphy.gif", content: { mn: "🎅 Гэгээн Николаусын баярын мэнд!", de: "🎅 Alles Gute zum Nikolaustag!" } },
-    { day: 7, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Дуу хөгжмийн багшийн мэндчилгээ", de: "Grußwort des Musiklehrers" } },
-    { day: 8, type: 'text', content: { mn: "🧐 Сонирхолтой баримт: Цасан ширхэг бүр дахин давтагдашгүй хэлбэртэй байдаг.", de: "🧐 Fun Fact: Jede Schneeflocke hat eine einzigartige Form." } },
-    { day: 9, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Бага ангийн багшийн мэндчилгээ", de: "Grußwort des Grundschullehrers" } },
-    { day: 10, type: 'text', content: { mn: "🎨 Даалгавар: Өнөөдөр цаасаар цасан ширхэг хайчилж цонхоо чимэглээрэй!", de: "🎨 Aufgabe: Schneide heute Schneeflocken aus Papier und dekoriere dein Fenster!" } },
-    { day: 11, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Монгол бүжгийн багшийн мэндчилгээ", de: "Grußwort des Tanzlehrers" } },
-    { day: 12, type: 'image', url: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80", content: { mn: "🐴 Монгол өв соёл: Өвлийн идэш бэлтгэх уламжлал.", de: "🐴 Mongolische Kultur: Tradition der Wintervorräte." } },
-    { day: 13, type: 'text', content: { mn: "🎶 Дуу сурцгаая: 'Цасан, цасан, цасан охин...'", de: "🎶 Lass uns ein Lied lernen: 'Schneeflöckchen, Weißröckchen...'" } },
-    { day: 14, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Ахлах ангийн багшийн мэндчилгээ", de: "Grußwort des Oberstufenlehrers" } },
-    { day: 15, type: 'text', content: { mn: "🧩 Оньсого: Цагаан хөнжилдөө, ногоон дээлтэй. Тэр юу вэ? (Гацуур мод)", de: "🧩 Rätsel: Grüner Mantel im weißen Bett. Was ist das? (Der Tannenbaum)" } },
-    { day: 16, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Эцэг эхийн зөвлөлийн мэндчилгээ", de: "Grußwort des Elternbeirats" } },
-    { day: 17, type: 'image', url: "https://images.unsplash.com/photo-1482517967863-00e15c9b4499?auto=format&fit=crop&w=600&q=80", content: { mn: "🍪 Өнөөдөр ээжтэйгээ хамт жигнэмэг хийгээрэй!", de: "🍪 Backe heute Plätzchen mit deiner Mama!" } },
-    { day: 18, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Түүхийн багшийн мэндчилгээ", de: "Grußwort des Geschichtslehrers" } },
-    { day: 19, type: 'text', content: { mn: "💡 Мэдлэг: Монголд өвлийн хамгийн хүйтэн үеийг 'Ес эхлэх' гэж нэрлэдэг.", de: "💡 Wissen: Die kälteste Zeit im mongolischen Winter nennt man die 'Neun Neun'." } },
-    { day: 20, type: 'text', content: { mn: "✍️ Даалгавар: Өвлийн өвөөд захидал бичээрэй!", de: "✍️ Aufgabe: Schreibe einen Brief an den Weihnachtsmann!" } },
-    { day: 21, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Сургуулийн ажилтны мэндчилгээ", de: "Grußwort der Schulmitarbeiter" } },
-    { day: 22, type: 'text', content: { mn: "❤️ Сайхан сэтгэл: Өнөөдөр хэн нэгэнд туслаарай.", de: "❤️ Gute Tat: Hilf heute jemandem." } },
-    { day: 23, type: 'video', url: "VIDEO_ID_HERE", content: { mn: "Багш нарын хамтарсан мэндчилгээ!", de: "Gemeinsamer Gruß der Lehrer!" } },
-    { day: 24, type: 'image', url: "https://media.giphy.com/media/zhh9ivpOs0vtKc3Q0i/giphy.gif", content: { mn: "🎄 ЗУЛ САРЫН БАЯРЫН МЭНД! 🎁<br>Эрдэм сургуулийн хамт олноос.", de: "🎄 FROHE WEIHNACHTEN! 🎁<br>Vom Team der Erdem Schule." } }
-  ];
-
   // ================= TRANSLATIONS =================
   const words = {
     mn: {
@@ -226,12 +173,10 @@
       next_btn: "Хичээлийн өрөө нээх",
       next_note: "* Zoom / Meet линк энд холбогдоно.",
       
-      // Advent specific
-      xmas_badge: "🎄 ШИНЭ ЖИЛ",
-      xmas_title: "Адвент Календарь",
-      xmas_desc: "Өдөр бүр нэг цонх нээж, гэнэтийн бэлгээ аваарай! (12-р сарын 1-24)",
-      modal_btn_close: "Хаах",
-      day_prefix: "Өдөр"
+      // Tsagaan Sar
+      tsagaan_sar_badge: "🌙 ЦАГААН САР 2026",
+      tsagaan_sar_title: "Гал морь жилийн мэнд!",
+      tsagaan_sar_desc: "Монгол түмний уламжлалт сар шинийн баярыг тохиолдуулан нийт сурагчид, эцэг эхчүүддээ сайн сайхан бүхнийг хүсэн ерөөе! Амар байна уу?"
     },
     de: {
       nav_title: "ERDEM SCHULE",
@@ -269,132 +214,20 @@
       next_btn: "Online-Klasse öffnen",
       next_note: "* Zoom / Meet Link befindet sich hier.",
 
-      // Advent specific
-      xmas_badge: "🎄 WEIHNACHTEN",
-      xmas_title: "Adventskalender",
-      xmas_desc: "Öffnen Sie jeden Tag ein Fenster und erhalten Sie eine Überraschung! (1.-24. Dez)",
-      modal_btn_close: "Schließen",
-      day_prefix: "Tag"
+      // Tsagaan Sar
+      tsagaan_sar_badge: "🌙 TSAGAAN SAR 2026",
+      tsagaan_sar_title: "Jahr des Feuer-Pferdes!",
+      tsagaan_sar_desc: "Wir wünschen allen Schülern und Eltern ein frohes mongolisches Neujahrsfest (Tsagaan Sar)! Frieden und Wohlstand für das kommende Jahr!"
     }
   };
 
   let current = localStorage.getItem('erdemLang') || 'mn';
 
-  // ================= LOGIC =================
-  
-  // !!! АНХААР: Хэрэв туршихыг хүсвэл TRUE, 
-  // Жинхэнэ цагаар ажиллуулах бол FALSE болгоно уу !!!
-  const isDevMode = false; 
-
-  function initAdvent() {
-    const grid = document.getElementById("advent-grid");
-    grid.innerHTML = "";
-
-    const today = new Date();
-    const currentMonth = today.getMonth(); // 0-11
-    const currentDay = today.getDate();
-
-    for (let i = 1; i <= 24; i++) {
-      const dayBox = document.createElement("div");
-      let status = "locked"; 
-      
-      if (isDevMode) {
-        status = "past"; // Dev mode: бүгд нээлттэй
-      } else {
-        if (currentMonth === 11) { // 12-р сар
-          if (i < currentDay) status = "past";
-          else if (i === currentDay) status = "today";
-          else status = "locked";
-        } else {
-           status = "locked";
-        }
-      }
-
-      let baseClass = "relative aspect-square rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 shadow-lg border-2 select-none group ";
-      
-      if (status === "locked") {
-        dayBox.className = baseClass + "bg-slate-800 border-slate-700 day-locked";
-        dayBox.innerHTML = `
-          <div class="text-slate-500 font-fredoka text-xl z-10">${i}</div>
-          <i class="fa-solid fa-lock text-slate-600 text-xs mt-1"></i>
-        `;
-      } 
-      else if (status === "today") {
-        dayBox.className = baseClass + "bg-red-600 border-red-400 day-active hover:scale-105 hover:bg-red-500 text-white";
-        dayBox.innerHTML = `
-          <div class="font-fredoka text-3xl font-bold drop-shadow-md z-10">${i}</div>
-          <div class="text-[10px] uppercase font-bold mt-1 tracking-wider text-red-100">Today</div>
-          <div class="absolute inset-0 bg-white/10 rounded-2xl animate-pulse"></div>
-        `;
-        dayBox.onclick = () => openModal(i);
-      } 
-      else { 
-        dayBox.className = baseClass + "bg-emerald-700/80 border-emerald-500/50 hover:bg-emerald-600 text-emerald-100";
-        dayBox.innerHTML = `
-          <div class="font-fredoka text-2xl z-10">${i}</div>
-          <i class="fa-solid fa-check text-emerald-300/50 text-xs mt-1"></i>
-        `;
-        dayBox.onclick = () => openModal(i);
-      }
-
-      grid.appendChild(dayBox);
-    }
-  }
-
-  function openModal(day) {
-    const modal = document.getElementById("gift-modal");
-    const title = document.getElementById("modal-date-title");
-    const contentBox = document.getElementById("modal-content");
-    const w = words[current];
-
-    // Data from array
-    const gift = adventGifts.find(g => g.day === day);
-    
-    // Title
-    title.textContent = `${w.day_prefix} ${day}`;
-    
-    // Content Generation
-    if (!gift) {
-      contentBox.innerHTML = "<p>Агуулга олдсонгүй.</p>";
-    } else {
-      const text = gift.content[current]; // MN or DE text
-      let html = "";
-
-      // Handle Types
-      if (gift.type === 'video') {
-        // Simple YouTube Embed
-        html += `
-          <div class="aspect-video w-full rounded-xl overflow-hidden shadow-lg mb-4 border border-slate-200">
-            <iframe src="https://www.youtube.com/embed/${gift.url}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-          </div>
-        `;
-      } else if (gift.type === 'image') {
-        html += `
-          <img src="${gift.url}" alt="Gift" class="rounded-xl shadow-lg max-h-60 object-cover mb-4 border border-slate-200">
-        `;
-      }
-
-      // Add Text
-      html += `<p class="font-medium text-slate-800">${text}</p>`;
-      
-      contentBox.innerHTML = html;
-    }
-
-    modal.classList.remove("hidden");
-  }
-
-  function closeGift() {
-    document.getElementById("gift-modal").classList.add("hidden");
-    // Stop video when closing (simple way: clear content)
-    document.getElementById("modal-content").innerHTML = "";
-  }
-
   // ================= GENERAL UI =================
-
   function applyLang() {
     const w = words[current];
 
-    // Static Texts
+    // Nav & Texts
     document.getElementById("nav_title").textContent = w.nav_title;
     document.getElementById("nav_subtitle").textContent = w.nav_subtitle;
     document.getElementById("nav_home").textContent = w.nav_home;
@@ -412,25 +245,25 @@
     document.getElementById("padlet_title").textContent = w.padlet_title;
     document.getElementById("padlet_header").textContent = w.padlet_header;
     document.getElementById("padlet_desc").textContent = w.padlet_desc;
+    
     document.getElementById("login_title").textContent = w.login_title;
     document.getElementById("login_steps").innerHTML = w.login_steps.map(s => `<li>${s}</li>`).join("");
+    
     document.getElementById("tasks_title").textContent = w.tasks_title;
     document.getElementById("tasks_list").innerHTML = w.tasks_list.map(s => `<li>${s}</li>`).join("");
+    
     document.getElementById("next_title").textContent = w.next_title;
     document.getElementById("next_info").textContent = w.next_info;
     document.getElementById("next_btn").textContent = w.next_btn;
     document.getElementById("next_note").textContent = w.next_note;
 
-    // Advent Texts
-    document.getElementById("xmas_badge").textContent = w.xmas_badge;
-    document.getElementById("xmas_title").textContent = w.xmas_title;
-    document.getElementById("xmas_desc").textContent = w.xmas_desc;
-    document.getElementById("modal_btn_close").textContent = w.modal_btn_close;
+    // Tsagaan Sar Texts
+    document.getElementById("tsagaan_sar_badge").textContent = w.tsagaan_sar_badge;
+    document.getElementById("tsagaan_sar_title").textContent = w.tsagaan_sar_title;
+    document.getElementById("tsagaan_sar_desc").textContent = w.tsagaan_sar_desc;
 
+    // Button Toggle
     document.getElementById("langToggle").textContent = current === "mn" ? "DE" : "MN";
-
-    // Refresh grid to reflect language? (Mainly relevant if we put text inside grid boxes, but here numbers only)
-    initAdvent();
   }
 
   document.getElementById("langToggle").onclick = () => {
@@ -460,8 +293,6 @@
     applyLang();
   }
 </script>
-
-
 
 </body>
 </html>

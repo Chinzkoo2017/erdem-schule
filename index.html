@@ -27,6 +27,25 @@
       },
     };
   </script>
+
+  <style>
+  /* Дээш доош хөвөх хөдөлгөөн */
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); } /* 15px дээшлэх */
+    100% { transform: translateY(0px); }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite; /* 4 секундэд нэг удаа */
+  }
+
+  /* Хоёр дахь зурагт зориулсан удаашралтай хөдөлгөөн */
+  .animate-float-delay {
+    animation: float 4s ease-in-out infinite;
+    animation-delay: 2s; /* 2 секундын дараа эхэлнэ */
+  }
+  </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 </head>
 
@@ -97,10 +116,19 @@
 <section class="py-16 bg-white overflow-hidden scroll-mt-24">
   <div class="container mx-auto px-6 max-w-6xl">
     <div class="flex flex-col md:flex-row items-center gap-12">
-      <div class="md:w-1/2 relative flex gap-4">
-        <div class="w-1/2 pt-12"><img src="images/girl1.png" alt="Tsagaan Sar Girl" class="rounded-2xl shadow-soft border-4 border-gold bg-goldSoft/10"></div>
-        <div class="w-1/2"><img src="images/boy1.png" alt="Tsagaan Sar Boy" class="rounded-2xl shadow-soft border-4 border-gold bg-goldSoft/10"></div>
+      <div class="md:w-1/2 relative flex gap-4 justify-center items-end">
+  
+      <div class="w-1/2 pt-8">
+        <img src="images/girl1.webp" alt="Tsagaan Sar Girl" 
+            class="rounded-2xl shadow-soft border-4 border-gold bg-goldSoft/10 animate-float object-cover hover:scale-105 transition-transform duration-300">
       </div>
+
+      <div class="w-1/2">
+        <img src="images/boy1.webp" alt="Tsagaan Sar Boy" 
+            class="rounded-2xl shadow-soft border-4 border-gold bg-goldSoft/10 animate-float-delay object-cover hover:scale-105 transition-transform duration-300">
+      </div>
+
+    </div>
       <div class="md:w-1/2 text-center md:text-left">
         <h2 class="text-gold font-serif text-3xl md:text-4xl mb-4" data-lang="tsagaanSarTitle">Гал морь жилийн мэнд!</h2>
         <div class="w-20 h-1 bg-gold mx-auto md:mx-0 mb-6"></div>

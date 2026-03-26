@@ -27,25 +27,6 @@
       },
     };
   </script>
-
-  <style>
-  /* Дээш доош хөвөх хөдөлгөөн */
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-15px); } /* 15px дээшлэх */
-    100% { transform: translateY(0px); }
-  }
-
-  .animate-float {
-    animation: float 4s ease-in-out infinite; /* 4 секундэд нэг удаа */
-  }
-
-  /* Хоёр дахь зурагт зориулсан удаашралтай хөдөлгөөн */
-  .animate-float-delay {
-    animation: float 4s ease-in-out infinite;
-    animation-delay: 2s; /* 2 секундын дараа эхэлнэ */
-  }
-  </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 </head>
 
@@ -72,11 +53,10 @@
         <button class="lang-btn text-xs font-bold text-gray-400 hover:text-primary" onclick="changeLang('de')">DE</button>
       </div>
       
-      <a href="#" onclick="return false;" class="mt-2 md:mt-0 bg-gray-400 text-white px-4 py-2 rounded-full font-bold shadow flex items-center gap-2 text-xs md:text-sm shrink-0 whitespace-nowrap cursor-not-allowed opacity-80" title="Түр хугацаанд хаалттай / Vorübergehend geschlossen">
-        <i class="fa-solid fa-lock text-xs"></i>
+      <a href="#" class="mt-2 md:mt-0 bg-gray-400 text-white px-4 py-2 rounded-full font-bold shadow flex items-center gap-2 text-xs md:text-sm shrink-0 whitespace-nowrap cursor-not-allowed" title="Тун удахгүй / Kommt bald">
+        <i class="fa-solid fa-rocket text-xs"></i>
         <span data-lang="login">Сурагч нэвтрэх</span>
       </a>
-      
     </nav>
     <button onclick="toggleNav()" class="md:hidden text-primary text-2xl p-2"><i class="fa-solid fa-bars"></i></button>
   </div>
@@ -87,10 +67,9 @@
   <div class="relative z-10 w-full max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-start">
     <div class="w-full">
       <div class="inline-block border border-white/20 bg-white/5 rounded-full px-3 py-1 mb-4">
-        <span class="uppercase tracking-[0.25em] text-gold text-xs" data-lang="hero-tagline">САР ШИНЭ • ЭХ ХЭЛ • СОЁЛ</span>
+        <span class="uppercase tracking-[0.25em] text-gold text-xs" data-lang="hero-tagline">ЭХ ХЭЛ • СОЁЛ • ЭРДЭМ</span>
       </div>
       <h1 class="text-3xl md:text-4xl lg:text-5xl font-serif font-bold leading-tight mb-6 drop-shadow-md" data-lang="hero-title">
-        <span class="text-gold drop-shadow-lg font-serif italic whitespace-nowrap text-2xl md:text-4xl">Сар шинийн мэнд хүргэе!</span><br />
         Нюрнберг дэх <br />Монгол Сургууль
       </h1>
       <p class="text-gray-200 mb-8 text-sm md:text-base max-w-lg font-light leading-relaxed" data-lang="hero-desc">Герман улсад амьдарч буй монгол хүүхдүүдэд эх хэл, өв соёлыг өвлүүлэн үлдээх зорилготой.</p>
@@ -113,37 +92,7 @@
   </div>
 </section>
 
-<section class="py-16 bg-white overflow-hidden scroll-mt-24">
-  <div class="container mx-auto px-6 max-w-6xl">
-    <div class="flex flex-col md:flex-row items-center gap-12">
-      <div class="md:w-1/2 relative flex gap-4 justify-center items-end">
-  
-      <div class="w-1/2 pt-8">
-        <img src="images/girl1.webp" alt="Tsagaan Sar Girl" 
-            class="rounded-2xl shadow-soft border-4 border-gold bg-goldSoft/10 animate-float object-cover hover:scale-105 transition-transform duration-300">
-      </div>
-
-      <div class="w-1/2">
-        <img src="images/boy1.webp" alt="Tsagaan Sar Boy" 
-            class="rounded-2xl shadow-soft border-4 border-gold bg-goldSoft/10 animate-float-delay object-cover hover:scale-105 transition-transform duration-300">
-      </div>
-
-    </div>
-      <div class="md:w-1/2 text-center md:text-left">
-        <h2 class="text-gold font-serif text-3xl md:text-4xl mb-4" data-lang="tsagaanSarTitle">Гал морь жилийн мэнд!</h2>
-        <div class="w-20 h-1 bg-gold mx-auto md:mx-0 mb-6"></div>
-        <p class="text-primary text-sm md:text-base leading-relaxed mb-6" data-lang="tsagaanSarDesc">
-          Нийт багш, сурагчид, эцэг эхчүүддээ ирж буй "Гал морь" жилийн сар шинийн баярын мэндийг хүргэе! "Эрдэм" сургууль монгол өв соёлыг түгээсээр байна.
-        </p>
-        <div class="bg-goldSoft/30 p-6 rounded-xl border-l-4 border-gold italic">
-          <p class="text-primary text-sm" data-lang="tsagaanSarWish"></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="about" class="py-24 bg-gray-50 relative scroll-mt-24">
+<section id="about" class="py-24 bg-white relative scroll-mt-24">
   <div class="w-full max-w-6xl mx-auto px-6">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <p class="uppercase text-[11px] font-bold tracking-[0.25em] text-gold mb-3">ERDEM SCHULE E.V.</p>
@@ -157,8 +106,8 @@
         <p class="text-sm md:text-base text-gray-600 mb-4 leading-relaxed" data-lang="about-text1">"Эрдэм" сургууль нь Нюрнберг хот болон түүний ойр орчимд амьдарч буй Монгол гэр бүлүүдийн үр хүүхдүүдэд монгол хэл, соёлын боловсрол олгох зорилгоор үйл ажиллагаагаа явуулдаг.</p>
         <p class="text-sm md:text-base text-gray-600 mb-8 leading-relaxed" data-lang="about-text2">Бид мэргэжлийн багш нар, тохилог орчин, сургалтын орчин үеийн хөтөлбөрөөр хүүхэд бүрийн хөгжлийг дэмжин ажиллаж байна.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-          <div class="bg-white p-4 rounded-lg border border-gray-100 shadow-sm"><div class="font-bold text-primary text-base mb-1" data-lang="about-meta-1-title">1–5 ангийн сурагчид</div><p class="text-gray-500 text-xs leading-relaxed" data-lang="about-meta-1-desc">Нас, түвшинд нь тохируулсан бүлэг хичээл.</p></div>
-          <div class="bg-white p-4 rounded-lg border border-gray-100 shadow-sm"><div class="font-bold text-primary text-base mb-1" data-lang="about-meta-2-title">Жил бүрийн баяр</div><p class="text-gray-500 text-xs leading-relaxed" data-lang="about-meta-2-desc">Цагаан сар, Урлагийн тоглолт, Эцэг эхийн өдөр.</p></div>
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm"><div class="font-bold text-primary text-base mb-1" data-lang="about-meta-1-title">1–5 ангийн сурагчид</div><p class="text-gray-500 text-xs leading-relaxed" data-lang="about-meta-1-desc">Нас, түвшинд нь тохируулсан бүлэг хичээл.</p></div>
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm"><div class="font-bold text-primary text-base mb-1" data-lang="about-meta-2-title">Жил бүрийн баяр</div><p class="text-gray-500 text-xs leading-relaxed" data-lang="about-meta-2-desc">Цагаан сар, Урлагийн тоглолт, Эцэг эхийн өдөр.</p></div>
         </div>
         <a href="#program" class="inline-flex items-center gap-2 text-primary font-bold text-sm md:text-base hover:translate-x-2 transition-transform"><span data-lang="read-more">Дэлгэрэнгүй унших</span> <i class="fa-solid fa-arrow-right"></i></a>
       </div>
@@ -169,7 +118,7 @@
   </div>
 </section>
 
-<section id="program" class="py-24 bg-white relative scroll-mt-24">
+<section id="program" class="py-24 bg-gray-50 relative scroll-mt-24">
   <div class="w-full max-w-6xl mx-auto px-6">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <p class="uppercase text-[11px] font-bold tracking-[0.25em] text-gold mb-3" data-lang="services-label">ХӨТӨЛБӨР</p>
@@ -197,7 +146,7 @@
 </section>
 
 <footer class="bg-primary text-white pt-16 pb-8">
-  <div class="w-full max-w-6xl mx-auto px-6">
+  <div class="w-full max-w-7xl mx-auto px-6">
     <div class="grid md:grid-cols-3 gap-12 mb-12">
       <div>
         <div class="font-serif text-2xl font-bold mb-4">Erdem Schule</div>
@@ -219,7 +168,7 @@
       <div>
         <h4 class="font-bold uppercase tracking-wider text-xs text-gold mb-6" data-lang="contact">Холбоо барих</h4>
         <ul class="space-y-4 text-sm text-gray-300 mb-4">
-          <li class="flex items-start gap-3"><i class="fa-solid fa-location-dot mt-1 text-gold"></i><span>Schenkstraße 111, 91052 Erlangen</span></li>
+          <li class="flex items-start gap-3"><i class="fa-solid fa-location-dot mt-1 text-gold"></i><span>Easthaus, Schenkstraße 111, 91052 Erlangen</span></li>
           <li class="flex items-start gap-3"><i class="fa-solid fa-envelope mt-1 text-gold"></i><span>info@erdem-schule.de</span></li>
         </ul>
       </div>
@@ -230,23 +179,7 @@
   </div>
 </footer>
 
-<style>
-  .snowflake { position: fixed; top: -20px; color: white; font-size: 1.2em; text-shadow: 0 0 5px rgba(255,255,255,0.8); z-index: 9999; pointer-events: none; animation-name: fall; animation-timing-function: linear; animation-fill-mode: forwards; }
-  @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
-</style>
 <script>
-  function createSnowflake() {
-    const snow = document.createElement('div');
-    snow.classList.add('snowflake');
-    snow.textContent = Math.random() > 0.5 ? '❄' : '❅';
-    snow.style.left = Math.random() * 100 + 'vw';
-    const duration = Math.random() * 5 + 5;
-    snow.style.animationDuration = duration + 's';
-    document.body.appendChild(snow);
-    setTimeout(() => { snow.remove(); }, duration * 1000);
-  }
-  setInterval(createSnowflake, 400);
-
   const translations = {
     mn: {
       about: 'Бидний тухай',
@@ -256,8 +189,8 @@
       'nav-schedule': 'Хичээлийн хуваарь',
       "logo-title": "Эрдэм Сургууль",
       "logo-subtitle": "Нюрнберг дэхь Монгол Сургууль",
-      "hero-tagline": "САР ШИНЭ • ЭХ ХЭЛ • СОЁЛ",
-      'hero-title': '<span class="text-gold">Сар шинийн мэнд хүргэе!</span><br />Нюрнберг дэх Монгол Сургууль',
+      "hero-tagline": "ЭХ ХЭЛ • СОЁЛ • ЭРДЭМ",
+      'hero-title': 'Нюрнберг дэх <br />Монгол Сургууль',
       'hero-desc': 'Герман улсад амьдарч буй монгол хүүхдүүдэд эх хэл, өв соёлыг өвлүүлэн үлдээх зорилготой.',
       'hero-card-title': '2025 / 2026 оны хичээлийн жил',
       'hero-card-chip': 'Элсэлт нээлттэй',
@@ -265,9 +198,6 @@
       'hero-card-li2': 'Монгол өв соёл, урлаг, тоглоом наадгайгаар суралцах',
       'hero-card-li3': 'Германд байгаа монгол хүүхдүүд хамтдаа нөхөрлөн, хөгжих орчин',
       'hero-card-time': '⏱ Бямба & Ням — 2–3 цаг',
-      'tsagaanSarTitle': 'XVII жарны "Гал морь" жилийн мэнд!',
-      'tsagaanSarDesc': 'Нийт багш, сурагчид болон эцэг эхчүүддээ ирж буй "Гал морь" жилийн сар шинийн баярын мэндийг өргөн дэвшүүлье! "Эрдэм" сургууль нь бяцхан үрсдээ монгол өв соёлоо өвлүүлэн үлдээх эрхэм зорилгоо үргэлжлүүлсээр байна.',
-      'tsagaanSarWish': '"Амар байна уу? Тарган тавтай сайхан хаваржиж байна уу? Дэлгэр сайхан шинэлж, төрөл саднаараа амгалан жаргалтай байхын ерөөл өргөе!"',
       'about-title': 'Бидний тухай',
       'about-intro': '"Эрдэм" сургууль нь Нюрнберг хот болон ойр орчмын Монгол хүүхдүүдэд эх хэл, соёлоо хадгалж, бахархалтай хүний хувьд төлөвшихөд нь туслах зорилготой.',
       'about-tagline': 'Монгол хэл, Монгол сэтгэл, Монгол боловсрол',
@@ -300,8 +230,8 @@
       'nav-schedule': 'Stundenplan',
       "logo-title": "Erdem Schule",
       "logo-subtitle": "Mongolische Schule Nürnberg",
-      "hero-tagline": "NEUJAHR • SPRACHE • KULTUR",
-      'hero-title': '<span class="text-gold">Frohes Mondneujahr!</span><br />Mongolische Schule Nürnberg',
+      "hero-tagline": "MUTTERSPRACHE • KULTUR • WISSEN",
+      'hero-title': 'Mongolische Schule Nürnberg',
       'hero-desc': 'Unser Ziel ist es, mongolischen Kindern in Deutschland ihre Muttersprache und Kultur zu vermitteln.',
       'hero-card-title': 'Schuljahr 2025 / 2026',
       'hero-card-chip': 'Einschreibung offen',
@@ -309,9 +239,6 @@
       'hero-card-li2': 'Mongolische Kultur, Kunst und Traditionen',
       'hero-card-li3': 'Ein Umfeld für mongolische Kinder zum gemeinsamen Lernen',
       'hero-card-time': '⏱ Sa & So — 2–3 Stunden',
-      'tsagaanSarTitle': 'Jahr des Feuer-Pferdes!',
-      'tsagaanSarDesc': 'Wir wünschen allen Lehrkräften, Schülern und Eltern ein frohes mongolisches Neujahrsfest (Tsagaan Sar) im Jahr des Feuer-Pferdes! Die Erdem Schule setzt sich weiterhin dafür ein, unser kulturelles Erbe an die nächste Generation weiterzugeben.',
-      'tsagaanSarWish': '"Friede sei mit Ihnen! Wir wünschen Ihnen ein frohes Mondneujahrfest und mögen Sie im Kreise Ihrer Liebsten in Glück und Harmonie feiern!"',
       'about-title': 'Über uns',
       'about-intro': 'Die Erdem Schule hilft mongolischen Kindern in Nürnberg, ihre Sprache und Kultur zu bewahren.',
       'about-tagline': 'Mongolische Sprache und Bildung',

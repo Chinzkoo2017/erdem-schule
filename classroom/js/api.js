@@ -1,0 +1,208 @@
+// Нэг интерфейс, хоёр хэрэгжилт: Supabase (жинхэнэ) ба Demo (localStorage).
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+
+const iso = (d) => d.toISOString().slice(0, 10);
+const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
+
+// ===================================================================
+//  DEMO
+// ===================================================================
+function seed() {
+  return {
+    groups: [
+      { id: 'g1', name: 'Монгол хэл · 1-р бүлэг', level: 'A1', schedule: 'Бямба 10:40', live_url: 'https://meet.google.com/' },
+      { id: 'g2', name: 'Монгол хэл · 2-р бүлэг', level: 'A2', schedule: 'Бямба 12:00', live_url: '' },
+    ],
+    profiles: [
+      { id: 's1', full_name: 'Тэмүүлэн', role: 'student', group_id: 'g1', avatar: '🐎' },
+      { id: 's2', full_name: 'Номин', role: 'student', group_id: 'g1', avatar: '🦅' },
+      { id: 's3', full_name: 'Анужин', role: 'student', group_id: 'g2', avatar: '🐫' },
+      { id: 'p1', full_name: 'Сарнай (ээж)', role: 'parent', group_id: null, avatar: '🌸' },
+      { id: 't1', full_name: 'Мөнх-Эрдэнэ багш', role: 'teacher', group_id: null, avatar: '📚' },
+      { id: 'a1', full_name: 'Админ', role: 'admin', group_id: null, avatar: '🛡️' },
+      { id: 'n1', full_name: 'Шинэ хэрэглэгч', role: 'pending', group_id: null, avatar: '🙂' },
+    ],
+    parent_children: [{ parent_id: 'p1', child_id: 's1' }, { parent_id: 'p1', child_id: 's3' }],
+    lessons: [
+      { id: 'l1', group_id: 'g1', title: 'Мал аж ахуй: таван хошуу мал', description: 'Морь, үхэр, тэмээ, хонь, ямааны нэрийг сурна.', video_url: 'https://www.youtube.com/', material_url: '', lesson_date: daysAgo(14) },
+      { id: 'l2', group_id: 'g1', title: 'Миний гэр бүл', description: 'Ээж, аав, ах, эгч — гэр бүлийн гишүүдийн нэр.', video_url: '', material_url: '', lesson_date: daysAgo(7) },
+      { id: 'l3', group_id: 'g1', title: 'Кирилл үсэг: Ө ба Ү', description: 'Монгол хэлний онцгой хоёр үсэг.', video_url: 'https://www.youtube.com/', material_url: '', lesson_date: daysAgo(0) },
+      { id: 'l4', group_id: 'g2', title: 'Өдөр тутмын яриа', description: 'Мэндлэх, танилцах.', video_url: '', material_url: '', lesson_date: daysAgo(3) },
+    ],
+    assignments: [
+      { id: 'h1', group_id: 'g1', lesson_id: 'l1', title: 'Таван хошуу мал зурах', instructions: 'Таван малыг зураад нэрийг нь кириллээр бич.', due_date: daysAgo(8), points: 10 },
+      { id: 'h2', group_id: 'g1', lesson_id: 'l2', title: 'Гэр бүлээ танилцуул', instructions: 'Гэр бүлийн гишүүдээ 3–5 өгүүлбэрээр танилцуул.', due_date: daysAgo(1), points: 10 },
+      { id: 'h3', group_id: 'g1', lesson_id: 'l3', title: 'Ө, Ү үсэгтэй 5 үг', instructions: 'Ө эсвэл Ү үсэг орсон 5 үг бичээрэй.', due_date: daysAgo(-6), points: 10 },
+      { id: 'h4', group_id: 'g2', lesson_id: 'l4', title: 'Өөрийгөө танилцуул', instructions: 'Аудио бичлэг хавсаргана уу.', due_date: daysAgo(-4), points: 10 },
+    ],
+    submissions: [
+      { id: 'x1', assignment_id: 'h1', student_id: 's1', body: 'морь, үхэр, тэмээ, хонь, ямаа', file_path: 'mal.jpg', status: 'reviewed', score: 10, feedback: 'Маш сайн! Зураг чинь гоё байна 🌟', submitted_at: daysAgo(9) },
+      { id: 'x2', assignment_id: 'h1', student_id: 's2', body: 'морь, үхэр, тэмээ, хонь', file_path: null, status: 'submitted', score: null, feedback: null, submitted_at: daysAgo(8) },
+      { id: 'x3', assignment_id: 'h2', student_id: 's2', body: 'Миний ээж Туяа. Аав маань Бат.', file_path: null, status: 'submitted', score: null, feedback: null, submitted_at: daysAgo(1) },
+    ],
+    vocab: [
+      ['морь','Pferd','🐎'],['тэмээ','Kamel','🐫'],['хонь','Schaf','🐑'],['ямаа','Ziege','🐐'],['үхэр','Rind','🐄'],
+      ['нохой','Hund','🐕'],['муур','Katze','🐈'],['гэр','Jurte','🛖'],['ээж','Mama','👩'],['аав','Papa','👨'],
+      ['нар','Sonne','☀️'],['сар','Mond','🌙'],['ус','Wasser','💧'],['уул','Berg','⛰️'],['ном','Buch','📖'],
+      ['алим','Apfel','🍎'],['сүү','Milch','🥛'],['талх','Brot','🍞'],
+    ].map(([mn, de, emoji], i) => ({ id: 'v' + i, group_id: null, mn, de, emoji })),
+    activity: [
+      { student_id: 's1', day: daysAgo(3), xp: 25 }, { student_id: 's1', day: daysAgo(2), xp: 15 },
+      { student_id: 's1', day: daysAgo(1), xp: 30 }, { student_id: 's2', day: daysAgo(1), xp: 10 },
+      { student_id: 's3', day: daysAgo(5), xp: 20 }, { student_id: 's3', day: daysAgo(2), xp: 10 },
+    ],
+    meta: {},
+  };
+}
+
+function demoApi() {
+  const KEY = 'erdemDemo_v1';
+  let db;
+  try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
+  const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {} };
+  let meId = null;
+  try { meId = sessionStorage.getItem('erdemDemoUser'); } catch {}
+  const me = () => db.profiles.find((p) => p.id === meId) || null;
+  const childIds = () => db.parent_children.filter((l) => l.parent_id === meId).map((l) => l.child_id);
+
+  return {
+    mode: 'demo',
+    async init() { return me(); },
+    async demoLogin(id) { meId = id; try { sessionStorage.setItem('erdemDemoUser', id); } catch {} return me(); },
+    async signOut() { meId = null; try { sessionStorage.removeItem('erdemDemoUser'); } catch {} },
+    async resetDemo() { db = seed(); persist(); },
+    async me() { return me(); },
+    async groups() { return db.groups; },
+    async lessons(gid) { return db.lessons.filter((l) => !gid || l.group_id === gid).sort((a, b) => b.lesson_date.localeCompare(a.lesson_date)); },
+    async assignments(gid) { return db.assignments.filter((a) => !gid || a.group_id === gid).sort((a, b) => (b.due_date || '').localeCompare(a.due_date || '')); },
+    async submissions(studentId) {
+      return db.submissions.filter((s) => !studentId || s.student_id === studentId)
+        .map((s) => ({ ...s, student: db.profiles.find((p) => p.id === s.student_id) }));
+    },
+    async submit(assignmentId, body, file) {
+      const ex = db.submissions.find((s) => s.assignment_id === assignmentId && s.student_id === meId);
+      const row = { body, file_path: file ? file.name : ex?.file_path || null, status: 'submitted', submitted_at: iso(new Date()) };
+      if (ex) Object.assign(ex, row); else db.submissions.push({ id: uid(), assignment_id: assignmentId, student_id: meId, score: null, feedback: null, ...row });
+      persist();
+    },
+    async review(id, score, feedback) { Object.assign(db.submissions.find((s) => s.id === id), { score, feedback, status: 'reviewed' }); persist(); },
+    async fileUrl() { return null; },
+    async vocab() { return db.vocab; },
+    async activity(sid) { return db.activity.filter((a) => a.student_id === sid); },
+    async addXp(n) {
+      const d = iso(new Date());
+      const r = db.activity.find((a) => a.student_id === meId && a.day === d);
+      if (r) r.xp += n; else db.activity.push({ student_id: meId, day: d, xp: n });
+      persist();
+    },
+    async getMeta(k) { return db.meta[meId + ':' + k]; },
+    async setMeta(k, v) { db.meta[meId + ':' + k] = v; persist(); },
+    async children() { const ids = childIds(); return db.profiles.filter((p) => ids.includes(p.id)); },
+    async profiles() { return db.profiles; },
+    async setProfile(id, role, group_id) { Object.assign(db.profiles.find((p) => p.id === id), { role, group_id: group_id || null }); persist(); },
+    async links() { return db.parent_children; },
+    async linkParent(parent_id, child_id) {
+      if (!db.parent_children.some((l) => l.parent_id === parent_id && l.child_id === child_id)) db.parent_children.push({ parent_id, child_id });
+      persist();
+    },
+    async unlinkParent(parent_id, child_id) { db.parent_children = db.parent_children.filter((l) => !(l.parent_id === parent_id && l.child_id === child_id)); persist(); },
+    async saveLesson(l) { db.lessons.push({ id: uid(), ...l }); persist(); },
+    async deleteLesson(id) { db.lessons = db.lessons.filter((l) => l.id !== id); persist(); },
+    async saveAssignment(a) { db.assignments.push({ id: uid(), ...a }); persist(); },
+    async deleteAssignment(id) { db.assignments = db.assignments.filter((a) => a.id !== id); persist(); },
+    async saveGroup(g) {
+      if (g.id) Object.assign(db.groups.find((x) => x.id === g.id), g); else db.groups.push({ ...g, id: uid() });
+      persist();
+    },
+  };
+}
+
+// ===================================================================
+//  SUPABASE
+// ===================================================================
+async function liveApi() {
+  const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let profile = null;
+  const ok = ({ data, error }) => { if (error) throw error; return data; };
+
+  async function loadMe() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return (profile = null);
+    profile = ok(await sb.from('profiles').select('*').eq('id', session.user.id).single());
+    return profile;
+  }
+
+  return {
+    mode: 'live',
+    async init() { return loadMe(); },
+    async signIn(email, password) { ok(await sb.auth.signInWithPassword({ email, password })); return loadMe(); },
+    async magicLink(email) { ok(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0], shouldCreateUser: false } })); },
+    async signUp(email, password, full_name) { ok(await sb.auth.signUp({ email, password, options: { data: { full_name }, emailRedirectTo: location.href.split('#')[0] } })); },
+    async signOut() { await sb.auth.signOut(); profile = null; },
+    async me() { return profile; },
+    async groups() { return ok(await sb.from('groups').select('*').order('name')); },
+    async lessons(gid) {
+      let q = sb.from('lessons').select('*').order('lesson_date', { ascending: false });
+      if (gid) q = q.eq('group_id', gid);
+      return ok(await q);
+    },
+    async assignments(gid) {
+      let q = sb.from('assignments').select('*').order('due_date', { ascending: false });
+      if (gid) q = q.eq('group_id', gid);
+      return ok(await q);
+    },
+    async submissions(studentId) {
+      let q = sb.from('submissions').select('*, student:profiles(id, full_name, avatar, group_id)').order('submitted_at', { ascending: false });
+      if (studentId) q = q.eq('student_id', studentId);
+      return ok(await q);
+    },
+    async submit(assignmentId, body, file) {
+      let file_path;
+      if (file) {
+        const safe = file.name.replace(/[^\w.\-]+/g, '_');
+        file_path = `${profile.id}/${assignmentId}-${Date.now()}-${safe}`;
+        ok(await sb.storage.from('homework').upload(file_path, file, { upsert: true }));
+      }
+      const row = { assignment_id: assignmentId, student_id: profile.id, body, status: 'submitted', submitted_at: new Date().toISOString() };
+      if (file_path) row.file_path = file_path;
+      ok(await sb.from('submissions').upsert(row, { onConflict: 'assignment_id,student_id' }));
+    },
+    async review(id, score, feedback) { ok(await sb.from('submissions').update({ score, feedback, status: 'reviewed' }).eq('id', id)); },
+    async fileUrl(path) {
+      if (!path) return null;
+      const { data } = await sb.storage.from('homework').createSignedUrl(path, 3600);
+      return data?.signedUrl || null;
+    },
+    async vocab() { return ok(await sb.from('vocab').select('*')); },
+    async activity(sid) { return ok(await sb.from('activity').select('*').eq('student_id', sid)); },
+    async addXp(n) { ok(await sb.rpc('add_xp', { amount: n })); },
+    async getMeta(k) { try { return JSON.parse(localStorage.getItem(`erdem:${profile.id}:${k}`)); } catch { return null; } },
+    async setMeta(k, v) { try { localStorage.setItem(`erdem:${profile.id}:${k}`, JSON.stringify(v)); } catch {} },
+    async children() {
+      const links = ok(await sb.from('parent_children').select('child_id').eq('parent_id', profile.id));
+      if (!links.length) return [];
+      return ok(await sb.from('profiles').select('*').in('id', links.map((l) => l.child_id)));
+    },
+    async profiles() { return ok(await sb.from('profiles').select('*').order('full_name')); },
+    async setProfile(id, role, group_id) { ok(await sb.rpc('admin_set_profile', { uid: id, new_role: role, new_group: group_id || null })); },
+    async links() { return ok(await sb.from('parent_children').select('*')); },
+    async linkParent(parent_id, child_id) { ok(await sb.from('parent_children').upsert({ parent_id, child_id })); },
+    async unlinkParent(parent_id, child_id) { ok(await sb.from('parent_children').delete().match({ parent_id, child_id })); },
+    async saveLesson(l) { ok(await sb.from('lessons').insert({ ...l, created_by: profile.id })); },
+    async deleteLesson(id) { ok(await sb.from('lessons').delete().eq('id', id)); },
+    async saveAssignment(a) { ok(await sb.from('assignments').insert(a)); },
+    async deleteAssignment(id) { ok(await sb.from('assignments').delete().eq('id', id)); },
+    async saveGroup(g) {
+      if (g.id) { const { id, ...rest } = g; ok(await sb.from('groups').update(rest).eq('id', id)); }
+      else ok(await sb.from('groups').insert(g));
+    },
+  };
+}
+
+export async function createApi() {
+  const forceDemo = new URLSearchParams(location.search).has('demo');
+  if (SUPABASE_URL && SUPABASE_ANON_KEY && !forceDemo) return liveApi();
+  return demoApi();
+}

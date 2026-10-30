@@ -62,6 +62,7 @@ function demoApi() {
   try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {} };
   let meId = null;
+  const demoFiles = new Map();
   try { meId = sessionStorage.getItem('erdemDemoUser'); } catch {}
   const me = () => db.profiles.find((p) => p.id === meId) || null;
   const childIds = () => db.parent_children.filter((l) => l.parent_id === meId).map((l) => l.child_id);
@@ -80,14 +81,16 @@ function demoApi() {
       return db.submissions.filter((s) => !studentId || s.student_id === studentId)
         .map((s) => ({ ...s, student: db.profiles.find((p) => p.id === s.student_id) }));
     },
-    async submit(assignmentId, body, file) {
+    async submit(assignmentId, body, files = []) {
       const ex = db.submissions.find((s) => s.assignment_id === assignmentId && s.student_id === meId);
-      const row = { body, file_path: file ? file.name : ex?.file_path || null, status: 'submitted', submitted_at: iso(new Date()) };
+      const paths = files.map((f) => { const p = `${meId}/${Date.now()}-${f.name}`; demoFiles.set(p, URL.createObjectURL(f)); return p; });
+      const keep = paths.length ? paths : (ex?.files || []);
+      const row = { body, files: keep, file_path: keep[0] || null, status: 'submitted', submitted_at: iso(new Date()) };
       if (ex) Object.assign(ex, row); else db.submissions.push({ id: uid(), assignment_id: assignmentId, student_id: meId, score: null, feedback: null, ...row });
       persist();
     },
     async review(id, score, feedback) { Object.assign(db.submissions.find((s) => s.id === id), { score, feedback, status: 'reviewed' }); persist(); },
-    async fileUrl() { return null; },
+    async fileUrl(p) { return demoFiles.get(p) || null; },
     async vocab() { return db.vocab; },
     async activity(sid) { return db.activity.filter((a) => a.student_id === sid); },
     async addXp(n) {
@@ -158,16 +161,22 @@ async function liveApi() {
       if (studentId) q = q.eq('student_id', studentId);
       return ok(await q);
     },
-    async submit(assignmentId, body, file) {
-      let file_path;
-      if (file) {
-        const safe = file.name.replace(/[^\w.\-]+/g, '_');
-        file_path = `${profile.id}/${assignmentId}-${Date.now()}-${safe}`;
-        ok(await sb.storage.from('homework').upload(file_path, file, { upsert: true }));
+    async submit(assignmentId, body, files = []) {
+      const paths = [];
+      for (const f of files) {
+        const safe = f.name.replace(/[^\w.\-]+/g, '_');
+        const path = `${profile.id}/${assignmentId}-${Date.now()}-${paths.length}-${safe}`;
+        ok(await sb.storage.from('homework').upload(path, f, { upsert: true, contentType: f.type || undefined }));
+        paths.push(path);
       }
       const row = { assignment_id: assignmentId, student_id: profile.id, body, status: 'submitted', submitted_at: new Date().toISOString() };
-      if (file_path) row.file_path = file_path;
-      ok(await sb.from('submissions').upsert(row, { onConflict: 'assignment_id,student_id' }));
+      if (paths.length) { row.file_path = paths[0]; row.files = paths; }
+      let res = await sb.from('submissions').upsert(row, { onConflict: 'assignment_id,student_id' });
+      if (res.error && paths.length && /files/.test(res.error.message || '')) {
+        delete row.files; // хуучин schema: files багана байхгүй
+        res = await sb.from('submissions').upsert(row, { onConflict: 'assignment_id,student_id' });
+      }
+      ok(res);
     },
     async review(id, score, feedback) { ok(await sb.from('submissions').update({ score, feedback, status: 'reviewed' }).eq('id', id)); },
     async fileUrl(path) {

@@ -1,6 +1,6 @@
 import { createApi } from './api.js';
 import { t, getLang, setLang } from './i18n.js';
-import { flashcards, letters, pictures } from './games.js';
+import { flashcards, letters, pictures, wordBuilder, sentenceBuilder, fillSuffix } from './games.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -14,6 +14,30 @@ const fmtDate = (d) => {
   if (getLang() === 'de') return x.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
   return `${x.getMonth() + 1}-р сарын ${x.getDate()}`;
 };
+
+const ICONS = {
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  lessons: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/>',
+  homework: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  play: '<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2"/><circle cx="15.5" cy="15.5" r="1.2"/><circle cx="12" cy="12" r="1.2"/>',
+  badges: '<circle cx="12" cy="9" r="6"/><path d="M8.5 14l-1.5 7 5-3 5 3-1.5-7"/>',
+  children: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16 14.6A5 5 0 0 1 22 19"/>',
+  review: '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  manage: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M12 7v6M9 10h6"/>',
+  groups: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',
+  users: '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/>',
+  video: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  clip: '<path d="M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7"/>',
+  logout: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+};
+const icon = (k, size = 20) => `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k] || ''}</svg>`;
+const initials = (n) => esc(([...(String(n || '?').trim())][0] || '?').toUpperCase());
+const avatar = (p, cls = '') => `<span class="avatar ${cls}">${initials(p?.full_name)}</span>`;
+const isAudio = (p) => /\.(webm|ogg|oga|mp3|m4a|wav|aac)$/i.test(p) || /audio/i.test(p);
+const isImage = (p) => /\.(png|jpe?g|gif|webp|heic|heif)$/i.test(p);
+const filesOf = (s) => (s?.files?.length ? s.files : s?.file_path ? [s.file_path] : []);
 
 const app = $('#app');
 let api, me, groupsCache = [];
@@ -68,26 +92,44 @@ const statusChip = (s) => (!s ? `<span class="chip chip-open">${t('openHw')}</sp
     : `<span class="chip chip-sent">${t('submitted')}</span>`);
 
 // ------------------------------------------------------------ shell
-function shell(tabs, body) {
+function shell(tabs, body, opts = {}) {
   const current = currentTab(tabs);
-  app.innerHTML = `
-    ${api?.mode === 'demo' ? `<div class="demo-banner">🧪 ${t('demoBanner')} <button class="link" id="resetDemo">↺ reset</button></div>` : ''}
-    <header class="topbar">
-      <a class="brand" href="../index.html" title="${t('backHome')}">
-        <img src="../images/logo.jpg" alt="" width="40" height="40">
-        <span><strong>${t('brand')}</strong><small>${t('brandSub')}</small></span>
-      </a>
-      <div class="topbar-right">
-        <button class="lang" id="langBtn">${getLang() === 'mn' ? 'DE' : 'MN'}</button>
-        ${me ? `<span class="who"><span class="avatar">${esc(me.avatar || '🙂')}</span><span class="who-text"><span class="who-name">${esc(me.full_name)}</span><small class="who-role">${t('r' + me.role)}</small></span></span>
-        <button class="btn btn-ghost btn-sm" id="logout">${t('logout')}</button>` : ''}
-      </div>
-    </header>
-    ${tabs.length ? `<nav class="tabs" aria-label="menu">${tabs.map((x) => `<a href="#${x.id}" class="${x.id === current ? 'active' : ''}"><span>${x.icon}</span>${x.label}</a>`).join('')}</nav>` : ''}
-    <main class="wrap" id="main">${body}</main>
-    <footer class="foot"><span class="meander"></span><a href="../impressum.html">Impressum</a> · <a href="../datenschutz.html">Datenschutz</a></footer>`;
-  $('#langBtn').onclick = () => { setLang(getLang() === 'mn' ? 'de' : 'mn'); route(); };
-  $('#logout') && ($('#logout').onclick = async () => { await api.signOut(); me = null; location.hash = ''; route(); });
+  const demo = api?.mode === 'demo' ? `<div class="demo-banner">${t('demoBanner')} <button class="link" id="resetDemo">↺ reset</button></div>` : '';
+  const foot = `<footer class="foot"><a href="../impressum.html">Impressum</a> · <a href="../datenschutz.html">Datenschutz</a></footer>`;
+  const langBtn = `<button class="lang" id="langBtn" aria-label="Language">${getLang() === 'mn' ? 'DE' : 'MN'}</button>`;
+  if (!me) {
+    app.innerHTML = `${demo}<div class="solo"><header class="solo-top">
+      <a class="brand" href="../index.html" title="${t('backHome')}"><img src="../images/logo.jpg" alt="" width="38" height="38"><span><strong>${t('brand')}</strong><small>${t('brandSub')}</small></span></a>
+      ${langBtn}</header><main class="wrap">${body}</main>${foot}</div>`;
+  } else {
+    const g = opts.live;
+    app.innerHTML = `
+    <div class="layout">
+      <aside class="side">
+        <div class="side-top">
+          <a class="brand" href="../index.html" title="${t('backHome')}"><img src="../images/logo.jpg" alt="" width="38" height="38"><span><strong>${t('brand')}</strong><small>${t('brandSub')}</small></span></a>
+          <div class="side-mobile-actions">${langBtn.replace('id="langBtn"', 'id="langBtnM"')}<button class="icon-btn" id="logoutM" aria-label="${t('logout')}">${icon('logout')}</button></div>
+        </div>
+        ${tabs.length ? `<nav class="side-nav" aria-label="${t('menu')}">${tabs.map((x) => `<a href="#${x.id}" class="${x.id === current ? 'active' : ''}" ${x.id === current ? 'aria-current="page"' : ''}>${icon(x.icon)}<span>${x.label}</span>${x.count ? `<b class="nav-count">${x.count}</b>` : ''}</a>`).join('')}</nav>` : ''}
+        ${g ? `<div class="side-live">
+          <span class="side-live-label">${t('nextLesson')}</span>
+          <strong>${esc(g.schedule || t('none'))}</strong>
+          ${safeUrl(g.live_url) ? `<a class="btn btn-live btn-block btn-sm" href="${safeUrl(g.live_url)}" target="_blank" rel="noopener">${icon('video', 18)} ${t('joinLive')}</a>` : `<small>${t('noLive')}</small>`}
+        </div>` : ''}
+        <div class="side-user">
+          ${avatar(me)}
+          <span class="side-user-text"><strong>${esc(me.full_name)}</strong><small>${t('r' + me.role)}</small></span>
+          ${langBtn}
+          <button class="icon-btn" id="logout" aria-label="${t('logout')}" title="${t('logout')}">${icon('logout')}</button>
+        </div>
+      </aside>
+      <div class="content">${demo}<main class="wrap" id="main">${body}</main>${foot}</div>
+    </div>`;
+  }
+  const flip = () => { setLang(getLang() === 'mn' ? 'de' : 'mn'); route(); };
+  const out = async () => { await api.signOut(); me = null; location.hash = ''; route(); };
+  $$('#langBtn, #langBtnM').forEach((b) => (b.onclick = flip));
+  $$('#logout, #logoutM').forEach((b) => (b.onclick = out));
   $('#resetDemo') && ($('#resetDemo').onclick = async () => { await api.resetDemo(); route(); });
 }
 function currentTab(tabs) {
@@ -102,7 +144,6 @@ function renderLogin(mode = 'in') {
   shell([], `
   <section class="login">
     <div class="login-hero">
-      <div class="sun" aria-hidden="true"></div>
       <h1>${t('loginTitle')}</h1>
       <p>${t('loginLead')}</p>
     </div>
@@ -111,10 +152,10 @@ function renderLogin(mode = 'in') {
       <h2>${t('demoTitle')}</h2>
       <p class="muted">${t('demoLead')}</p>
       <div class="demo-roles">
-        <button class="role-btn" data-u="s1"><span>🐎</span>${t('asStudent')}</button>
-        <button class="role-btn" data-u="p1"><span>🌸</span>${t('asParent')}</button>
-        <button class="role-btn" data-u="t1"><span>📚</span>${t('asTeacher')}</button>
-        <button class="role-btn" data-u="a1"><span>🛡️</span>${t('asAdmin')}</button>
+        <button class="role-btn" data-u="s1">${t('asStudent')}</button>
+        <button class="role-btn" data-u="p1">${t('asParent')}</button>
+        <button class="role-btn" data-u="t1">${t('asTeacher')}</button>
+        <button class="role-btn" data-u="a1">${t('asAdmin')}</button>
       </div>
     </div>` : `
     <form class="card login-card" id="loginForm">
@@ -123,7 +164,7 @@ function renderLogin(mode = 'in') {
       <label>${t('email')}<input name="email" type="email" required autocomplete="email"></label>
       <label>${t('password')}<input name="pw" type="password" minlength="8" ${mode === 'up' ? 'required' : ''} autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}"></label>
       <button class="btn btn-gold btn-block">${mode === 'up' ? t('signUp') : t('signIn')}</button>
-      ${mode === 'in' ? `<button type="button" class="btn btn-ghost btn-block" id="magic">✉️ ${t('magicLink')}</button>` : ''}
+      ${mode === 'in' ? `<button type="button" class="btn btn-ghost btn-block" id="magic">${t('magicLink')}</button>` : ''}
       <p class="muted center">${mode === 'up' ? t('haveAccount') : t('noAccount')} <a href="#" id="swap">${mode === 'up' ? t('signIn') : t('signUp')}</a></p>
       <p class="form-msg" aria-live="polite"></p>
     </form>`}
@@ -152,14 +193,6 @@ function renderLogin(mode = 'in') {
 
 // ------------------------------------------------------------ STUDENT
 async function renderStudent() {
-  const tabs = [
-    { id: 'home', icon: '🏠', label: t('tabHome') },
-    { id: 'lessons', icon: '📖', label: t('tabLessons') },
-    { id: 'homework', icon: '✏️', label: t('tabHomework') },
-    { id: 'play', icon: '🎲', label: t('tabPlay') },
-    { id: 'badges', icon: '🏅', label: t('tabBadges') },
-  ];
-  const tab = currentTab(tabs);
   const [lessons, assignments, subs, activity, lettersPerfect] = await Promise.all([
     api.lessons(me.group_id), api.assignments(me.group_id), api.submissions(me.id), api.activity(me.id), api.getMeta('lettersPerfect'),
   ]);
@@ -167,52 +200,85 @@ async function renderStudent() {
   const st = stats(activity, subs);
   const subFor = (aid) => subs.find((s) => s.assignment_id === aid);
   const openHw = assignments.filter((a) => !subFor(a.id));
+  const lateHw = openHw.filter((a) => a.due_date && a.due_date < todayIso());
+  const badges = badgeList(st, lettersPerfect);
+  const badgesOn = badges.filter((b) => b.on).length;
+  const nextBadge = badges.find((b) => !b.on);
+  const level = Math.floor(st.totalXp / 100) + 1, toNext = 100 - (st.totalXp % 100);
+  const playedToday = (activity.find((a) => a.day === todayIso())?.xp || 0) > 0;
+
+  const tabs = [
+    { id: 'home', icon: 'home', label: t('tabHome') },
+    { id: 'lessons', icon: 'lessons', label: t('tabLessons') },
+    { id: 'homework', icon: 'homework', label: t('tabHomework'), count: openHw.length },
+    { id: 'play', icon: 'play', label: t('tabPlay') },
+    { id: 'badges', icon: 'badges', label: t('tabBadges') },
+  ];
+  const tab = currentTab(tabs);
+
+  const goals = [
+    { done: playedToday, title: t('goalPlay'), meta: playedToday ? t('goalsDone') : '+10–20', href: '#play', late: false },
+    ...openHw.slice(0, 4).map((a) => ({ done: false, title: a.title, meta: `${a.due_date && a.due_date < todayIso() ? t('late') + ' · ' : t('due') + ': '}${fmtDate(a.due_date) || t('none')}`, href: '#homework', late: a.due_date && a.due_date < todayIso() })),
+  ];
+  const games = [
+    { g: 'word', glyph: 'р·о·ь', name: t('gWord'), d: t('gWordD'), tone: 'indigo' },
+    { g: 'letters', glyph: 'Өө', name: t('gLetters'), d: t('gLettersD'), tone: 'gold' },
+    { g: 'sent', glyph: 'Би…', name: t('gSent'), d: t('gSentD'), tone: 'green' },
+    { g: 'fill', glyph: '-т', name: t('gFill'), d: t('gFillD'), tone: 'rose' },
+    { g: 'flash', glyph: 'Аа', name: t('gFlash'), d: t('gFlashD'), tone: 'indigo' },
+    { g: 'pics', glyph: icon('image', 26), name: t('gPics'), d: t('gPicsD'), tone: 'green' },
+  ];
+  const gameTile = (x) => `<button class="game-tile tone-${x.tone}" data-g="${x.g}"><span class="game-glyph">${x.glyph}</span><span class="game-text"><b>${x.name}</b><small>${x.d}</small></span></button>`;
 
   const views = {
     home: () => `
-      <section class="hero-card">
-        <div class="hero-left">
-          <span class="avatar xl">${esc(me.avatar || '🐎')}</span>
-          <div><p class="eyebrow">${esc(group?.name || '')}</p><h1>${t('hello')}, ${esc(me.full_name)}!</h1></div>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><span class="stat-n">🔥 ${st.streak}</span><span>${t('streak')}</span></div>
-          <div class="stat"><span class="stat-n">⭐ ${st.totalXp}</span><span>${t('xp')}</span></div>
-        </div>
-      </section>
-      <div class="grid-2">
-        ${liveCard(group)}
-        <section class="card">
-          <h2>${t('week')}</h2>${weekChart(st.week)}
-          <a class="btn btn-gold btn-block mt" href="#play">🎲 ${t('play')}</a>
-        </section>
+      <div class="page-head">
+        <div><p class="eyebrow">${esc(fmtDate(todayIso()))}${group ? ' · ' + esc(group.name) : ''}</p>
+        <h1 class="page-title">${t('hello')}, ${esc(me.full_name)}</h1></div>
       </div>
-      <section class="card">
-        <div class="card-head"><h2>${t('homework')}</h2><a href="#homework" class="link">→</a></div>
-        ${openHw.length ? openHw.slice(0, 3).map((a) => hwRow(a, null)).join('') : `<p class="muted">${t('noHomework')}</p>`}
+      ${group ? `<div class="mobile-only">${liveCard(group)}</div>` : ''}
+      <div class="kpi-grid">
+        <div class="kpi-card"><span class="kpi-label">${t('streakLabel')}</span><span class="kpi-value">${st.streak} 🔥</span><span class="kpi-note">${t('streak')}</span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('totalXp')}</span><span class="kpi-value">${st.totalXp}</span><span class="kpi-note accent">${t('level')} ${level} · ${toNext} ${t('toNext')}</span>
+          <span class="meter"><span style="width:${100 - toNext}%"></span></span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('homework')}</span><span class="kpi-value">${assignments.length - openHw.length}<small> / ${assignments.length}</small></span><span class="kpi-note ${lateHw.length ? 'bad' : ''}">${lateHw.length ? `${lateHw.length} · ${t('late')}` : openHw.length ? `${openHw.length} · ${t('openHw')}` : '✓'}</span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('badgesShort')}</span><span class="kpi-value">${badgesOn}<small> / ${badges.length}</small></span><span class="kpi-note">${nextBadge ? `${t('nextBadge')}: ${nextBadge.name}` : '🏆'}</span></div>
+      </div>
+      <div class="split">
+        <section class="card">
+          <div class="card-head"><h2>${t('goals')}</h2><span class="muted small">${goals.filter((g) => g.done).length} / ${goals.length} ${t('goalsDone')}</span></div>
+          <div class="goal-list">${goals.map((g) => `<a class="goal ${g.done ? 'done' : ''}" href="${g.href}">
+            <span class="check" aria-hidden="true">${g.done ? '✓' : ''}</span>
+            <span class="goal-text"><b>${esc(g.title)}</b><small class="${g.late ? 'late' : ''}">${esc(g.meta)}</small></span>
+            <span class="goal-go" aria-hidden="true">→</span></a>`).join('')}</div>
+        </section>
+        <section class="card"><h2>${t('week')}</h2>${weekChart(st.week)}</section>
+      </div>
+      <section>
+        <div class="card-head"><h2>${t('play')}</h2><a href="#play" class="link">→</a></div>
+        <div class="game-row">${games.slice(0, 3).map((x) => `<a class="game-tile tone-${x.tone}" href="#play" data-start="${x.g}"><span class="game-glyph">${x.glyph}</span><span class="game-text"><b>${x.name}</b><small>${x.d}</small></span></a>`).join('')}</div>
       </section>
       ${lessons[0] ? `<section class="card"><div class="card-head"><h2>${t('lessons')}</h2><a href="#lessons" class="link">→</a></div>${lessonCard(lessons[0])}</section>` : ''}`,
     lessons: () => `<h1 class="page-title">${t('lessons')}</h1>
-      ${lessons.length ? `<div class="stack">${lessons.map(lessonCard).join('')}</div>` : `<p class="muted">${t('noLessons')}</p>`}`,
+      ${lessons.length ? `<div class="stack">${lessons.map(lessonCard).join('')}</div>` : `<p class="card muted">${t('noLessons')}</p>`}`,
     homework: () => `<h1 class="page-title">${t('homework')}</h1>
-      <div class="stack">${assignments.length ? assignments.map((a) => hwRow(a, subFor(a.id), true)).join('') : `<p class="muted">${t('noHomework')}</p>`}</div>`,
+      <div class="stack">${assignments.length ? assignments.map((a) => hwRow(a, subFor(a.id), true)).join('') : `<p class="card muted">${t('noHomework')}</p>`}</div>`,
     play: () => `<h1 class="page-title">${t('play')}</h1><p class="muted">${t('playLead')}</p>
-      <div id="gameArea">
-        <div class="game-grid">
-          <button class="game-card" data-g="flash"><span>🃏</span><strong>${t('gFlash')}</strong><small>${t('gFlashD')}</small></button>
-          <button class="game-card" data-g="letters"><span class="letter-icon">Өө</span><strong>${t('gLetters')}</strong><small>${t('gLettersD')}</small></button>
-          <button class="game-card" data-g="pics"><span>🐫</span><strong>${t('gPics')}</strong><small>${t('gPicsD')}</small></button>
-        </div>
-      </div>`,
+      <div id="gameArea"><div class="game-grid">${games.map(gameTile).join('')}</div></div>`,
     badges: () => `<h1 class="page-title">${t('badges')}</h1>
-      <div class="badge-grid">${badgeList(st, lettersPerfect).map((b) => `
+      <div class="badge-grid">${badges.map((b) => `
         <div class="badge ${b.on ? 'on' : ''}"><span class="badge-icon">${b.on ? b.icon : '🔒'}</span><strong>${b.name}</strong><small>${b.on ? b.desc : t('locked') + ' · ' + b.desc}</small></div>`).join('')}
       </div>`,
   };
-  shell(tabs, views[tab]());
+  shell(tabs, views[tab](), { live: group });
 
-  if (tab === 'homework' || tab === 'home') bindHomework(assignments, subFor);
-  if (tab === 'play') bindGames();
+  if (tab === 'homework') bindHomework(assignments, subFor);
+  if (tab === 'home') $$('[data-start]').forEach((a) => (a.onclick = () => { try { sessionStorage.setItem('erdemStartGame', a.dataset.start); } catch {} }));
+  if (tab === 'play') {
+    bindGames();
+    let start; try { start = sessionStorage.getItem('erdemStartGame'); sessionStorage.removeItem('erdemStartGame'); } catch {}
+    if (start) $(`.game-tile[data-g="${start}"]`)?.click();
+  }
 }
 
 function liveCard(group) {
@@ -220,7 +286,7 @@ function liveCard(group) {
     <p class="eyebrow">${t('nextLesson')}</p>
     <h2>${esc(group?.schedule || t('none'))}</h2>
     <p class="muted">${esc(group?.name || '')}</p>
-    ${safeUrl(group?.live_url) ? `<a class="btn btn-live btn-block" href="${safeUrl(group.live_url)}" target="_blank" rel="noopener">🎥 ${t('joinLive')}</a>`
+    ${safeUrl(group?.live_url) ? `<a class="btn btn-live btn-block" href="${safeUrl(group.live_url)}" target="_blank" rel="noopener">${icon('video', 18)} ${t('joinLive')}</a>`
       : `<p class="muted small">${t('noLive')}</p>`}
   </section>`;
 }
@@ -231,8 +297,8 @@ function lessonCard(l) {
       <h3>${esc(l.title)}</h3>
       ${l.description ? `<p>${esc(l.description)}</p>` : ''}
       <div class="row-gap">
-        ${safeUrl(l.video_url) ? `<a class="btn btn-sm btn-navy" href="${safeUrl(l.video_url)}" target="_blank" rel="noopener">▶ ${t('watch')}</a>` : ''}
-        ${safeUrl(l.material_url) ? `<a class="btn btn-sm btn-ghost" href="${safeUrl(l.material_url)}" target="_blank" rel="noopener">📎 ${t('material')}</a>` : ''}
+        ${safeUrl(l.video_url) ? `<a class="btn btn-sm btn-navy" href="${safeUrl(l.video_url)}" target="_blank" rel="noopener">${icon('video', 16)} ${t('watch')}</a>` : ''}
+        ${safeUrl(l.material_url) ? `<a class="btn btn-sm btn-ghost" href="${safeUrl(l.material_url)}" target="_blank" rel="noopener">${icon('clip', 16)} ${t('material')}</a>` : ''}
       </div>
     </div>
   </article>`;
@@ -244,6 +310,7 @@ function hwRow(a, sub, full = false) {
       <h3>${esc(a.title)}</h3>
       ${full && a.instructions ? `<p>${esc(a.instructions)}</p>` : ''}
       <p class="small ${late ? 'late' : 'muted'}">${t('due')}: ${esc(fmtDate(a.due_date)) || t('none')} · ${a.points ?? 10} ${t('xp')}</p>
+      ${filesOf(sub).length ? `<p class="small muted">${icon('clip', 14)} ${filesOf(sub).length} ${t('attached')}</p>` : ''}
       ${sub?.status === 'reviewed' && sub.feedback ? `<div class="feedback"><strong>${t('feedback')}:</strong> ${esc(sub.feedback)}</div>` : ''}
     </div>
     <div class="hw-side">${statusChip(sub)}
@@ -257,30 +324,86 @@ function bindHomework(assignments, subFor) {
     const sub = subFor(a.id);
     const row = b.closest('.hw');
     if ($('.hw-form', row)) return;
+    const canRec = !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
     row.insertAdjacentHTML('beforeend', `
       <form class="hw-form">
         <textarea name="body" rows="4" placeholder="${t('yourAnswer')}">${esc(sub?.body || '')}</textarea>
-        <label class="file-drop">📎 ${t('attach')}<input type="file" name="file" accept="image/*,audio/*,application/pdf,.doc,.docx"><span class="file-name"></span></label>
-        <div class="row-gap"><button class="btn btn-gold">${t('send')}</button><button type="button" class="btn btn-ghost" data-cancel>${t('cancel')}</button></div>
+        <ul class="file-list" aria-live="polite"></ul>
+        <div class="row-gap">
+          ${canRec ? `<button type="button" class="btn btn-ghost btn-sm" data-rec>${icon('mic', 18)} <span>${t('record')}</span></button>` : ''}
+          <label class="btn btn-ghost btn-sm file-btn">${icon('image', 18)} ${t('addFiles')}
+            <input type="file" multiple accept="image/*,audio/*,application/pdf,.doc,.docx"></label>
+          <span class="muted small">${t('maxFiles')} · 10 MB</span>
+        </div>
+        <div class="row-gap"><button class="btn btn-gold" data-send>${t('send')}</button><button type="button" class="btn btn-ghost" data-cancel>${t('cancel')}</button></div>
       </form>`);
-    const f = $('.hw-form', row);
-    f.file.onchange = () => { $('.file-name', f).textContent = f.file.files[0]?.name || ''; };
-    $('[data-cancel]', f).onclick = () => f.remove();
+    const f = $('.hw-form', row), list = $('.file-list', f);
+    const files = [];
+    let rec = null, chunks = [], stream = null, timer = null;
+    const draw = () => {
+      list.innerHTML = files.map((x, i) => `<li class="file-item">
+        ${isAudioFile(x) ? `<audio controls src="${x._url}"></audio>` : x.type.startsWith('image/') ? `<img src="${x._url}" alt="">` : `<span class="file-chip">${icon('clip', 14)}</span>`}
+        <span class="file-name">${esc(x.name)}</span>
+        <button type="button" class="btn-x" data-rm="${i}" aria-label="${t('del')}">✕</button></li>`).join('');
+      $$('[data-rm]', list).forEach((btn) => (btn.onclick = () => { files.splice(+btn.dataset.rm, 1); draw(); }));
+    };
+    const add = (fl) => {
+      for (const x of fl) {
+        if (files.length >= 5) { toast(t('maxFiles'), 'bad'); break; }
+        if (x.size > 10 * 1024 * 1024) { toast(`${x.name}: max 10 MB`, 'bad'); continue; }
+        x._url = URL.createObjectURL(x); files.push(x);
+      }
+      draw();
+    };
+    $('input[type=file]', f).onchange = (e) => { add(e.target.files); e.target.value = ''; };
+    const recBtn = $('[data-rec]', f);
+    const stopRec = () => { if (rec && rec.state !== 'inactive') rec.stop(); };
+    if (recBtn) recBtn.onclick = async () => {
+      if (rec && rec.state === 'recording') return stopRec();
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch { return toast(t('noMic'), 'bad'); }
+      chunks = [];
+      rec = new MediaRecorder(stream);
+      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+      rec.onstop = () => {
+        stream.getTracks().forEach((tr) => tr.stop());
+        clearInterval(timer);
+        recBtn.classList.remove('recording');
+        $('span', recBtn).textContent = t('record');
+        const type = rec.mimeType || 'audio/webm';
+        const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+        add([new File(chunks, `bichleg-${new Date().toTimeString().slice(0, 8).replace(/:/g, '')}.${ext}`, { type })]);
+      };
+      rec.start();
+      const t0 = Date.now();
+      recBtn.classList.add('recording');
+      const tick = () => {
+        const sec = Math.floor((Date.now() - t0) / 1000);
+        $('span', recBtn).textContent = `${t('stop')} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+        if (sec >= 180) stopRec();
+      };
+      tick(); timer = setInterval(tick, 500);
+    };
+    $('[data-cancel]', f).onclick = () => { stopRec(); f.remove(); };
     f.onsubmit = (e) => {
       e.preventDefault();
-      const body = f.body.value.trim(), file = f.file.files[0];
-      if (!body && !file) return f.body.focus();
-      if (file && file.size > 10 * 1024 * 1024) return toast('Max 10 MB', 'bad');
-      $('button', f).disabled = true;
+      stopRec();
+      const body = f.body.value.trim();
+      if (!body && !files.length) return f.body.focus();
+      const send = $('[data-send]', f);
+      send.disabled = true; send.textContent = t('loading');
       guard(async () => {
-        await api.submit(a.id, body, file);
+        await api.submit(a.id, body, files);
         if (!sub) await api.addXp(20);
         toast(t('sentOk'));
         route();
-      }).finally(() => { const btn = $('button', f); if (btn) btn.disabled = false; });
+      }).finally(() => { if (send.isConnected) { send.disabled = false; send.textContent = t('send'); } });
     };
   }));
 }
+const isAudioFile = (x) => (x.type || '').startsWith('audio/');
+
 function bindGames() {
   const area = $('#gameArea');
   const onDone = async (res) => {
@@ -288,14 +411,18 @@ function bindGames() {
     if (res.xp > 0) await guard(() => api.addXp(res.xp));
     if (res.total === 10 && res.score === 10 && area.dataset.g === 'letters') await api.setMeta('lettersPerfect', true);
   };
-  $$('.game-card', area).forEach((b) => (b.onclick = async () => {
-    area.dataset.g = b.dataset.g;
+  $$('.game-tile', area).forEach((b) => (b.onclick = async () => {
+    const g = b.dataset.g;
+    area.dataset.g = g;
     const box = document.createElement('div');
     box.className = 'card game-box';
     area.replaceChildren(box);
-    if (b.dataset.g === 'letters') return letters(box, onDone);
+    if (g === 'letters') return letters(box, onDone);
+    if (g === 'sent') return sentenceBuilder(box, onDone);
+    if (g === 'fill') return fillSuffix(box, onDone);
     const vocab = await guard(() => api.vocab()) || [];
-    if (b.dataset.g === 'flash') flashcards(box, vocab, getLang(), onDone);
+    if (g === 'flash') flashcards(box, vocab, getLang(), onDone);
+    else if (g === 'word') wordBuilder(box, vocab, onDone);
     else pictures(box, vocab, onDone);
   }));
 }
@@ -303,33 +430,34 @@ function bindGames() {
 // ------------------------------------------------------------ PARENT
 async function renderParent() {
   const kids = await api.children();
-  if (!kids.length) return shell([], `<h1 class="page-title">${t('myChildren')}</h1><p class="card muted">${t('noChildren')}</p>`);
+  const ptabs = [{ id: 'children', icon: 'children', label: t('tabChildren') }];
+  if (!kids.length) return shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1><p class="card muted">${t('noChildren')}</p>`);
   const data = await Promise.all(kids.map(async (k) => {
     const [subs, act, asg] = await Promise.all([api.submissions(k.id), api.activity(k.id), api.assignments(k.group_id)]);
     return { k, subs, asg, st: stats(act, subs) };
   }));
-  shell([], `<h1 class="page-title">${t('myChildren')}</h1>
+  shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1>
     <div class="stack">${data.map(({ k, subs, asg, st }) => {
       const group = groupsCache.find((g) => g.id === k.group_id);
       const open = asg.filter((a) => !subs.some((s) => s.assignment_id === a.id));
       return `<section class="card child">
         <div class="child-head">
-          <span class="avatar xl">${esc(k.avatar || '🙂')}</span>
+          ${avatar(k, 'xl')}
           <div><h2>${esc(k.full_name)}</h2><p class="muted">${esc(group?.name || t('none'))}${group?.schedule ? ' · ' + esc(group.schedule) : ''}</p></div>
-          ${safeUrl(group?.live_url) ? `<a class="btn btn-live btn-sm push" href="${safeUrl(group.live_url)}" target="_blank" rel="noopener">🎥 ${t('joinLive')}</a>` : ''}
+          ${safeUrl(group?.live_url) ? `<a class="btn btn-live btn-sm push" href="${safeUrl(group.live_url)}" target="_blank" rel="noopener">${icon('video', 16)} ${t('joinLive')}</a>` : ''}
         </div>
         <div class="kpis">
-          <div class="kpi"><span>🔥 ${st.streak}</span><small>${t('streak')}</small></div>
-          <div class="kpi"><span>⭐ ${st.totalXp}</span><small>${t('totalXp')}</small></div>
-          <div class="kpi"><span>✅ ${subs.length}/${asg.length}</span><small>${t('doneHw')}</small></div>
-          <div class="kpi ${open.length ? 'warn' : ''}"><span>📌 ${open.length}</span><small>${t('openHw')}</small></div>
+          <div class="kpi"><small>${t('streakLabel')}</small><span>${st.streak} 🔥</span></div>
+          <div class="kpi"><small>${t('totalXp')}</small><span>${st.totalXp}</span></div>
+          <div class="kpi"><small>${t('doneHw')}</small><span>${subs.length} / ${asg.length}</span></div>
+          <div class="kpi ${open.length ? 'warn' : ''}"><small>${t('openHw')}</small><span>${open.length}</span></div>
         </div>
         <h3 class="sub">${t('week')}</h3>${weekChart(st.week)}
         <h3 class="sub">${t('recent')}</h3>
         <div class="stack-sm">${asg.slice(0, 5).map((a) => {
           const s = subs.find((x) => x.assignment_id === a.id);
           return `<div class="mini-row"><span>${esc(a.title)}</span>${statusChip(s)}</div>
-            ${s?.feedback ? `<div class="feedback small">💬 ${esc(s.feedback)}</div>` : ''}`;
+            ${s?.feedback ? `<div class="feedback small">${esc(s.feedback)}</div>` : ''}`;
         }).join('') || `<p class="muted">${t('noHomework')}</p>`}</div>
       </section>`;
     }).join('')}</div>`);
@@ -339,10 +467,10 @@ async function renderParent() {
 async function renderStaff() {
   const isAdmin = me.role === 'admin';
   const tabs = [
-    { id: 'review', icon: '✅', label: t('tabReview') },
-    { id: 'manage', icon: '📚', label: t('tabManage') },
-    { id: 'groups', icon: '👥', label: t('tabGroups') },
-    ...(isAdmin ? [{ id: 'users', icon: '🛡️', label: t('tabUsers') }] : []),
+    { id: 'review', icon: 'review', label: t('tabReview') },
+    { id: 'manage', icon: 'manage', label: t('tabManage') },
+    { id: 'groups', icon: 'groups', label: t('tabGroups') },
+    ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }] : []),
   ];
   const tab = currentTab(tabs);
   if (tab === 'review') return staffReview(tabs);
@@ -358,11 +486,11 @@ async function staffReview(tabs) {
   const done = subs.filter((s) => s.status === 'reviewed').slice(0, 10);
   const card = (s) => `<article class="card review" data-id="${esc(s.id)}">
       <div class="review-head">
-        <span class="avatar">${esc(s.student?.avatar || '🙂')}</span>
+        ${avatar(s.student)}
         <div><strong>${esc(s.student?.full_name || '')}</strong><p class="muted small">${esc(title(s.assignment_id))} · ${esc(groupName(s.student?.group_id))} · ${esc(fmtDate(s.submitted_at))}</p></div>
       </div>
       ${s.body ? `<blockquote class="mn">${esc(s.body)}</blockquote>` : ''}
-      ${s.file_path ? `<button class="btn btn-sm btn-ghost" data-file="${esc(s.file_path)}">📎 ${esc(s.file_path.split('/').pop())}</button>` : ''}
+      ${filesOf(s).length ? `<div class="media-row">${filesOf(s).map((p) => `<div class="media" data-file="${esc(p)}"><span class="file-chip">${icon(isAudio(p) ? 'mic' : isImage(p) ? 'image' : 'clip', 14)} ${esc(p.split('/').pop().replace(/^(?:.*?-)?\d{12,}-(?:\d{1,2}-)?/, ''))}</span></div>`).join('')}</div>` : ''}
       <form class="review-form">
         <label>${t('score')}<input name="score" type="number" min="0" max="100" value="${s.score ?? 10}"></label>
         <label class="grow">${t('feedback')}<input name="feedback" value="${esc(s.feedback || '')}" placeholder="Маш сайн! / Sehr gut!"></label>
@@ -377,10 +505,14 @@ async function staffReview(tabs) {
     const id = f.closest('.review').dataset.id;
     guard(async () => { await api.review(id, +f.score.value, f.feedback.value.trim()); toast(t('saved')); route(); });
   }));
-  $$('[data-file]').forEach((b) => (b.onclick = async () => {
-    const url = await api.fileUrl(b.dataset.file);
-    if (url) window.open(url, '_blank', 'noopener'); else toast(api.mode === 'demo' ? 'Demo' : t('error'), 'bad');
-  }));
+  $$('.media[data-file]').forEach(async (box) => {
+    const p = box.dataset.file;
+    const url = await api.fileUrl(p).catch(() => null);
+    if (!url || !box.isConnected) return;
+    if (isAudio(p)) box.innerHTML = `<audio controls preload="none" src="${esc(url)}"></audio>`;
+    else if (isImage(p)) box.innerHTML = `<a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="" loading="lazy"></a>`;
+    else box.innerHTML = `<a class="file-chip" href="${esc(url)}" target="_blank" rel="noopener">${icon('clip', 14)} ${esc(p.split('/').pop())}</a>`;
+  });
 }
 
 async function staffManage(tabs) {
@@ -397,7 +529,7 @@ async function staffManage(tabs) {
     </div>
     <div class="grid-2">
       <form class="card form" id="lessonForm">
-        <h2>➕ ${t('newLesson')}</h2>
+        <h2>${t('newLesson')}</h2>
         <label>${t('title')}<input name="title" required></label>
         <label>${t('desc')}<textarea name="description" rows="2"></textarea></label>
         <label>${t('videoUrl')}<input name="video_url" type="url" placeholder="https://"></label>
@@ -406,7 +538,7 @@ async function staffManage(tabs) {
         <button class="btn btn-gold">${t('save')}</button>
       </form>
       <form class="card form" id="hwForm">
-        <h2>➕ ${t('newHw')}</h2>
+        <h2>${t('newHw')}</h2>
         <label>${t('title')}<input name="title" required></label>
         <label>${t('instructions')}<textarea name="instructions" rows="3"></textarea></label>
         <label>${t('tabLessons')}<select name="lesson_id"><option value="">${t('none')}</option>${lessons.map((l) => `<option value="${esc(l.id)}">${esc(l.title)}</option>`).join('')}</select></label>
@@ -443,12 +575,12 @@ async function staffGroups(tabs, isAdmin) {
           <label class="grow">${t('liveUrl')}<input name="live_url" type="url" value="${esc(g.live_url || '')}" placeholder="https://meet.google.com/…"></label>
           <button class="btn btn-gold btn-sm">${t('save')}</button>
         </form>
-        <table class="table"><thead><tr><th>${t('student')}</th><th>🔥</th><th>⭐</th><th>${t('doneHw')}</th></tr></thead>
-        <tbody>${mine.map(({ s, st }) => `<tr><td>${esc(s.avatar)} ${esc(s.full_name)}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td></tr>`).join('') || `<tr><td colspan="4" class="muted">${t('none')}</td></tr>`}</tbody></table>
+        <table class="table"><thead><tr><th>${t('student')}</th><th>${t('streak')}</th><th>${t('totalXp')}</th><th>${t('doneHw')}</th></tr></thead>
+        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td></tr>`).join('') || `<tr><td colspan="4" class="muted">${t('none')}</td></tr>`}</tbody></table>
       </section>`;
     }).join('')}
     ${isAdmin ? `<form class="card group-form" data-g="">
-        <h2 class="full">➕ ${t('newGroup')}</h2>
+        <h2 class="full">${t('newGroup')}</h2>
         <label class="grow">${t('groupName')}<input name="name" required></label>
         <label>${t('schedule')}<input name="schedule" placeholder="Бямба 10:40"></label>
         <label class="grow">${t('liveUrl')}<input name="live_url" type="url" placeholder="https://"></label>
@@ -473,7 +605,7 @@ async function adminUsers(tabs) {
     <section class="card table-wrap">
       <table class="table"><thead><tr><th>${t('fullName')}</th><th>${t('role')}</th><th>${t('group')}</th></tr></thead><tbody>
       ${sorted.map((p) => `<tr data-u="${esc(p.id)}" class="${p.role === 'pending' ? 'row-pending' : ''}">
-        <td>${esc(p.avatar)} ${esc(p.full_name)}</td>
+        <td class="user-cell">${avatar(p)} ${esc(p.full_name)}</td>
         <td><select class="u-role" ${p.id === me.id ? 'disabled' : ''}>${roles.map((r) => `<option value="${r}" ${r === p.role ? 'selected' : ''}>${t('r' + r)}</option>`).join('')}</select></td>
         <td><select class="u-group"><option value="">${t('none')}</option>${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === p.group_id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></td>
       </tr>`).join('')}
@@ -500,7 +632,7 @@ async function adminUsers(tabs) {
 async function route() {
   document.documentElement.lang = getLang() === 'de' ? 'de' : 'mn';
   if (!me) return renderLogin();
-  if (me.role === 'pending') return shell([], `<section class="card pending center"><div class="big-emoji">⏳</div><h1>${t('pendingTitle')}</h1><p class="muted">${t('pendingLead')}</p></section>`);
+  if (me.role === 'pending') return shell([], `<section class="card pending center"><h1>${t('pendingTitle')}</h1><p class="muted">${t('pendingLead')}</p></section>`);
   await guard(async () => {
     groupsCache = await api.groups();
     if (me.role === 'student') await renderStudent();

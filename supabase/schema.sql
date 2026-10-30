@@ -59,7 +59,8 @@ create table if not exists public.submissions (
   assignment_id uuid not null references public.assignments on delete cascade,
   student_id    uuid not null references public.profiles on delete cascade,
   body          text,
-  file_path     text,           -- storage: homework/<student_id>/<file>
+  file_path     text,           -- storage: homework/<student_id>/<file> (эхний файл)
+  files         text[] default '{}', -- бүх хавсралт (зураг, аудио…)
   status        text not null default 'submitted' check (status in ('submitted','reviewed')),
   score         int,
   feedback      text,
@@ -83,6 +84,9 @@ create table if not exists public.activity (
   xp         int  not null default 0,
   primary key (student_id, day)
 );
+
+-- Хуучин суулгацад шинэ багана нэмэх (дахин ажиллуулахад аюулгүй)
+alter table public.submissions add column if not exists files text[] default '{}';
 
 -- ---------- Helper functions (security definer → RLS recursion-гүй) ---
 

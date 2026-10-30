@@ -122,3 +122,109 @@ export function pictures(root, vocab, onDone) {
   }));
   quiz(root, rounds, onDone, () => pictures(root, vocab, onDone));
 }
+
+// ------------------------------------------------------------ Build engine (tap tiles in order)
+function build(root, rounds, prompt, onDone, replay, { joiner = '', tileClass = '' } = {}) {
+  let i = 0, score = 0;
+  function render() {
+    if (i >= rounds.length) return finish(root, score, rounds.length, score * 2, onDone, replay);
+    const r = rounds[i];
+    const tiles = shuffle(r.parts.map((p, k) => ({ p, k })));
+    // avoid showing the answer already in order
+    if (tiles.length > 1 && tiles.every((x, k) => x.k === k)) tiles.reverse();
+    const picked = [];
+    root.innerHTML = `
+      <div class="game-progress"><span style="width:${(i / rounds.length) * 100}%"></span></div>
+      <p class="quiz-q">${prompt}</p>
+      ${r.hint ? `<p class="build-hint">${r.hint}</p>` : ''}
+      <div class="build-answer ${tileClass}" aria-live="polite"></div>
+      <div class="build-tiles ${tileClass}">
+        ${tiles.map((x, n) => `<button class="tile" data-n="${n}">${esc(x.p)}</button>`).join('')}
+      </div>
+      <div class="row-gap center">
+        <button class="btn btn-ghost" data-a="clear">↺ ${t('clear')}</button>
+        <button class="btn btn-gold" data-a="check" disabled>${t('check')}</button>
+      </div>
+      <p class="quiz-feedback" aria-live="polite"></p>`;
+    const ans = root.querySelector('.build-answer'), checkBtn = root.querySelector('[data-a=check]');
+    const draw = () => {
+      ans.innerHTML = picked.map((n) => `<span class="tile placed">${esc(tiles[n].p)}</span>`).join('') || '<span class="build-empty">…</span>';
+      root.querySelectorAll('.build-tiles .tile').forEach((b) => (b.disabled = picked.includes(+b.dataset.n)));
+      checkBtn.disabled = picked.length !== tiles.length;
+    };
+    root.querySelectorAll('.build-tiles .tile').forEach((b) => (b.onclick = () => { picked.push(+b.dataset.n); draw(); }));
+    ans.onclick = () => { picked.pop(); draw(); };
+    root.querySelector('[data-a=clear]').onclick = () => { picked.length = 0; draw(); };
+    checkBtn.onclick = () => {
+      const guess = picked.map((n) => tiles[n].p).join(joiner);
+      const right = r.parts.join(joiner);
+      const ok = guess === right;
+      if (ok) score++;
+      const fb = root.querySelector('.quiz-feedback');
+      fb.className = 'quiz-feedback ' + (ok ? 'ok' : 'bad');
+      fb.innerHTML = ok ? `✅ ${t('correct')} <span class="mn">${esc(r.show || right)}</span>`
+        : `❌ ${t('answerWas')}: <span class="mn">${esc(r.show || right)}</span>`;
+      ans.classList.add(ok ? 'is-right' : 'is-wrong');
+      root.querySelectorAll('button').forEach((b) => (b.disabled = true));
+      setTimeout(() => { i++; render(); }, ok ? 1200 : 2200);
+    };
+    draw();
+  }
+  render();
+}
+
+// ------------------------------------------------------------ Word builder
+export function wordBuilder(root, vocab, onDone) {
+  const pool = vocab.filter((v) => [...v.mn].length >= 3 && [...v.mn].length <= 7 && !v.mn.includes(' '));
+  const rounds = shuffle(pool).slice(0, 8).map((v) => ({
+    parts: [...v.mn], hint: `${esc(v.emoji || '')} ${esc(v.de)}`,
+  }));
+  build(root, rounds, t('buildWord'), onDone, () => wordBuilder(root, vocab, onDone), { tileClass: 'letters' });
+}
+
+// ------------------------------------------------------------ Sentence builder (SOV)
+export const SENTENCES = [
+  ['Би ном уншиж байна', 'Ich lese ein Buch.'],
+  ['Миний ээж хоол хийж байна', 'Meine Mutter kocht.'],
+  ['Бид Бямба гарагт монгол хэл сурдаг', 'Samstags lernen wir Mongolisch.'],
+  ['Морь талд давхиж байна', 'Das Pferd galoppiert in der Steppe.'],
+  ['Аав маань машин жолоодно', 'Mein Vater fährt Auto.'],
+  ['Өнөөдөр цас орж байна', 'Heute schneit es.'],
+  ['Манай гэр Нюрнбергт байдаг', 'Unser Zuhause ist in Nürnberg.'],
+  ['Эгч маань дуу дуулж байна', 'Meine Schwester singt ein Lied.'],
+  ['Би өглөө сүү уудаг', 'Morgens trinke ich Milch.'],
+  ['Өвөө маань Улаанбаатарт амьдардаг', 'Mein Opa lebt in Ulaanbaatar.'],
+  ['Бид зун Монгол руу явна', 'Im Sommer fahren wir in die Mongolei.'],
+  ['Миний дуртай амьтан бол морь', 'Mein Lieblingstier ist das Pferd.'],
+];
+export function sentenceBuilder(root, onDone) {
+  const rounds = shuffle(SENTENCES).slice(0, 6).map(([mn, de]) => ({ parts: mn.split(' '), hint: esc(de), show: mn + '.' }));
+  build(root, rounds, t('buildSent'), onDone, () => sentenceBuilder(root, onDone), { joiner: ' ', tileClass: 'words' });
+}
+
+// ------------------------------------------------------------ Fill in the case suffix
+export const SUFFIXES = [
+  { s: 'Би гэр_ байна.', ok: 'т', opts: ['д', 'ээс', 'тэй'], de: 'Ich bin zu Hause.' },
+  { s: 'Бид Герман_ амьдардаг.', ok: 'д', opts: ['т', 'аас', 'ийн'], de: 'Wir leben in Deutschland.' },
+  { s: 'Энэ бол ээж_ ном.', ok: 'ийн', opts: ['ын', 'д', 'тэй'], de: 'Das ist Mamas Buch.' },
+  { s: 'Би Монгол_ ирсэн.', ok: 'оос', opts: ['ээс', 'д', 'той'], de: 'Ich komme aus der Mongolei.' },
+  { s: 'Би аав_ хамт явна.', ok: 'тай', opts: ['тэй', 'той', 'д'], de: 'Ich gehe mit Papa.' },
+  { s: 'Бат багш_ асуулт асуув.', ok: 'аас', opts: ['ээс', 'ын', 'д'], de: 'Bat fragte den Lehrer.' },
+  { s: 'Хот_ олон хүн байна.', ok: 'од', opts: ['д', 'т', 'оос'], de: 'In der Stadt sind viele Menschen.' },
+  { s: 'Эгч_ нэр Номин.', ok: 'ийн', opts: ['ын', 'тэй', 'ээс'], de: 'Der Name der Schwester ist Nomin.' },
+  { s: 'Би найз_ тоглоно.', ok: 'тай', opts: ['тэй', 'той', 'д'], de: 'Ich spiele mit einem Freund.' },
+  { s: 'Тэр гэр_ гарлаа.', ok: 'ээс', opts: ['аас', 'оос', 'т'], de: 'Er ging aus dem Haus.' },
+];
+export function fillSuffix(root, onDone) {
+  const rounds = shuffle(SUFFIXES).slice(0, 8).map((q) => {
+    const word = q.s.split(' ').find((w) => w.includes('_'));
+    const full = word.replace('_', q.ok).replace('.', '');
+    return {
+      prompt: t('fillQ'),
+      big: `<span class="mn">${esc(q.s).replace('_', '<span class="blank">___</span>')}</span>`, bigClass: 'sentence',
+      options: shuffle([{ label: '-' + esc(q.ok), correct: true }, ...q.opts.map((o) => ({ label: '-' + esc(o), correct: false }))]),
+      after: `<span class="mn">${esc(full)}</span> · <span>${esc(q.de)}</span>`,
+    };
+  });
+  quiz(root, rounds, onDone, () => fillSuffix(root, onDone));
+}

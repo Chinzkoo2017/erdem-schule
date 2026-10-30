@@ -79,7 +79,7 @@ function shell(tabs, body) {
       </a>
       <div class="topbar-right">
         <button class="lang" id="langBtn">${getLang() === 'mn' ? 'DE' : 'MN'}</button>
-        ${me ? `<span class="who"><span class="avatar">${esc(me.avatar || '🙂')}</span><span class="who-name">${esc(me.full_name)}</span></span>
+        ${me ? `<span class="who"><span class="avatar">${esc(me.avatar || '🙂')}</span><span class="who-text"><span class="who-name">${esc(me.full_name)}</span><small class="who-role">${t('r' + me.role)}</small></span></span>
         <button class="btn btn-ghost btn-sm" id="logout">${t('logout')}</button>` : ''}
       </div>
     </header>

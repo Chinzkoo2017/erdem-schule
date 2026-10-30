@@ -67,6 +67,8 @@ button, input, select, textarea { font: inherit; }
   border-radius: 999px; padding: .25rem .7rem; font-weight: 800; font-size: .78rem; cursor: pointer;
 }
 .who { display: flex; align-items: center; gap: .4rem; }
+.who-text { display: grid; line-height: 1.15; }
+.who-role { color: var(--gold-soft); font-size: .72rem; font-weight: 700; }
 .who-name { font-weight: 700; font-size: .9rem; max-width: 12ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar .btn-ghost { color: #fff; border-color: rgba(255,255,255,.35); background: transparent; }
 
@@ -303,7 +305,9 @@ details summary { cursor: pointer; font-weight: 800; color: var(--navy); }
 .toast-bad { background: var(--red); }
 
 @media (max-width: 560px) {
-  .who-name { display: none; }
+  .who-text { display: grid; line-height: 1.15; }
+.who-role { color: var(--gold-soft); font-size: .72rem; font-weight: 700; }
+.who-name { display: none; }
   .brand small { display: none; }
   .topbar { padding-top: .55rem; padding-bottom: .55rem; }
   .tabs { top: 59px; }

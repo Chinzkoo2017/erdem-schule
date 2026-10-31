@@ -361,7 +361,8 @@ function currentTab(tabs) {
 const loading = () => shell([], `<p class="muted center pad">${t('loading')}</p>`);
 
 // ------------------------------------------------------------ login
-function renderLogin(mode = 'in') {
+// Бүртгэлийг зөвхөн сургууль (админ) үүсгэнэ: энд шинээр бүртгүүлэх, имэйлээр холбоос авах сонголт байхгүй.
+function renderLogin() {
   const demo = api.mode === 'demo';
   shell([], `
   <section class="login">
@@ -381,13 +382,11 @@ function renderLogin(mode = 'in') {
       </div>
     </div>` : `
     <form class="card login-card" id="loginForm">
-      <h2>${mode === 'up' ? t('signUp') : t('signIn')}</h2>
-      ${mode === 'up' ? `<label>${t('fullName')}<input name="name" required autocomplete="name"></label>` : ''}
-      <label>${mode === 'up' ? t('email') : t('loginOrEmail')}<input name="email" type="${mode === 'up' ? 'email' : 'text'}" required autocomplete="${mode === 'up' ? 'email' : 'username'}" autocapitalize="none" spellcheck="false"></label>
-      <label>${t('password')}<input name="pw" type="password" minlength="8" ${mode === 'up' ? 'required' : ''} autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}"></label>
-      <button class="btn btn-gold btn-block">${mode === 'up' ? t('signUp') : t('signIn')}</button>
-      ${mode === 'in' ? `<button type="button" class="btn btn-ghost btn-block" id="magic">${t('magicLink')}</button>` : ''}
-      <p class="muted center">${mode === 'up' ? t('haveAccount') : t('noAccount')} <a href="#" id="swap">${mode === 'up' ? t('signIn') : t('signUp')}</a></p>
+      <h2>${t('signIn')}</h2>
+      <label>${t('loginName')}<input name="login" type="text" required autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+      <label>${t('password')}<input name="pw" type="password" required autocomplete="current-password"></label>
+      <button class="btn btn-gold btn-block">${t('signIn')}</button>
+      <p class="muted center">${t('accountFromSchool')}</p>
       <p class="form-msg" aria-live="polite"></p>
     </form>`}
   </section>`);
@@ -397,20 +396,13 @@ function renderLogin(mode = 'in') {
     return;
   }
   const f = $('#loginForm'), msg = $('.form-msg', f);
-  $('#swap').onclick = (e) => { e.preventDefault(); renderLogin(mode === 'up' ? 'in' : 'up'); };
   f.onsubmit = async (e) => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(f));
-    try {
-      if (mode === 'up') { await api.signUp(d.email, d.pw, d.name); msg.textContent = t('signUpDone'); }
-      else { me = await api.signIn(d.email, d.pw); route(); }
-    } catch (err) { msg.textContent = /invalid login credentials/i.test(err.message) ? t('badLogin') : err.message; msg.classList.add('bad'); }
+    msg.classList.remove('bad'); msg.textContent = '';
+    try { me = await api.signIn(d.login.trim(), d.pw); route(); }
+    catch (err) { msg.textContent = /invalid login credentials/i.test(err.message) ? t('badLogin') : err.message; msg.classList.add('bad'); }
   };
-  $('#magic') && ($('#magic').onclick = async () => {
-    const email = f.email.value;
-    if (!email) return f.email.reportValidity();
-    try { await api.magicLink(email); msg.textContent = t('magicSent'); } catch (err) { msg.textContent = err.message; }
-  });
 }
 
 // ------------------------------------------------------------ STUDENT

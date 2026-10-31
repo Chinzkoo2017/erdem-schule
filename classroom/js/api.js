@@ -264,8 +264,7 @@ async function liveApi() {
     mode: 'live',
     async init() { return loadMe(); },
     async signIn(login, password) { ok(await sb.auth.signInWithPassword({ email: toEmail(login), password })); return loadMe(); },
-    async magicLink(email) { ok(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0], shouldCreateUser: false } })); },
-    async signUp(email, password, full_name) { ok(await sb.auth.signUp({ email, password, options: { data: { full_name }, emailRedirectTo: location.href.split('#')[0] } })); },
+    // signUp / magicLink-ийг санаатайгаар хассан: эрхийг зөвхөн админ (roster-sync) үүсгэнэ.
     async signOut() { await sb.auth.signOut(); profile = null; },
     async me() { return profile; },
     async groups() { return ok(await sb.from('groups').select('*').order('name')); },

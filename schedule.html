@@ -3,169 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Хичээлийн хуваарь – Erdem Schule</title>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Erdem Schule – Хуваарь / Termine</title>
+  <link rel="icon" href="images/logo.jpg">
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/base.css">
   <style>
-      body { font-family: 'Lato', sans-serif; }
-      h1, h2, h3 { font-family: 'Playfair Display', serif; }
+    header { background: linear-gradient(160deg, var(--navy-950), var(--navy)); color: #fff; }
+    .in { width: min(900px, 100% - 2rem); margin-inline: auto; }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; gap: .7rem; align-items: center; font-family: var(--font-d); font-weight: 800; }
+    .brand img { width: 42px; height: 42px; border-radius: 50%; }
+    .lang-toggle { display: inline-flex; border: 1.5px solid rgba(255,255,255,.35); border-radius: 999px; padding: 2px; background: none; cursor: pointer; font-weight: 800; font-size: .72rem; margin-left: .8rem; }
+    .lang-toggle span { padding: .25rem .6rem; border-radius: 999px; color: var(--on-dark-muted); }
+    .lang-toggle span.on { background: var(--gold-2); color: var(--on-gold); }
+    .nav a.home { font-weight: 700; font-size: .9rem; }
+    h1 { font-family: var(--font-d); font-size: clamp(1.8rem, 4vw, 2.6rem); padding: 1.5rem 0 2.5rem; }
+    .sub { color: var(--on-dark-muted); margin: -1.8rem 0 2rem; }
+    .list { display: grid; gap: 1rem; padding: 2rem 0 4rem; }
+    .ev { display: grid; grid-template-columns: 84px 1fr auto; gap: 1.2rem; align-items: center; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--blue); border-radius: 18px; padding: 1rem 1.3rem; box-shadow: var(--shadow); }
+    .ev.on { border-left-color: var(--ok); }
+    .ev .d { text-align: center; background: linear-gradient(160deg, var(--navy), var(--navy-2)); color: #fff; border-radius: 14px; padding: .5rem; }
+    .ev .d b { display: block; font-size: 1.7rem; font-family: var(--font-d); color: var(--gold-2); line-height: 1.1; }
+    .ev .d small { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
+    .ev h3 { color: var(--navy); }
+    .ev p { margin: .25rem 0 0; color: var(--muted); font-size: .88rem; }
+    .past { opacity: .55; }
+    h2.sec { font-family: var(--font-d); color: var(--navy); margin: 1rem 0 0; }
+    @media (max-width: 600px) { .ev { grid-template-columns: 70px 1fr; } .ev .chip { grid-column: 2; justify-self: start; } }
   </style>
 </head>
-
-<body class="bg-[#f8f9fb] text-gray-800">
-
-<header class="bg-white shadow-sm sticky top-0 z-40">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-3">
-        <img src="images/logo.jpg" alt="Logo" class="w-10 h-10 rounded-full shadow border border-gray-100">
-        <div class="leading-tight">
-            <div class="font-serif font-bold text-[#0a2342]">Erdem Schule</div>
-            <div class="text-[10px] uppercase text-gray-500 tracking-wider">Nürnberg</div>
-        </div>
-      </a>
-      <div class="flex items-center gap-3">
-        <a href="index.html" class="text-sm font-medium text-gray-600 hover:text-[#0a2342] transition" data-lang="home">Нүүр</a>
-        <button id="langBtn" class="px-3 py-1 rounded-full border border-gray-300 text-xs font-bold hover:bg-gray-100 transition">DE</button>
-      </div>
+<body>
+  <header>
+    <div class="in nav">
+      <a class="brand" href="index.html"><img src="images/logo.jpg" alt=""><span>Erdem Schule</span></a>
+      <div><a class="home" href="index.html" data-i18n="common.home">Нүүр хуудас</a><button class="lang-toggle" data-lang-toggle type="button"></button></div>
     </div>
-</header>
+    <div class="in"><h1 data-i18n="sc.h">Хичээлийн хуваарь</h1><p class="sub" data-i18n="sc.sub">2026 / 2027 оны хичээлийн жил</p></div>
+  </header>
+  <main class="in"><div id="list" class="list"></div></main>
 
-<section class="py-12 md:py-16">
-  <div class="max-w-4xl mx-auto px-4">
+  <script type="module">
+    import { loadPublic } from './js/public.js';
+    import { esc } from './js/util.js';
+    import { extend, t, pick, apply, onLang } from './js/i18n.js';
 
-    <div class="text-center mb-10">
-        <h2 class="text-3xl md:text-4xl font-bold text-[#0a2342] mb-2" data-lang="schedule-title">
-          Хичээлийн календарь
-        </h2>
-        <p class="text-gray-500" data-lang="schedule-subtitle">2025 оны 11, 12-р сарын хуваарь</p>
-    </div>
+    extend({
+      mn: { 'sc.h': 'Хичээлийн хуваарь', 'sc.sub': '2026 / 2027 оны хичээлийн жил', 'sc.upcoming': 'Ойрын арга хэмжээ', 'sc.past': 'Өнгөрсөн', 'sc.none': 'Одоогоор хуваарь оруулаагүй байна.' },
+      de: { 'sc.h': 'Unterrichtskalender', 'sc.sub': 'Schuljahr 2026 / 2027', 'sc.upcoming': 'Kommende Termine', 'sc.past': 'Vergangen', 'sc.none': 'Noch keine Termine eingetragen.' },
+    });
+    apply();
 
-    <div class="grid gap-6">
-
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 border-l-4 border-l-indigo-500 hover:shadow-md transition">
-        <div class="flex justify-between items-start mb-2">
-            <h3 class="text-lg md:text-xl font-bold text-[#0a2342]" data-lang="event1-date">
-              29.11.2025 — Онлайн хичээл
-            </h3>
-            <span class="bg-indigo-50 text-indigo-600 text-xs font-bold px-2 py-1 rounded uppercase">Online</span>
-        </div>
-        <div class="grid md:grid-cols-3 gap-4 text-sm mt-4">
-            <div>
-                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-class">Анги</span>
-                <span class="font-medium" data-lang="event1-class">Дунд, Ахлах</span>
-            </div>
-            <div>
-                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-teacher">Багш</span>
-                <span class="font-medium">S. Chinzorig</span>
-            </div>
-            <div>
-                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-subject">Хичээл</span>
-                <span class="font-medium" data-lang="event1-subject">Монгол хэл</span>
-            </div>
-        </div>
-      </div>
-
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 border-l-4 border-l-emerald-500 hover:shadow-md transition">
-        <div class="flex justify-between items-start mb-2">
-            <h3 class="text-lg md:text-xl font-bold text-[#0a2342]" data-lang="event2-date">
-              30.11.2025 — Танхимын хичээл
-            </h3>
-            <span class="bg-emerald-50 text-emerald-600 text-xs font-bold px-2 py-1 rounded uppercase">Präsenz</span>
-        </div>
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mt-4">
-            <div>
-                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-class">Анги</span>
-                <span class="font-medium" data-lang="event2-class">Бага, Дунд, Ахлах</span>
-            </div>
-            <div>
-                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-teacher">Багш нар</span>
-                <span class="font-medium">O. Tungalag, Ariunaa</span>
-            </div>
-            <div>
-                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-subject">Хичээл</span>
-                <span class="font-medium" data-lang="event2-subject">Монгол хэл, бүжиг, хөгжим</span>
-            </div>
-            <div>
-                <span class="block text-gray-400 text-xs uppercase tracking-wide mb-1" data-lang="label-location">Байршил</span>
-                <span class="font-medium">Erlangen</span>
-            </div>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-</section>
-
-<footer class="text-center py-8 text-xs text-gray-400 border-t mt-12">
-    &copy; 2025 Erdem Schule e.V.
-</footer>
-
-<script>
-    const translations = {
-        mn: {
-            "home": "Нүүр",
-            "schedule-title": "Хичээлийн календарь",
-            "schedule-subtitle": "2025 оны 11, 12-р сарын хуваарь",
-            "event1-date": "29.11.2025 — Онлайн хичээл",
-            "event1-class": "Дунд, Ахлах",
-            "event1-subject": "Монгол хэл",
-            "event2-date": "30.11.2025 — Танхимын хичээл",
-            "event2-class": "Бага, Дунд, Ахлах",
-            "event2-subject": "Монгол хэл, бүжиг, хөгжим",
-            "label-class": "Анги",
-            "label-teacher": "Багш",
-            "label-subject": "Хичээл",
-            "label-location": "Байршил"
-        },
-        de: {
-            "home": "Startseite",
-            "schedule-title": "Unterrichtskalender",
-            "schedule-subtitle": "Zeitplan für November & Dezember 2025",
-            "event1-date": "29.11.2025 — Online-Unterricht",
-            "event1-class": "Mittel- & Oberstufe",
-            "event1-subject": "Mongolische Sprache",
-            "event2-date": "30.11.2025 — Präsenzunterricht",
-            "event2-class": "Alle Klassen (1-5)",
-            "event2-subject": "Sprache, Tanz, Musik",
-            "label-class": "Klasse",
-            "label-teacher": "Lehrer",
-            "label-subject": "Fach",
-            "label-location": "Ort"
-        }
+    let rows = [];
+    const card = (e, past) => {
+      const d = new Date(e.date + 'T00:00:00'), online = e.type === 'Онлайн';
+      return `<div class="ev ${online ? 'on' : ''} ${past ? 'past' : ''}"><div class="d"><b>${d.getDate()}</b><small>${t('month.' + (d.getMonth() + 1))}</small></div>
+        <div><h3>${esc(pick(e, 'title'))}</h3><p>${esc(e.time || '')} · ${esc(e.place || '')} · ${esc(e.group || '')}</p></div>
+        <span class="chip ${online ? 'blue' : 'green'}">${online ? t('common.online') : t('common.onsite')}</span></div>`;
     };
-
-    function changeLang(lang) {
-        // Text солих
-        document.querySelectorAll('[data-lang]').forEach(el => {
-            const key = el.getAttribute('data-lang');
-            if (translations[lang][key]) {
-                el.innerText = translations[lang][key];
-            }
-        });
-        
-        // Товчлуурын текст шинэчлэх
-        const btn = document.getElementById('langBtn');
-        btn.innerText = lang === 'mn' ? 'DE' : 'MN';
-        
-        // localStorage-д хадгалах
-        localStorage.setItem('erdemLang', lang);
-    }
-
-    // Товчлуур дээр дарах үед
-    document.getElementById('langBtn').onclick = () => {
-        const current = localStorage.getItem('erdemLang') || 'mn';
-        const next = current === 'mn' ? 'de' : 'mn';
-        changeLang(next);
+    const draw = () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const up = rows.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+      const past = rows.filter((e) => e.date < today).sort((a, b) => b.date.localeCompare(a.date));
+      document.getElementById('list').innerHTML = rows.length
+        ? (up.length ? `<h2 class="sec">${t('sc.upcoming')}</h2>${up.map((e) => card(e)).join('')}` : '')
+          + (past.length ? `<h2 class="sec">${t('sc.past')}</h2>${past.map((e) => card(e, true)).join('')}` : '')
+        : `<div class="empty">${t('sc.none')}</div>`;
     };
-
-    // Хуудас ачаалах үед
-    window.onload = () => {
-        const saved = localStorage.getItem('erdemLang') || 'mn';
-        changeLang(saved);
-    };
-</script>
-
+    loadPublic().then(({ events }) => { rows = events; draw(); });
+    onLang(draw);
+  </script>
 </body>
 </html>

@@ -1252,7 +1252,7 @@ async function staffNews(tabs) {
         <h2>${t('annNew')}</h2>
         <div class="row-gap">
           <label class="grow">${t('annKind')}<select name="kind"><option value="meeting">👥 ${t('annMeeting')}</option><option value="event">🎉 ${t('annEvent')}</option><option value="info">📣 ${t('annInfo')}</option></select></label>
-          <label class="grow">${t('annAudience')}<select name="audience">${['parents', 'families', 'students', 'teachers', 'all'].map((x) => `<option value="${x}">${t('aud_' + x)}</option>`).join('')}</select></label>
+          <label class="grow">${t('annAudience')}<select name="audience">${['parents', 'families', 'students', 'teachers', 'all', 'public'].map((x) => `<option value="${x}">${t('aud_' + x)}</option>`).join('')}</select></label>
         </div>
         <label>${t('group')}<select name="group_id"><option value="">${t('annAllGroups')}</option>${groupsCache.map((g) => `<option value="${esc(g.id)}">${esc(g.name)}</option>`).join('')}</select></label>
         <label>${t('title')}<input name="title" required placeholder="${t('annTitlePh')}"></label>

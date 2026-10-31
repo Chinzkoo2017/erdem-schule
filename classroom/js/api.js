@@ -167,7 +167,7 @@ function demoApi() {
       const p = me(); if (!p) return [];
       const staff = ['teacher', 'admin'].includes(p.role);
       const myGroups = p.role !== 'student' ? db.parent_children.filter((l) => l.parent_id === meId).flatMap((l) => groupsOf(db.profiles.find((k) => k.id === l.child_id))) : groupsOf(p);
-      return (db.announcements || []).filter((a) => staff || ((a.audience === 'all' || (['parents', 'families'].includes(a.audience) && p.role === 'parent') || (['students', 'families'].includes(a.audience) && p.role === 'student'))
+      return (db.announcements || []).filter((a) => staff || ((['all', 'public'].includes(a.audience) || (['parents', 'families'].includes(a.audience) && p.role === 'parent') || (['students', 'families'].includes(a.audience) && p.role === 'student'))
         && (!a.group_id || myGroups.includes(a.group_id)))).sort((a, b) => (a.starts_at || '9').localeCompare(b.starts_at || '9'));
     },
     async saveAnnouncement(a) { const row = { id: uid(), created_at: new Date().toISOString(), ...a }; db.announcements.push(row); persist(); return row; },

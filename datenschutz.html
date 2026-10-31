@@ -4,76 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Datenschutzerklärung – Erdem Schule</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"/>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Lato', 'sans-serif'],
-            serif: ['Playfair Display', 'serif'],
-          },
-          colors: {
-            primary: '#0a2342',
-            primarySoft: '#102f60',
-            gold: '#c59d5f',
-            goldSoft: '#f5e4c7',
-          },
-          boxShadow: {
-            soft: '0 18px 45px rgba(15, 35, 66, 0.18)',
-          },
-        },
-      },
-    };
-  </script>
+  <link rel="icon" href="images/logo.jpg" />
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/legal.css" />
 </head>
-
-<body class="bg-[#f8f9fb] text-gray-800 font-sans antialiased">
-  <!-- Header -->
-  <header class="bg-white shadow-sm sticky top-0 z-40">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="index.html#hero" class="flex items-center gap-3 group">
-        <img src="images/logo.jpg" alt="Erdem Schule Logo" class="w-12 h-12 rounded-full border border-gray-100 shadow group-hover:scale-105 transition-transform">
-        <div>
-          <div class="font-serif text-lg font-bold text-primary leading-tight">
-            Erdem Schule
-          </div>
-          <div class="text-[11px] uppercase tracking-[0.18em] text-gray-500">
-            Mongolische Schule Nürnberg
-          </div>
-        </div>
-      </a>
-
-      <nav class="flex items-center gap-4 text-sm">
-        <a href="index.html" class="text-gray-600 hover:text-primary transition">Startseite</a>
-        <a href="impressum.html" class="text-gray-600 hover:text-primary transition">Impressum</a>
-        <a href="https://www.facebook.com/erdemschule" target="_blank" class="hidden sm:inline-flex items-center gap-2 text-gray-500 hover:text-primary">
-          <i class="fa-brands fa-facebook-f"></i><span>Facebook</span>
+<body>
+  <header class="lg-top">
+    <div class="lg-wrap">
+      <div class="lg-nav">
+        <a class="lg-brand" href="index.html">
+          <img src="images/logo.jpg" alt="Erdem Schule Logo" />
+          <span><b>Erdem Schule</b><small>Mongolische Schule Mittelfranken</small></span>
         </a>
-      </nav>
+        <nav class="lg-links">
+          <a href="index.html">Startseite</a>
+          <a href="impressum.html">Impressum</a>
+          <a href="https://www.facebook.com/erdemschule" target="_blank" rel="noopener">Facebook</a>
+        </nav>
+      </div>
+      <div class="lg-hero">
+        <p class="eyebrow">Datenschutz</p>
+        <h1>Datenschutzerklärung</h1>
+        <p>
+          Mit den folgenden Hinweisen informieren wir Sie darüber, welche personenbezogenen Daten wir auf dieser Website verarbeiten
+          und welche Rechte Sie als betroffene Person haben.
+        </p>
+      </div>
     </div>
   </header>
 
-  <!-- Page header -->
-  <section class="bg-primary text-white py-12 md:py-16">
-    <div class="max-w-5xl mx-auto px-4">
-      <p class="uppercase text-[11px] tracking-[0.25em] text-gold mb-3">Datenschutz</p>
-      <h1 class="font-serif text-3xl md:text-4xl font-bold mb-3">Datenschutzerklärung</h1>
-      <p class="text-sm md:text-base text-gray-200 max-w-2xl">
-        Mit den folgenden Hinweisen informieren wir Sie darüber, welche personenbezogenen Daten wir auf dieser Website verarbeiten
-        und welche Rechte Sie als betroffene Person haben.
-      </p>
-    </div>
-  </section>
-
-  <!-- Content -->
-  <main class="max-w-5xl mx-auto px-4 py-10 md:py-14 space-y-10 md:space-y-12 text-sm md:text-base leading-relaxed text-gray-700">
-    <!-- Verantwortliche Stelle -->
-    <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8 space-y-3">
-      <h2 class="font-serif text-2xl text-primary mb-2">1. Verantwortliche Stelle</h2>
+  <main class="lg">
+    <section class="lg-card">
+      <h2>1. Verantwortliche Stelle</h2>
       <p>
         Verantwortlich für die Datenverarbeitung auf dieser Website im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:
       </p>
@@ -84,21 +48,20 @@
         Deutschland
       </p>
       <p>
-        E-Mail: <a href="mailto:info@erdem-schule.de" class="text-primary font-semibold hover:underline">info@erdem-schule.de</a><br>
-        Telefon: <span class="italic text-gray-600">[Telefonnummer eintragen]</span>
+        E-Mail: <a href="mailto:info@erdem-schule.de">info@erdem-schule.de</a><br>
+        Telefon: <mark class="ph">[Telefonnummer eintragen]</mark>
       </p>
     </section>
 
-    <!-- Erfasste Daten -->
-    <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8 space-y-4">
-      <h2 class="font-serif text-2xl text-primary mb-2">2. Datenerfassung auf dieser Website</h2>
+    <section class="lg-card">
+      <h2>2. Datenerfassung auf dieser Website</h2>
 
-      <h3 class="font-semibold text-primary">2.1 Server-Log-Dateien</h3>
+      <h3>2.1 Server-Log-Dateien</h3>
       <p>
         Der Provider der Seiten erhebt und speichert automatisch Informationen in so genannten Server-Log-Dateien, die Ihr Browser
         automatisch an uns übermittelt. Dies sind zum Beispiel:
       </p>
-      <ul class="list-disc list-inside space-y-1">
+      <ul>
         <li>Browsertyp und Browserversion</li>
         <li>Verwendetes Betriebssystem</li>
         <li>Referrer URL</li>
@@ -112,7 +75,7 @@
         Darstellung und der Optimierung seiner Website.
       </p>
 
-      <h3 class="font-semibold text-primary mt-4">2.2 Kontaktaufnahme per E-Mail oder Kontaktformular</h3>
+      <h3>2.2 Kontaktaufnahme per E-Mail oder Kontaktformular</h3>
       <p>
         Wenn Sie uns per E-Mail oder über ein Formular kontaktieren, werden Ihre Angaben inklusive der von Ihnen dort angegebenen
         Kontaktdaten zum Zwecke der Bearbeitung der Anfrage und für den Fall von Anschlussfragen bei uns gespeichert.
@@ -125,27 +88,47 @@
       </p>
     </section>
 
-    <!-- Cookies / Tools -->
-    <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8 space-y-4">
-      <h2 class="font-serif text-2xl text-primary mb-2">3. Cookies und eingesetzte Dienste</h2>
+    <section class="lg-card">
+      <h2>3. Cookies und eingesetzte Dienste</h2>
       <p>
         Unsere Website verwendet nach aktuellem Stand nur technisch notwendige Cookies bzw. setzt keine Tracking- oder
         Analyse-Cookies ein. Sollte sich dies zukünftig ändern, werden wir diese Datenschutzerklärung entsprechend anpassen und – falls erforderlich –
         Ihre Einwilligung einholen.
       </p>
-      <p class="italic text-gray-600 text-xs">
-        Hinweis: Falls später z.B. Google Analytics, YouTube oder andere externe Dienste eingebэйвэл, энд тус бүрийн тайлбар +
-        Rechtsgrundlage (Art. 6 DSGVO) нэмэх хэрэгтэй.
+
+      <h3>3.1 Online-Klasse (erdem-schule.de/classroom)</h3>
+      <p>
+        Für unsere Online-Klasse (Unterrichtsmaterial, Hausaufgaben, Lernspiele, Elternbereich) nutzen wir den Dienst
+        <strong>Supabase</strong> (Supabase Inc.) als Auftragsverarbeiter. Die Daten werden in einem Rechenzentrum innerhalb der
+        Europäischen Union gespeichert. Verarbeitet werden: Name, Anmeldename bzw. E-Mail-Adresse, Kurszugehörigkeit,
+        eingereichte Hausaufgaben (Text, Fotos, Sprachaufnahmen, Links), Lernfortschritt aus den Lernspielen sowie – bei Eltern
+        freiwillig – Telefonnummer und Kontakt-E-Mail. Zugriff haben nur die jeweilige Person, ihre verknüpften Eltern sowie
+        Lehrkräfte der Schule. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Durchführung des Unterrichts) bzw. die Einwilligung
+        der Erziehungsberechtigten (Art. 6 Abs. 1 lit. a, Art. 8 DSGVO). Die Online-Klasse setzt nur technisch notwendige
+        Speichereinträge im Browser (Anmeldung, Spracheinstellung).
       </p>
+      <h3>3.2 Wöchentliche E-Mail-Berichte an Eltern</h3>
+      <p>
+        Eltern, die eine E-Mail-Adresse hinterlegt haben, erhalten wöchentlich einen Lernbericht ihres Kindes. Der Versand erfolgt
+        über <strong>Brevo</strong> (Sendinblue GmbH, Berlin) als Auftragsverarbeiter. Der Bericht kann jederzeit im eigenen
+        Profil der Online-Klasse abbestellt werden.
+      </p>
+      <h3>3.3 Videokonferenzen und Videolinks</h3>
+      <p>
+        Live-Unterricht findet über Google Meet statt; beim Klick auf den Link gelten die Datenschutzbestimmungen von Google.
+        Videos zu Hausaufgaben werden nicht bei uns gespeichert, sondern als Link (z. B. YouTube „nicht gelistet“ oder
+        Google Drive) übermittelt.
+      </p>
+      <!-- Хөгжүүлэлтийн тэмдэглэл (нийтэд харагдахгүй): Хэрэв Google Analytics, YouTube, Google Fonts, Firebase зэрэг
+           гадны үйлчилгээ ашиглаж байвал энд тус бүрийн тайлбар + Rechtsgrundlage (Art. 6 DSGVO) нэмэх хэрэгтэй. -->
     </section>
 
-    <!-- Rechte -->
-    <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8 space-y-4">
-      <h2 class="font-serif text-2xl text-primary mb-2">4. Ihre Rechte</h2>
+    <section class="lg-card">
+      <h2>4. Ihre Rechte</h2>
       <p>
         Hinsichtlich der Verarbeitung Ihrer personenbezogenen Daten haben Sie nach der DSGVO insbesondere die folgenden Rechte:
       </p>
-      <ul class="list-disc list-inside space-y-1">
+      <ul>
         <li>Recht auf Auskunft (Art. 15 DSGVO)</li>
         <li>Recht auf Berichtigung (Art. 16 DSGVO)</li>
         <li>Recht auf Löschung (Art. 17 DSGVO)</li>
@@ -156,13 +139,12 @@
       </ul>
       <p>
         Zur Geltendmachung Ihrer Rechte können Sie sich jederzeit per E-Mail an uns wenden:
-        <a href="mailto:info@erdem-schule.de" class="text-primary font-semibold hover:underline">info@erdem-schule.de</a>.
+        <a href="mailto:info@erdem-schule.de">info@erdem-schule.de</a>.
       </p>
     </section>
 
-    <!-- Speicherdauer -->
-    <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8 space-y-4">
-      <h2 class="font-serif text-2xl text-primary mb-2">5. Speicherdauer</h2>
+    <section class="lg-card">
+      <h2>5. Speicherdauer</h2>
       <p>
         Soweit innerhalb dieser Datenschutzerklärung keine speziellere Speicherdauer genannt wurde, verbleiben Ihre personenbezogenen
         Daten bei uns, bis der Zweck der Datenverarbeitung entfällt oder Sie ein berechtigtes Löschersuchen geltend machen. Gesetzliche
@@ -170,9 +152,8 @@
       </p>
     </section>
 
-    <!-- Änderungen -->
-    <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8 space-y-4">
-      <h2 class="font-serif text-2xl text-primary mb-2">6. Änderungen dieser Datenschutzerklärung</h2>
+    <section class="lg-card">
+      <h2>6. Änderungen dieser Datenschutzerklärung</h2>
       <p>
         Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, damit sie stets den aktuellen rechtlichen Anforderungen
         entspricht oder um Änderungen unserer Leistungen in der Erklärung umzusetzen. Für Ihren erneuten Besuch gilt dann die neue
@@ -180,22 +161,15 @@
       </p>
     </section>
 
-    <p class="text-[11px] text-gray-500 text-right">
-      <span class="italic">Hinweis:</span> Diese Datenschutzerklärung ist ein allgemeines Muster und ersetzt keine individuelle rechtliche Beratung.
-    </p>
+    <p class="lg-note"><em>Hinweis:</em> Diese Datenschutzerklärung ist ein allgemeines Muster und ersetzt keine individuelle rechtliche Beratung.</p>
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-primary text-gray-300 text-xs py-6 mt-6">
-    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <p>&copy; 2024 Erdem Schule e.V. Alle Rechte vorbehalten.</p>
-      <div class="flex gap-4">
-        <a href="impressum.html" class="hover:text-white">Impressum</a>
-        <a href="datenschutz.html" class="hover:text-white">Datenschutz</a>
-      </div>
+  <footer class="lg-foot">
+    <div class="lg-wrap">
+      <span>&copy; <span id="yr">2026</span> Erdem Schule e.V. Alle Rechte vorbehalten.</span>
+      <span><a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></span>
     </div>
   </footer>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
 </body>
 </html>

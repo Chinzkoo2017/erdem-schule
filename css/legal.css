@@ -1,0 +1,35 @@
+/* Impressum / Datenschutz — нэгдсэн дизайн системийн дагуу (base.css-ийн токенууд) */
+.lg-top { background: linear-gradient(160deg, var(--navy-950), var(--navy)); color: #fff; }
+.lg-wrap { width: min(960px, 100% - 2rem); margin-inline: auto; }
+.lg-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 72px; }
+.lg-brand { display: flex; align-items: center; gap: .75rem; }
+.lg-brand img { width: 46px; height: 46px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(240, 200, 121, .6); }
+.lg-brand b { display: block; font-family: var(--font-d); font-size: 1.1rem; }
+.lg-brand small { font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; opacity: .7; }
+.lg-links { display: flex; gap: 1.2rem; font-weight: 700; font-size: .88rem; color: var(--on-dark); }
+.lg-links a:hover { color: var(--gold-2); }
+.lg-hero { padding: 2rem 0 3rem; }
+.lg-hero .eyebrow { font-size: .75rem; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold-2); margin: 0 0 .6rem; }
+.lg-hero h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); color: #fff; margin-bottom: .6rem; }
+.lg-hero p { color: var(--on-dark-muted); max-width: 40rem; margin: 0; }
+
+main.lg { width: min(960px, 100% - 2rem); margin: 2.5rem auto 3rem; display: grid; gap: 1.5rem; color: var(--ink); }
+.lg-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.6rem 1.8rem; box-shadow: var(--shadow); line-height: 1.7; }
+.lg-card h2 { font-size: 1.5rem; color: var(--navy); margin-bottom: .8rem; }
+.lg-card h3 { color: var(--navy); font-size: 1.05rem; margin: 1.1rem 0 .3rem; }
+.lg-card p { margin: .6rem 0; }
+.lg-card ul { margin: .6rem 0; padding-left: 1.3rem; }
+.lg-card a { color: var(--blue); font-weight: 700; }
+.lg-card a:hover { text-decoration: underline; }
+.lg-note { font-size: .72rem; color: var(--muted); text-align: right; }
+/* Бөглөх шаардлагатай хэсгийг тод тэмдэглэнэ (нийтлэхээс өмнө бөглөх) */
+mark.ph { background: #fff3bf; color: #5c4400; padding: .05em .4em; border-radius: 6px; font-style: normal; font-weight: 700; }
+@media (max-width: 640px) {
+  .lg-nav { height: auto; padding: .8rem 0; flex-wrap: wrap; row-gap: .6rem; }
+  .lg-brand small { display: none; }
+  .lg-links { gap: .9rem; font-size: .82rem; }
+  .lg-card { padding: 1.3rem 1.2rem; }
+}
+.lg-foot { background: var(--navy); color: #aab6cf; font-size: .8rem; padding: 1.4rem 0; }
+.lg-foot .lg-wrap { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.lg-foot a:hover { color: var(--gold-2); }

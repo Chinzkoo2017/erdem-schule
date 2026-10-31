@@ -89,6 +89,6 @@ Excel-ээр үүсгэсэн эсвэл "Шинэ нууц үг" өгсөн х�
 ## Шинэчлэлтийн SQL
 Өмнө суулгасан бол SQL Editor дээр дарааллаар нь нэг удаа ажиллуулна:
 1. `supabase/migrations/002_roster_family.sql`
-2. `supabase/migrations/003_password_team.sql`
+2. `supabase/migrations/004_team_image.sql` (003-ыг агуулсан: нууц үг солих, баг, багийн зураг)
 
 `roster-sync` функцийг шинэчлэх: Edge Functions → roster-sync → **Code** → `index.ts`-ийн шинэ агуулгыг буулгаад **Deploy**.

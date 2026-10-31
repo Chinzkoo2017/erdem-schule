@@ -39,31 +39,90 @@ const ICONS = {
 const icon = (k, size = 20) => `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k] || ''}</svg>`;
 const initials = (n) => esc(([...(String(n || '?').trim())][0] || '?').toUpperCase());
 const TEAM_ICONS = ['🐎', '🐫', '🦅', '🐺', '🐆', '🦌', '🐑', '🐐', '🐻', '🦉', '🏹', '⛰️', '🌙', '☀️', '🔥', '⭐', '🌊', '🌲'];
+const isImg = (a) => String(a || '').startsWith('img:');
+const imgSpan = (a, cls = '') => `<span class="avatar team img ${cls}" data-img="${esc(String(a).slice(4))}"></span>`;
 const avatar = (p, cls = '') => (p?.team_name && p?.avatar
-  ? `<span class="avatar team ${cls}" title="${esc(p.team_name)}">${esc(p.avatar)}</span>`
+  ? (isImg(p.avatar) ? imgSpan(p.avatar, cls) : `<span class="avatar team ${cls}" title="${esc(p.team_name)}">${esc(p.avatar)}</span>`)
   : `<span class="avatar ${cls}">${initials(p?.full_name)}</span>`);
-const teamLine = (p) => (p?.team_name ? `${esc(p.avatar || '')} ${esc(p.team_name)}` : '');
+const teamLine = (p) => (p?.team_name ? `${isImg(p.avatar) ? imgSpan(p.avatar, 'xs') : esc(p.avatar || '')} ${esc(p.team_name)}` : '');
+
+// Хаалттай зургуудыг (data-img) хугацаатай холбоосоор дүүргэнэ
+const imgCache = new Map();
+async function hydrateImages(root = document) {
+  const els = [...root.querySelectorAll('[data-img]:not([data-done])')];
+  if (!els.length || !api?.avatarUrls) return;
+  els.forEach((el) => el.setAttribute('data-done', '1'));
+  const need = [...new Set(els.map((el) => el.dataset.img))].filter((p) => !imgCache.has(p));
+  if (need.length) {
+    const urls = await api.avatarUrls(need).catch(() => ({}));
+    need.forEach((p) => imgCache.set(p, urls[p] || ''));
+  }
+  els.forEach((el) => { const u = imgCache.get(el.dataset.img); if (u) el.style.backgroundImage = `url("${u}")`; });
+}
+new MutationObserver(() => hydrateImages()).observe(document.getElementById('app'), { childList: true, subtree: true });
+
+async function squareJpeg(file, size = 256) {
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(bmp.width, bmp.height);
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  c.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, size, size);
+  return new Promise((res) => c.toBlob((b) => res(b), 'image/jpeg', 0.85));
+}
 
 function teamEditorHtml(p, { first = false } = {}) {
   const cur = p.team_name ? p.avatar : TEAM_ICONS[0];
+  const hasImg = isImg(cur);
   return `<form class="team-form" data-target="${esc(p.id)}">
     <label>${t('teamName')}<input name="team" maxlength="40" required value="${esc(p.team_name || '')}" placeholder="${t('teamPlaceholder')}"></label>
     <fieldset class="icon-pick"><legend>${t('teamIcon')}</legend>
       ${TEAM_ICONS.map((ic) => `<label class="icon-opt"><input type="radio" name="icon" value="${ic}" ${ic === cur ? 'checked' : ''}><span>${ic}</span></label>`).join('')}
+      <label class="icon-opt icon-upload" title="${t('teamUpload')}"><input type="radio" name="icon" value="${hasImg ? esc(cur) : 'img:new'}" ${hasImg ? 'checked' : ''} data-imgradio>
+        <span>${hasImg ? imgSpan(cur, 'fill') : icon('upload', 22)}</span></label>
     </fieldset>
+    <input type="file" accept="image/*" hidden data-imgfile>
+    <p class="small muted">${t('teamUploadHint')}</p>
     <div class="team-preview" aria-live="polite"></div>
     <div class="row-gap"><button class="btn btn-gold">${t('teamSave')}</button>${first ? `<button type="button" class="btn btn-ghost" data-later>${t('teamLater')}</button>` : `<button type="button" class="btn btn-ghost" data-cancel>${t('cancel')}</button>`}</div>
   </form>`;
 }
 function bindTeamEditor(f, done) {
   const prev = $('.team-preview', f);
-  const draw = () => { prev.innerHTML = `<span class="avatar team xl">${esc(f.icon.value)}</span><b>${esc(f.team.value || t('teamPlaceholder'))}</b>`; };
+  const radio = $('[data-imgradio]', f), fileIn = $('[data-imgfile]', f);
+  let blob = null, blobUrl = '';
+  const draw = () => {
+    const v = f.icon.value;
+    const ic = v === 'img:new' && blobUrl ? `<span class="avatar team img xl" style="background-image:url('${blobUrl}')"></span>`
+      : isImg(v) && v !== 'img:new' ? imgSpan(v, 'xl') : `<span class="avatar team xl">${esc(v)}</span>`;
+    prev.innerHTML = `${ic}<b>${esc(f.team.value || t('teamPlaceholder'))}</b>`;
+  };
+  radio.parentElement.onclick = (e) => { e.preventDefault(); fileIn.click(); };
+  fileIn.onchange = () => guard(async () => {
+    const file = fileIn.files[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) return toast('Max 15 MB', 'bad');
+    blob = await squareJpeg(file);
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+    blobUrl = URL.createObjectURL(blob);
+    radio.value = 'img:new'; radio.checked = true;
+    $('span', radio.parentElement).innerHTML = `<span class="avatar team img fill" style="background-image:url('${blobUrl}')"></span>`;
+    draw();
+  });
   f.oninput = draw; draw();
   f.onsubmit = (e) => {
     e.preventDefault();
     const name = f.team.value.trim();
     if (!name) return f.team.focus();
-    guard(async () => { await api.setTeam(f.dataset.target, name, f.icon.value); toast(t('saved')); done(); });
+    const btn = $('.btn-gold', f); btn.disabled = true;
+    guard(async () => {
+      let iconVal = f.icon.value;
+      if (iconVal === 'img:new') {
+        if (!blob) { fileIn.click(); return; }
+        iconVal = 'img:' + await api.uploadTeamImage(f.dataset.target, blob);
+      }
+      await api.setTeam(f.dataset.target, name, iconVal);
+      toast(t('saved')); done();
+    }).finally(() => { if (btn.isConnected) btn.disabled = false; });
   };
 }
 const isAudio = (p) => /\.(webm|ogg|oga|mp3|m4a|wav|aac)$/i.test(p) || /audio/i.test(p);

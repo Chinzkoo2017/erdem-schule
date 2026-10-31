@@ -125,6 +125,14 @@ function demoApi() {
     },
     async changePassword() { const p = me(); if (p) p.must_change_password = false; persist(); },
     async setTeam(id, team_name, avatar) { Object.assign(db.profiles.find((p) => p.id === id), { team_name, avatar }); persist(); },
+    async uploadTeamImage(id, blob) {
+      // Демо: зургийг localStorage-д data URL болгон хадгална
+      const data = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+      const path = `${id}/team-${Date.now()}.jpg`;
+      db.meta['img:' + path] = data; persist();
+      return path;
+    },
+    async avatarUrls(paths) { return Object.fromEntries(paths.map((p) => [p, db.meta['img:' + p] || ''])); },
     async familyChecks(studentId) { return db.family_checks.filter((c) => !studentId || c.student_id === studentId); },
     async confirmFamily(aid, child, note) {
       const ex = db.family_checks.find((c) => c.assignment_id === aid && c.student_id === child);
@@ -254,6 +262,16 @@ async function liveApi() {
       const r = await sb.rpc('password_changed');
       if (r.error) console.warn(r.error.message);
       if (profile) profile.must_change_password = false;
+    },
+    async uploadTeamImage(target, blob) {
+      const path = `${target}/team-${Date.now()}.jpg`;
+      ok(await sb.storage.from('avatars').upload(path, blob, { contentType: 'image/jpeg', upsert: true }));
+      return path;
+    },
+    async avatarUrls(paths) {
+      const { data, error } = await sb.storage.from('avatars').createSignedUrls(paths, 3600);
+      if (error) return {};
+      return Object.fromEntries((data || []).map((d) => [d.path, d.signedUrl]));
     },
     async setTeam(target, name, icon) {
       ok(await sb.rpc('set_team', { target, name, icon }));

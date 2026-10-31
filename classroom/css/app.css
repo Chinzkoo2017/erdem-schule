@@ -379,6 +379,10 @@ a.side-user-text:hover strong { text-decoration: underline; }
 .icon-opt span { display: grid; place-items: center; height: 48px; border-radius: 12px; border: 2px solid var(--line); background: #fff; font-size: 1.5rem; }
 .icon-opt input:checked + span { border-color: var(--indigo); background: var(--indigo-soft); }
 .icon-opt input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+.avatar.img { background: var(--gold-soft) center / cover no-repeat; }
+.avatar.xs { width: 20px; height: 20px; vertical-align: -5px; display: inline-block; }
+.avatar.fill { width: 100%; height: 100%; border-radius: 10px; }
+.icon-upload span { color: var(--indigo); border-style: dashed; overflow: hidden; padding: 0; }
 .team-preview { display: flex; align-items: center; gap: .8rem; padding: .7rem .9rem; border-radius: 14px; background: var(--bg); font-size: 1.1rem; }
 .team-box { border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 1rem; }
 

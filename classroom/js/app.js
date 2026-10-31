@@ -819,7 +819,7 @@ async function renderStaff() {
     { id: 'groups', icon: 'groups', label: t('tabGroups') },
     { id: 'insights', icon: 'chart', label: t('tabInsights') },
     { id: 'news', icon: 'bell', label: t('tabNews') },
-    ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }, { id: 'reports', icon: 'mail', label: t('tabReports') }] : []),
+    ...(isAdmin ? [{ id: 'classes', icon: 'children', label: t('tabClasses') }, { id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }, { id: 'reports', icon: 'mail', label: t('tabReports') }] : []),
   ];
   const tab = currentTab(tabs);
   if (tab === 'review') return staffReview(tabs);
@@ -827,6 +827,7 @@ async function renderStaff() {
   if (tab === 'groups') return staffGroups(tabs, isAdmin);
   if (tab === 'insights') return staffInsights(tabs);
   if (tab === 'news') return staffNews(tabs);
+  if (tab === 'classes') return adminClasses(tabs);
   if (tab === 'users') return adminUsers(tabs);
   if (tab === 'roster') return adminRoster(tabs);
   if (tab === 'reports') return adminReports(tabs);
@@ -984,6 +985,83 @@ async function staffGroups(tabs, isAdmin) {
     if (f.dataset.g) d.id = f.dataset.g;
     guard(async () => { await api.saveGroup(d); groupsCache = await api.groups(); toast(t('saved')); route(); });
   }));
+}
+
+// ------------------------------------------------------------ ADMIN: assign students to classes
+async function adminClasses(tabs) {
+  const [profiles, links] = await Promise.all([api.profiles(), api.links()]);
+  const kids = profiles.filter((p) => p.role === 'student').sort((a, b) => String(a.family || '~').localeCompare(String(b.family || '~')) || a.full_name.localeCompare(b.full_name));
+  const parentsOf = (k) => links.filter((l) => l.child_id === k.id).map((l) => profiles.find((p) => p.id === l.parent_id)?.full_name).filter(Boolean);
+  // ажлын хуулбар: { primary, set:Set }
+  const work = new Map(kids.map((k) => [k.id, { primary: k.group_id || null, set: new Set(groupsOf(k)) }]));
+  const orig = new Map(kids.map((k) => [k.id, JSON.stringify([k.group_id || null, [...groupsOf(k)].sort()])]));
+  const key = (id) => { const w = work.get(id); return JSON.stringify([w.primary, [...w.set].sort()]); };
+  const changed = () => kids.filter((k) => key(k.id) !== orig.get(k.id));
+  let q = '', onlyEmpty = false;
+
+  const fix = (w) => { if (w.primary && !w.set.has(w.primary)) w.primary = null; if (!w.primary && w.set.size) w.primary = [...w.set][0]; };
+  const cell = (k, g) => {
+    const w = work.get(k.id), on = w.set.has(g.id), prim = w.primary === g.id;
+    return `<td class="cl-cell ${on ? 'on' : ''}"><label class="cl-box"><input type="checkbox" data-k="${esc(k.id)}" data-g="${esc(g.id)}" ${on ? 'checked' : ''} aria-label="${esc(k.full_name)} · ${esc(g.name)}"></label>
+      ${on ? `<button type="button" class="cl-star ${prim ? 'prim' : ''}" data-star="${esc(k.id)}|${esc(g.id)}" title="${t('clPrimary')}" aria-label="${t('clPrimary')}">★</button>` : ''}</td>`;
+  };
+  const draw = () => {
+    const ql = q.trim().toLowerCase();
+    const list = kids.filter((k) => (!ql || `${k.full_name} ${k.family || ''} ${parentsOf(k).join(' ')}`.toLowerCase().includes(ql)) && (!onlyEmpty || !work.get(k.id).set.size));
+    const count = (g) => kids.filter((k) => work.get(k.id).set.has(g.id)).length;
+    const none = kids.filter((k) => !work.get(k.id).set.size).length;
+    const ch = changed().length;
+    $('#clSummary').innerHTML = groupsCache.map((g) => `<div class="cl-sum gtag-${esc(subjOf(g))}" title="${esc(g.name)}"><span>${subjIcon(g)}</span><b>${count(g)}</b><small>${esc(g.name)}</small></div>`).join('')
+      + `<div class="cl-sum ${none ? 'warn' : ''}"><span>⚠️</span><b>${none}</b><small>${t('clNone')}</small></div>`;
+    $('#clBody').innerHTML = list.map((k) => `<tr class="${key(k.id) !== orig.get(k.id) ? 'row-changed' : ''} ${work.get(k.id).set.size ? '' : 'row-pending'}">
+        <td class="cl-sel"><input type="checkbox" class="cl-pick" value="${esc(k.id)}" aria-label="${esc(k.full_name)}"></td>
+        <td class="cl-name">${avatar(k)} <span><b>${esc(k.full_name)}</b><small class="muted">${[k.family, ...parentsOf(k)].filter(Boolean).map(esc).join(' · ') || '—'}</small></span></td>
+        ${groupsCache.map((g) => cell(k, g)).join('')}</tr>`).join('') || `<tr><td colspan="${groupsCache.length + 2}" class="muted">${t('none')}</td></tr>`;
+    $('#clSave').disabled = !ch; $('#clSave').textContent = ch ? `${t('save')} (${ch})` : t('save');
+    $$('#clBody input[data-g]').forEach((c) => (c.onchange = () => { const w = work.get(c.dataset.k); c.checked ? w.set.add(c.dataset.g) : w.set.delete(c.dataset.g); fix(w); draw(); }));
+    $$('#clBody [data-star]').forEach((b) => (b.onclick = () => { const [k, g] = b.dataset.star.split('|'); work.get(k).primary = g; draw(); }));
+  };
+  shell(tabs, `
+    <div class="page-head"><div><h1 class="page-title">${t('tabClasses')}</h1><p class="muted lead">${t('clLead')}</p></div></div>
+    <div class="cl-summary" id="clSummary"></div>
+    <section class="card">
+      <div class="cl-tools">
+        <input id="clSearch" type="search" placeholder="${t('clSearch')}">
+        <label class="inline small"><input type="checkbox" id="clEmpty"> ${t('clOnlyNone')}</label>
+        <span class="grow"></span>
+        <select id="clBulkG">${groupsCache.map((g) => `<option value="${esc(g.id)}">${subjIcon(g)} ${esc(g.name)}</option>`).join('')}</select>
+        <button class="btn btn-ghost btn-sm" id="clAdd">＋ ${t('clAdd')}</button>
+        <button class="btn btn-ghost btn-sm" id="clRemove">− ${t('clRemove')}</button>
+      </div>
+      <div class="table-wrap"><table class="table cl-table">
+        <thead><tr><th class="cl-sel"><input type="checkbox" id="clAll" aria-label="${t('clAll')}"></th><th>${t('student')}</th>
+          ${groupsCache.map((g) => `<th class="cl-col"><span>${subjIcon(g)}</span>${esc(g.name)}${g.schedule ? `<small>${esc(g.schedule)}</small>` : ''}</th>`).join('')}</tr></thead>
+        <tbody id="clBody"></tbody></table></div>
+      <p class="small muted mt">★ ${t('clStarHelp')}</p>
+      <div class="row-gap mt"><button class="btn btn-gold" id="clSave" disabled>${t('save')}</button><button class="btn btn-ghost" id="clReset">${t('cancel')}</button></div>
+    </section>`);
+  $('#clSearch').oninput = (e) => { q = e.target.value; draw(); };
+  $('#clEmpty').onchange = (e) => { onlyEmpty = e.target.checked; draw(); };
+  $('#clAll').onchange = (e) => $$('.cl-pick').forEach((c) => (c.checked = e.target.checked));
+  const bulk = (add) => {
+    const g = $('#clBulkG').value, picked = $$('.cl-pick:checked').map((c) => c.value);
+    if (!picked.length) return toast(t('clPickFirst'), 'bad');
+    for (const id of picked) { const w = work.get(id); add ? w.set.add(g) : w.set.delete(g); fix(w); }
+    $('#clAll').checked = false; draw();
+  };
+  $('#clAdd').onclick = () => bulk(true);
+  $('#clRemove').onclick = () => bulk(false);
+  $('#clReset').onclick = () => route();
+  $('#clSave').onclick = () => guard(async () => {
+    const list = changed();
+    for (const k of list) {
+      const w = work.get(k.id);
+      if ((k.group_id || null) !== w.primary) await api.setProfile(k.id, 'student', w.primary);
+      await api.setExtraGroups(k.id, [...w.set].filter((g) => g !== w.primary));
+    }
+    toast(`${t('saved')} · ${list.length}`); route();
+  });
+  draw();
 }
 
 async function adminUsers(tabs) {

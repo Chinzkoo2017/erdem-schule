@@ -120,6 +120,9 @@ const dict = {
     hwLink: 'Видео эсвэл линк', hwLinkHelp: 'Бүжиг, дууны бичлэгээ YouTube (Жагсаалтад үл харагдах) эсвэл Google Drive-д тавиад линкийг нь энд буулгана.', hwLinkBad: 'Линк https://-ээр эхлэх ёстой',
     linkCloud: 'Үүлэн хадгалалт', linkOpen: 'Линк нээх', watchVideo: 'Бичлэг үзэх',
     subject: 'Төрөл', extraGroups: 'Нэмэлт анги', subj_mongolian: 'Монгол хэл', subj_dance: 'Бүжиг', subj_music: 'Хөгжим, дуу', subj_sport: 'Спорт', subj_other: 'Бусад',
+    tabClasses: 'Анги хуваарилах', clLead: 'Хүүхэд бүрийг аль ангид суралцахаар бүртгүүлснийг чагтлаад хадгална. Нэг хүүхэд хэд хэдэн ангид (монгол хэл, бүжиг, гитар…) байж болно.',
+    clNone: 'Анги оноогоогүй', clSearch: 'Нэр, гэр бүлийн код, эцэг эхээр хайх', clOnlyNone: 'Зөвхөн анги оноогоогүй', clAdd: 'Сонгосныг нэмэх', clRemove: 'Сонгосныг хасах',
+    clAll: 'Бүгдийг сонгох', clPrimary: 'Үндсэн анги', clStarHelp: '— үндсэн анги (нүүр хуудас, тайланд эхэнд гарна). Олон хүүхэд сонгоод дээрх товчоор нэг дор ангид нэмж болно.', clPickFirst: 'Эхлээд хүүхдүүдээ сонгоно уу',
     error: 'Алдаа гарлаа', loading: 'Ачаалж байна…', file: 'Файл', days: ['Ня','Да','Мя','Лх','Пү','Ба','Бя'],
   },
   de: {
@@ -243,6 +246,9 @@ const dict = {
     hwLink: 'Video oder Link', hwLinkHelp: 'Tanz- oder Musikvideo auf YouTube (nicht gelistet) oder Google Drive hochladen und den Link hier einfügen.', hwLinkBad: 'Der Link muss mit https:// beginnen',
     linkCloud: 'Cloud-Speicher', linkOpen: 'Link öffnen', watchVideo: 'Video ansehen',
     subject: 'Fach', extraGroups: 'Weitere Kurse', subj_mongolian: 'Mongolisch', subj_dance: 'Tanz', subj_music: 'Musik', subj_sport: 'Sport', subj_other: 'Sonstiges',
+    tabClasses: 'Kurse zuteilen', clLead: 'Für jedes Kind die angemeldeten Kurse ankreuzen und speichern. Ein Kind kann mehrere Kurse besuchen (Mongolisch, Tanz, Gitarre …).',
+    clNone: 'Ohne Kurs', clSearch: 'Name, Familiencode oder Eltern suchen', clOnlyNone: 'Nur ohne Kurs', clAdd: 'Auswahl hinzufügen', clRemove: 'Auswahl entfernen',
+    clAll: 'Alle auswählen', clPrimary: 'Hauptkurs', clStarHelp: '— Hauptkurs (erscheint zuerst). Mehrere Kinder auswählen und oben gemeinsam einem Kurs zuordnen.', clPickFirst: 'Bitte zuerst Kinder auswählen',
     error: 'Fehler', loading: 'Lädt…', file: 'Datei', days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
   },
 };

@@ -507,3 +507,20 @@ h3.sub .chip { text-transform: none; letter-spacing: 0; margin-left: .4rem; }
 .ann-body h3, .ann-body p { margin: 0; }
 .ann-kind { font-size: .78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 .ann .row-gap { margin-top: .35rem; }
+
+/* ---------- multi-class ---------- */
+.gtag { display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; font-weight: 800; padding: .15rem .55rem; border-radius: 999px; background: var(--indigo-soft); color: var(--indigo); }
+.gtag-dance { background: var(--rose-soft); color: var(--rose); }
+.gtag-music { background: var(--gold-soft); color: var(--gold-d); }
+.gtag-sport { background: #E3F4EA; color: #1F7A4D; }
+.link-field { display: grid; gap: .3rem; font-size: .88rem; font-weight: 700; }
+.link-field.is-main { background: var(--gold-soft); border-radius: 12px; padding: .7rem .8rem; }
+.stack-xs { display: grid; gap: .4rem; justify-items: end; }
+.side-live + .side-live { margin-top: .5rem; }
+details.multi summary { cursor: pointer; font-size: .85rem; color: var(--indigo); font-weight: 700; list-style: none; }
+details.multi summary::-webkit-details-marker { display: none; }
+.link-field-head { display: inline-flex; align-items: center; gap: .4rem; }
+details.multi { position: relative; }
+.multi-list { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; min-width: 240px; display: grid; gap: .35rem; padding: .7rem .8rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 30px rgba(11,31,58,.14); font-size: .85rem; }
+.multi-list label { display: flex !important; gap: .5rem; align-items: center; font-weight: 600; white-space: nowrap; margin: 0; }
+.multi-list input[type=checkbox] { width: auto; flex: none; margin: 0; }

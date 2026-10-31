@@ -117,6 +117,9 @@ const dict = {
     aud_parents: 'Эцэг эхчүүд', aud_families: 'Эцэг эх + сурагчид', aud_students: 'Сурагчид', aud_teachers: 'Багш нар', aud_all: 'Бүгд',
     annAllGroups: 'Бүх анги', annTitlePh: 'жишээ нь: Эцэг эхийн хурал', annTime: 'Цаг', annPlace: 'Хаана', annPlacePh: 'жишээ нь: сургуулийн танхим эсвэл онлайн',
     annUpcoming: 'Удахгүй болох', annNone: 'Мэдэгдэл алга.', annPast: 'Өнгөрсөн', annJoin: 'Онлайнаар орох', annCal: 'Календарьт нэмэх',
+    hwLink: 'Видео эсвэл линк', hwLinkHelp: 'Бүжиг, дууны бичлэгээ YouTube (Жагсаалтад үл харагдах) эсвэл Google Drive-д тавиад линкийг нь энд буулгана.', hwLinkBad: 'Линк https://-ээр эхлэх ёстой',
+    linkCloud: 'Үүлэн хадгалалт', linkOpen: 'Линк нээх', watchVideo: 'Бичлэг үзэх',
+    subject: 'Төрөл', extraGroups: 'Нэмэлт анги', subj_mongolian: 'Монгол хэл', subj_dance: 'Бүжиг', subj_music: 'Хөгжим, дуу', subj_sport: 'Спорт', subj_other: 'Бусад',
     error: 'Алдаа гарлаа', loading: 'Ачаалж байна…', file: 'Файл', days: ['Ня','Да','Мя','Лх','Пү','Ба','Бя'],
   },
   de: {
@@ -237,6 +240,9 @@ const dict = {
     aud_parents: 'Eltern', aud_families: 'Eltern + Schüler', aud_students: 'Schüler', aud_teachers: 'Lehrkräfte', aud_all: 'Alle',
     annAllGroups: 'Alle Klassen', annTitlePh: 'z. B. Elternabend', annTime: 'Uhrzeit', annPlace: 'Ort', annPlacePh: 'z. B. Schulraum oder online',
     annUpcoming: 'Demnächst', annNone: 'Keine Mitteilungen.', annPast: 'Vergangen', annJoin: 'Online teilnehmen', annCal: 'Zum Kalender',
+    hwLink: 'Video oder Link', hwLinkHelp: 'Tanz- oder Musikvideo auf YouTube (nicht gelistet) oder Google Drive hochladen und den Link hier einfügen.', hwLinkBad: 'Der Link muss mit https:// beginnen',
+    linkCloud: 'Cloud-Speicher', linkOpen: 'Link öffnen', watchVideo: 'Video ansehen',
+    subject: 'Fach', extraGroups: 'Weitere Kurse', subj_mongolian: 'Mongolisch', subj_dance: 'Tanz', subj_music: 'Musik', subj_sport: 'Sport', subj_other: 'Sonstiges',
     error: 'Fehler', loading: 'Lädt…', file: 'Datei', days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
   },
 };

@@ -5,6 +5,9 @@ import { buildParentReport } from './report-core.js';
 
 const iso = (d) => d.toISOString().slice(0, 10);
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
+/** Сурагчийн бүх анги (үндсэн + нэмэлт) */
+export const groupsOf = (p) => [...new Set([p?.group_id, ...(p?.extra_groups || [])].filter(Boolean))];
+const inG = (gid, x) => !gid || (Array.isArray(gid) ? gid.includes(x) : x === gid);
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
 // ===================================================================
@@ -15,11 +18,12 @@ function seed() {
     groups: [
       { id: 'g1', name: 'Монгол хэл · 1-р бүлэг', level: 'A1', schedule: 'Бямба 10:40', live_url: 'https://meet.google.com/' },
       { id: 'g2', name: 'Монгол хэл · 2-р бүлэг', level: 'A2', schedule: 'Бямба 12:00', live_url: '' },
+      { id: 'g3', name: 'Үндэсний бүжиг', subject: 'dance', schedule: 'Бямба 13:30', live_url: '' },
     ],
     profiles: [
-      { id: 's1', full_name: 'Тэмүүлэн', role: 'student', group_id: 'g1', family: 'BAT', email: 'temuulen@student.erdem-schule.de' },
+      { id: 's1', full_name: 'Тэмүүлэн', role: 'student', group_id: 'g1', extra_groups: ['g3'], family: 'BAT', email: 'temuulen@student.erdem-schule.de' },
       { id: 's2', full_name: 'Номин', role: 'student', group_id: 'g1', family: 'DORJ', email: 'nomin@student.erdem-schule.de' },
-      { id: 's3', full_name: 'Анужин', role: 'student', group_id: 'g2', family: 'BAT', email: 'anujin@student.erdem-schule.de' },
+      { id: 's3', full_name: 'Анужин', role: 'student', group_id: 'g2', extra_groups: ['g3'], family: 'BAT', email: 'anujin@student.erdem-schule.de' },
       { id: 'p1', full_name: 'Сарнай (ээж)', role: 'parent', group_id: null, family: 'BAT', email: 'sarnai@example.com', contact_email: 'sarnai@example.com', phone: '+4917612345678' },
       { id: 'p2', full_name: 'Дорж (аав)', role: 'parent', group_id: null, family: 'DORJ', email: 'dorj@student.erdem-schule.de', phone: '+4915198765432' },
       { id: 't1', full_name: 'Мөнх-Эрдэнэ багш', role: 'teacher', group_id: null, email: 'monkherdene@example.com' },
@@ -31,6 +35,7 @@ function seed() {
       { id: 'l1', group_id: 'g1', title: 'Мал аж ахуй: таван хошуу мал', description: 'Морь, үхэр, тэмээ, хонь, ямааны нэрийг сурна.', video_url: 'https://www.youtube.com/', material_url: '', lesson_date: daysAgo(14) },
       { id: 'l2', group_id: 'g1', title: 'Миний гэр бүл', description: 'Ээж, аав, ах, эгч — гэр бүлийн гишүүдийн нэр.', video_url: '', material_url: '', lesson_date: daysAgo(7) },
       { id: 'l3', group_id: 'g1', title: 'Кирилл үсэг: Ө ба Ү', description: 'Монгол хэлний онцгой хоёр үсэг.', video_url: 'https://www.youtube.com/', material_url: '', lesson_date: daysAgo(0) },
+      { id: 'l5', group_id: 'g3', title: 'Бүжиг: «Сэлэнгэ» — эхний 16 тоолуур', description: 'Гарын хөдөлгөөн, мөрний чичиргээ. Видеог давтаж үзээрэй.', video_url: 'https://www.youtube.com/', material_url: '', lesson_date: daysAgo(2) },
       { id: 'l4', group_id: 'g2', title: 'Өдөр тутмын яриа', description: 'Мэндлэх, танилцах.', video_url: '', material_url: '', lesson_date: daysAgo(3) },
     ],
     assignments: [
@@ -38,6 +43,7 @@ function seed() {
       { id: 'h2', group_id: 'g1', lesson_id: 'l2', title: 'Гэр бүлээ танилцуул', instructions: 'Гэр бүлийн гишүүдээ 3–5 өгүүлбэрээр танилцуул.', due_date: daysAgo(1), points: 10 },
       { id: 'h3', group_id: 'g1', lesson_id: 'l3', title: 'Ө, Ү үсэгтэй 5 үг', instructions: 'Ө эсвэл Ү үсэг орсон 5 үг бичээрэй.', due_date: daysAgo(-6), points: 10 },
       { id: 'h4', group_id: 'g2', lesson_id: 'l4', title: 'Өөрийгөө танилцуул', instructions: 'Аудио бичлэг хавсаргана уу.', due_date: daysAgo(-4), points: 10 },
+      { id: 'h7', group_id: 'g3', lesson_id: 'l5', title: 'Бүжгийн хөдөлгөөнөө бичлэг хий', instructions: 'Эхний 16 тоолуурыг гэртээ бүжиглээд утсаараа бичлэг хий. Видеог YouTube (Жагсаалтад үл харагдах / Unlisted) эсвэл Google Drive-д тавиад линкийг нь илгээ.', due_date: daysAgo(-5), points: 10 },
       { id: 'h5', group_id: 'g1', lesson_id: 'l2', kind: 'family', title: 'Эмээ, өвөөгөөсөө ярилцлага ав', instructions: 'Эцэг эхийнхээ тусламжтайгаар эмээ эсвэл өвөөдөө утсаар залгаж 3 асуулт асуу: Хаана төрсөн бэ? Бага насандаа юугаар тоглодог байсан бэ? Хамгийн дуртай хоол? Хариултыг монголоор бичээд эсвэл бичлэг хийгээд илгээ.', due_date: daysAgo(-5), points: 20 },
       { id: 'h6', group_id: 'g2', lesson_id: 'l4', kind: 'family', title: 'Монгол хоол хамт хийх', instructions: 'Ээж аавтайгаа хамт монгол хоол (бууз, цуйван…) хийж, орц найрлагын 5 нэрийг монголоор бич. Зураг хавсаргаарай.', due_date: daysAgo(-3), points: 20 },
     ],
@@ -94,7 +100,7 @@ function demoLearning() {
 }
 
 function demoApi() {
-  const KEY = 'erdemDemo_v5';
+  const KEY = 'erdemDemo_v6';
   let db;
   try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
   db.family_checks ||= [];
@@ -113,17 +119,17 @@ function demoApi() {
     async resetDemo() { db = seed(); persist(); },
     async me() { return me(); },
     async groups() { return db.groups; },
-    async lessons(gid) { return db.lessons.filter((l) => !gid || l.group_id === gid).sort((a, b) => b.lesson_date.localeCompare(a.lesson_date)); },
-    async assignments(gid) { return db.assignments.filter((a) => !gid || a.group_id === gid).sort((a, b) => (b.due_date || '').localeCompare(a.due_date || '')); },
+    async lessons(gid) { return db.lessons.filter((l) => inG(gid, l.group_id)).sort((a, b) => b.lesson_date.localeCompare(a.lesson_date)); },
+    async assignments(gid) { return db.assignments.filter((a) => inG(gid, a.group_id)).sort((a, b) => (b.due_date || '').localeCompare(a.due_date || '')); },
     async submissions(studentId) {
       return db.submissions.filter((s) => !studentId || s.student_id === studentId)
         .map((s) => ({ ...s, student: db.profiles.find((p) => p.id === s.student_id) }));
     },
-    async submit(assignmentId, body, files = []) {
+    async submit(assignmentId, body, files = [], link = '') {
       const ex = db.submissions.find((s) => s.assignment_id === assignmentId && s.student_id === meId);
       const paths = files.map((f) => { const p = `${meId}/${Date.now()}-${f.name}`; demoFiles.set(p, URL.createObjectURL(f)); return p; });
       const keep = paths.length ? paths : (ex?.files || []);
-      const row = { body, files: keep, file_path: keep[0] || null, status: 'submitted', submitted_at: iso(new Date()) };
+      const row = { body, link: link || null, files: keep, file_path: keep[0] || null, status: 'submitted', submitted_at: iso(new Date()) };
       if (ex) Object.assign(ex, row); else db.submissions.push({ id: uid(), assignment_id: assignmentId, student_id: meId, score: null, feedback: null, ...row });
       persist();
     },
@@ -142,6 +148,7 @@ function demoApi() {
     async children() { const ids = childIds(); return db.profiles.filter((p) => ids.includes(p.id)); },
     async profiles() { return db.profiles; },
     async setProfile(id, role, group_id) { Object.assign(db.profiles.find((p) => p.id === id), { role, group_id: group_id || null }); persist(); },
+    async setExtraGroups(id, groups) { db.profiles.find((p) => p.id === id).extra_groups = groups; persist(); },
     async links() { return db.parent_children; },
     async linkParent(parent_id, child_id) {
       if (!db.parent_children.some((l) => l.parent_id === parent_id && l.child_id === child_id)) db.parent_children.push({ parent_id, child_id });
@@ -159,7 +166,7 @@ function demoApi() {
     async announcements() {
       const p = me(); if (!p) return [];
       const staff = ['teacher', 'admin'].includes(p.role);
-      const myGroups = p.role === 'parent' ? db.parent_children.filter((l) => l.parent_id === meId).map((l) => db.profiles.find((k) => k.id === l.child_id)?.group_id) : [p.group_id];
+      const myGroups = p.role === 'parent' ? db.parent_children.filter((l) => l.parent_id === meId).flatMap((l) => groupsOf(db.profiles.find((k) => k.id === l.child_id))) : groupsOf(p);
       return (db.announcements || []).filter((a) => staff || ((a.audience === 'all' || (['parents', 'families'].includes(a.audience) && p.role === 'parent') || (['students', 'families'].includes(a.audience) && p.role === 'student'))
         && (!a.group_id || myGroups.includes(a.group_id)))).sort((a, b) => (a.starts_at || '9').localeCompare(b.starts_at || '9'));
     },
@@ -186,8 +193,8 @@ function demoApi() {
       const emailOf = (p) => p.contact_email || (p.email && !p.email.endsWith('@student.erdem-schule.de') ? p.email : '');
       const build = (p) => {
         const kids = db.parent_children.filter((l) => l.parent_id === p.id).map((l) => db.profiles.find((k) => k.id === l.child_id)).filter(Boolean).map((k) => {
-          const g = db.groups.find((x) => x.id === k.group_id) || {};
-          return { name: k.full_name, groupName: g.name, schedule: g.schedule, assignments: db.assignments.filter((a) => a.group_id === k.group_id),
+          const gids = groupsOf(k), gs = gids.map((id) => db.groups.find((x) => x.id === id)).filter(Boolean);
+          return { name: k.full_name, groupName: gs.map((x) => x.name).join(', '), schedule: gs.map((x) => x.schedule).filter(Boolean).join(', '), assignments: db.assignments.filter((a) => gids.includes(a.group_id)),
             submissions: db.submissions.filter((s) => s.student_id === k.id), activity: db.activity.filter((a) => a.student_id === k.id),
             checks: db.family_checks.filter((c) => c.student_id === k.id) };
         });
@@ -224,7 +231,7 @@ function demoApi() {
       const plan = planRoster(rows, state, { callerId: meId, deactivateMissing });
       if (action !== 'apply') return { plan };
       const res = await applyPlan(plan, state, {
-        createGroup: async (name) => { const id = uid(); db.groups.push({ id, name, schedule: '', live_url: '' }); return id; },
+        createGroup: async (name, subject) => { const id = uid(); db.groups.push({ id, name, subject, schedule: '', live_url: '' }); return id; },
         createUser: async ({ email, name }) => { const id = uid(); db.profiles.push({ id, email, full_name: name, role: 'pending', group_id: null }); return id; },
         updateProfile: async (id, f) => { Object.assign(db.profiles.find((p) => p.id === id), f); },
         setPassword: async () => {},
@@ -264,12 +271,12 @@ async function liveApi() {
     async groups() { return ok(await sb.from('groups').select('*').order('name')); },
     async lessons(gid) {
       let q = sb.from('lessons').select('*').order('lesson_date', { ascending: false });
-      if (gid) q = q.eq('group_id', gid);
+      if (Array.isArray(gid)) q = q.in('group_id', gid.length ? gid : ['00000000-0000-0000-0000-000000000000']); else if (gid) q = q.eq('group_id', gid);
       return ok(await q);
     },
     async assignments(gid) {
       let q = sb.from('assignments').select('*').order('due_date', { ascending: false });
-      if (gid) q = q.eq('group_id', gid);
+      if (Array.isArray(gid)) q = q.in('group_id', gid.length ? gid : ['00000000-0000-0000-0000-000000000000']); else if (gid) q = q.eq('group_id', gid);
       return ok(await q);
     },
     async submissions(studentId) {
@@ -277,7 +284,7 @@ async function liveApi() {
       if (studentId) q = q.eq('student_id', studentId);
       return ok(await q);
     },
-    async submit(assignmentId, body, files = []) {
+    async submit(assignmentId, body, files = [], link = '') {
       const paths = [];
       for (const f of files) {
         const safe = f.name.replace(/[^\w.\-]+/g, '_');
@@ -287,7 +294,9 @@ async function liveApi() {
       }
       const row = { assignment_id: assignmentId, student_id: profile.id, body, status: 'submitted', submitted_at: new Date().toISOString() };
       if (paths.length) { row.file_path = paths[0]; row.files = paths; }
+      if (link) row.link = link;
       let res = await sb.from('submissions').upsert(row, { onConflict: 'assignment_id,student_id' });
+      if (res.error && link && /link/.test(res.error.message || '')) { delete row.link; row.body = [body, link].filter(Boolean).join('\n'); res = await sb.from('submissions').upsert(row, { onConflict: 'assignment_id,student_id' }); }
       if (res.error && paths.length && /files/.test(res.error.message || '')) {
         delete row.files; // хуучин schema: files багана байхгүй
         res = await sb.from('submissions').upsert(row, { onConflict: 'assignment_id,student_id' });
@@ -312,6 +321,7 @@ async function liveApi() {
     },
     async profiles() { return ok(await sb.from('profiles').select('*').order('full_name')); },
     async setProfile(id, role, group_id) { ok(await sb.rpc('admin_set_profile', { uid: id, new_role: role, new_group: group_id || null })); },
+    async setExtraGroups(id, groups) { ok(await sb.rpc('admin_set_extra_groups', { uid: id, groups })); },
     async links() { return ok(await sb.from('parent_children').select('*')); },
     async linkParent(parent_id, child_id) { ok(await sb.from('parent_children').upsert({ parent_id, child_id })); },
     async unlinkParent(parent_id, child_id) { ok(await sb.from('parent_children').delete().match({ parent_id, child_id })); },
@@ -320,8 +330,10 @@ async function liveApi() {
     async saveAssignment(a) { ok(await sb.from('assignments').insert(a)); },
     async deleteAssignment(id) { ok(await sb.from('assignments').delete().eq('id', id)); },
     async saveGroup(g) {
-      if (g.id) { const { id, ...rest } = g; ok(await sb.from('groups').update(rest).eq('id', id)); }
-      else ok(await sb.from('groups').insert(g));
+      const run = (x) => { if (x.id) { const { id, ...rest } = x; return sb.from('groups').update(rest).eq('id', id); } return sb.from('groups').insert(x); };
+      let r = await run(g);
+      if (r.error && 'subject' in g && /subject/.test(r.error.message || '')) { const { subject, ...rest } = g; r = await run(rest); }
+      ok(r);
     },
     async familyChecks(studentId) {
       let q = sb.from('family_checks').select('*');

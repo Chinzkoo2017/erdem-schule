@@ -177,10 +177,12 @@ Deno.serve(async (req) => {
     const reportFor = (p: any) => {
       const kidIds = links.filter((l: any) => l.parent_id === p.id).map((l: any) => l.child_id);
       const kids = profiles.filter((k: any) => kidIds.includes(k.id) && k.role === 'student').map((k: any) => {
-        const g = groups.find((x: any) => x.id === k.group_id) || {};
+        const gids = [k.group_id, ...(k.extra_groups || [])].filter(Boolean);
+        const gs = gids.map((id: string) => groups.find((x: any) => x.id === id)).filter(Boolean);
+        const g = gs[0] || {};
         return {
-          name: k.full_name, groupName: g.name, schedule: g.schedule, liveUrl: g.live_url,
-          assignments: assignments.filter((a: any) => a.group_id === k.group_id),
+          name: k.full_name, groupName: gs.map((x: any) => x.name).join(', '), schedule: gs.map((x: any) => x.schedule).filter(Boolean).join(', '), liveUrl: g.live_url,
+          assignments: assignments.filter((a: any) => gids.includes(a.group_id)),
           submissions: submissions.filter((s: any) => s.student_id === k.id),
           activity: activity.filter((a: any) => a.student_id === k.id),
           checks: checks.filter((c: any) => c.student_id === k.id),

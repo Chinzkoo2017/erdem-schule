@@ -1,4 +1,4 @@
-import { createApi } from './api.js';
+import { createApi, groupsOf } from './api.js';
 import { t, getLang, setLang } from './i18n.js';
 import { flashcards, letters, pictures, wordBuilder, sentenceBuilder, fillSuffix } from './games.js';
 import { TEMPLATE_ROWS } from './roster-core.js';
@@ -302,6 +302,13 @@ function badgeList(st, lettersPerfect, familyDone = 0) {
   ];
 }
 const groupName = (id) => groupsCache.find((g) => g.id === id)?.name || t('none');
+// ---- Ангийн төрөл (монгол хэл, бүжиг, хөгжим, спорт)
+const SUBJ = { mongolian: '📖', dance: '💃', music: '🎸', sport: '🏀', other: '⭐' };
+const subjOf = (g) => g?.subject || 'mongolian';
+const subjIcon = (g) => SUBJ[subjOf(g)] || '⭐';
+const myGroupsOf = (p) => groupsOf(p).map((id) => groupsCache.find((g) => g.id === id)).filter(Boolean);
+const groupTag = (gid) => { const g = groupsCache.find((x) => x.id === gid); return g ? `<span class="gtag gtag-${esc(subjOf(g))}">${subjIcon(g)} ${esc(g.name)}</span>` : ''; };
+const videoLabel = (u) => (/youtu\.?be/i.test(u) ? 'YouTube' : /drive\.google|docs\.google/i.test(u) ? 'Google Drive' : /icloud|dropbox|onedrive|1drv/i.test(u) ? t('linkCloud') : t('linkOpen'));
 const statusChip = (s) => (!s ? `<span class="chip chip-open">${t('openHw')}</span>`
   : s.status === 'reviewed' ? `<span class="chip chip-done">✓ ${t('reviewed')}${s.score != null ? ` · ${s.score}` : ''}</span>`
     : `<span class="chip chip-sent">${t('submitted')}</span>`);
@@ -326,11 +333,11 @@ function shell(tabs, body, opts = {}) {
           <div class="side-mobile-actions"><a class="icon-btn" href="#me" aria-label="${t('myProfile')}">${icon('person')}</a>${langBtn.replace('id="langBtn"', 'id="langBtnM"')}<button class="icon-btn" id="logoutM" aria-label="${t('logout')}">${icon('logout')}</button></div>
         </div>
         ${tabs.length ? `<nav class="side-nav" aria-label="${t('menu')}">${tabs.map((x) => `<a href="#${x.id}" class="${x.id === current ? 'active' : ''}" ${x.id === current ? 'aria-current="page"' : ''}>${icon(x.icon)}<span>${x.label}</span>${x.count ? `<b class="nav-count">${x.count}</b>` : ''}</a>`).join('')}</nav>` : ''}
-        ${g ? `<div class="side-live">
-          <span class="side-live-label">${t('nextLesson')}</span>
+        ${(Array.isArray(g) ? g : g ? [g] : []).map((g, i, all) => `<div class="side-live">
+          <span class="side-live-label">${all.length > 1 ? `${subjIcon(g)} ${esc(g.name)}` : t('nextLesson')}</span>
           <strong>${esc(g.schedule || t('none'))}</strong>
           ${safeUrl(g.live_url) ? `<a class="btn btn-live btn-block btn-sm" href="${safeUrl(g.live_url)}" target="_blank" rel="noopener">${icon('video', 18)} ${t('joinLive')}</a>` : `<small>${t('noLive')}</small>`}
-        </div>` : ''}
+        </div>`).join('')}
         <div class="side-user">
           ${avatar(me)}
           <a class="side-user-text" href="#me" title="${t('myProfile')}"><strong>${esc(me.full_name)}</strong><small>${me.role === 'student' && me.team_name ? teamLine(me) : t('r' + me.role)}</small></a>
@@ -409,7 +416,7 @@ function renderLogin(mode = 'in') {
 // ------------------------------------------------------------ STUDENT
 async function renderStudent() {
   const [lessons, assignments, subs, activity, lettersPerfect, checks] = await Promise.all([
-    api.lessons(me.group_id), api.assignments(me.group_id), api.submissions(me.id), api.activity(me.id), api.getMeta('lettersPerfect'),
+    api.lessons(groupsOf(me)), api.assignments(groupsOf(me)), api.submissions(me.id), api.activity(me.id), api.getMeta('lettersPerfect'),
     api.familyChecks(me.id),
   ]);
   const [learn, vocabList, anns] = await Promise.all([api.learning([me.id]).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => []), api.announcements().catch(() => [])]);
@@ -417,7 +424,9 @@ async function renderStudent() {
   const newWeek = prog.wordsMastered.filter((w) => w.last_at && Date.parse(w.last_at) > Date.now() - 7 * 864e5);
   const toReview = [...prog.wordsWeak, ...prog.wordsLearning.filter((w) => w.wrong > 0 && !prog.wordsWeak.includes(w))].slice(0, 12);
   currentChecks = checks || [];
-  const group = groupsCache.find((g) => g.id === me.group_id);
+  const myGroups = myGroupsOf(me), group = myGroups[0];
+  const multi = myGroups.length > 1;
+  const hasMn = !myGroups.length || myGroups.some((g) => subjOf(g) === 'mongolian');
   const st = stats(activity, subs);
   const subFor = (aid) => subs.find((s) => s.assignment_id === aid);
   const openHw = assignments.filter((a) => !subFor(a.id));
@@ -432,8 +441,8 @@ async function renderStudent() {
     { id: 'home', icon: 'home', label: t('tabHome') },
     { id: 'lessons', icon: 'lessons', label: t('tabLessons') },
     { id: 'homework', icon: 'homework', label: t('tabHomework'), count: openHw.length },
-    { id: 'play', icon: 'play', label: t('tabPlay') },
-    { id: 'progress', icon: 'chart', label: t('tabProgress'), count: toReview.length + prog.lettersWeak.length || 0 },
+    ...(hasMn ? [{ id: 'play', icon: 'play', label: t('tabPlay') },
+      { id: 'progress', icon: 'chart', label: t('tabProgress'), count: toReview.length + prog.lettersWeak.length || 0 }] : []),
     { id: 'badges', icon: 'badges', label: t('tabBadges') },
   ];
   const tab = currentTab(tabs);
@@ -447,7 +456,7 @@ async function renderStudent() {
   };
 
   const goals = [
-    { done: playedToday, title: t('goalPlay'), meta: playedToday ? t('goalsDone') : '+10–20', href: '#play', late: false },
+    ...(hasMn ? [{ done: playedToday, title: t('goalPlay'), meta: playedToday ? t('goalsDone') : '+10–20', href: '#play', late: false }] : []),
     ...openHw.slice(0, 4).map((a) => ({ done: false, title: a.title, meta: `${a.due_date && a.due_date < todayIso() ? t('late') + ' · ' : t('due') + ': '}${fmtDate(a.due_date) || t('none')}`, href: '#homework', late: a.due_date && a.due_date < todayIso() })),
   ];
   const games = [
@@ -463,10 +472,10 @@ async function renderStudent() {
   const views = {
     home: () => `
       <div class="page-head">
-        <div><p class="eyebrow">${esc(fmtDate(todayIso()))}${group ? ' · ' + esc(group.name) : ''}${me.team_name ? ` · ${t('team')}: ${teamLine(me)}` : ''}</p>
+        <div><p class="eyebrow">${esc(fmtDate(todayIso()))}${myGroups.length ? ' · ' + myGroups.map((g) => esc(g.name)).join(', ') : ''}${me.team_name ? ` · ${t('team')}: ${teamLine(me)}` : ''}</p>
         <h1 class="page-title">${t('hello')}, ${esc(me.full_name)}</h1></div>
       </div>
-      ${group ? `<div class="mobile-only">${liveCard(group)}</div>` : ''}
+      ${myGroups.length ? `<div class="mobile-only stack-sm">${myGroups.map((g) => liveCard(g, multi)).join('')}</div>` : ''}
       ${upcoming(anns).length ? `<section class="stack-sm"><h2>${t('tabNews')}</h2>${upcoming(anns).map((a) => annCard(a)).join('')}</section>` : ''}
       <div class="kpi-grid">
         <div class="kpi-card"><span class="kpi-label">${t('streakLabel')}</span><span class="kpi-value">${st.streak} 🔥</span><span class="kpi-note">${t('streak')}</span></div>
@@ -485,16 +494,16 @@ async function renderStudent() {
         </section>
         <section class="card"><h2>${t('week')}</h2>${weekChart(st.week)}</section>
       </div>
-      ${toReview.length ? `<a class="card review-nudge" href="#progress"><span class="nudge-ico">↻</span><span><b>${t('myReview')}: ${toReview.length}</b><small>${toReview.slice(0, 5).map((w) => esc(w.item)).join(', ')}${toReview.length > 5 ? '…' : ''}</small></span><span class="goal-go">→</span></a>` : ''}
-      <section>
+      ${hasMn && toReview.length ? `<a class="card review-nudge" href="#progress"><span class="nudge-ico">↻</span><span><b>${t('myReview')}: ${toReview.length}</b><small>${toReview.slice(0, 5).map((w) => esc(w.item)).join(', ')}${toReview.length > 5 ? '…' : ''}</small></span><span class="goal-go">→</span></a>` : ''}
+      ${hasMn ? `<section>
         <div class="card-head"><h2>${t('play')}</h2><a href="#play" class="link">→</a></div>
         <div class="game-row">${games.slice(0, 3).map((x) => `<a class="game-tile tone-${x.tone}" href="#play" data-start="${x.g}"><span class="game-glyph">${x.glyph}</span><span class="game-text"><b>${x.name}</b><small>${x.d}</small></span></a>`).join('')}</div>
-      </section>
-      ${lessons[0] ? `<section class="card"><div class="card-head"><h2>${t('lessons')}</h2><a href="#lessons" class="link">→</a></div>${lessonCard(lessons[0])}</section>` : ''}`,
+      </section>` : ''}
+      ${lessons[0] ? `<section class="card"><div class="card-head"><h2>${t('lessons')}</h2><a href="#lessons" class="link">→</a></div>${lessonCard(lessons[0], multi)}</section>` : ''}`,
     lessons: () => `<h1 class="page-title">${t('lessons')}</h1>
-      ${lessons.length ? `<div class="stack">${lessons.map(lessonCard).join('')}</div>` : `<p class="card muted">${t('noLessons')}</p>`}`,
+      ${lessons.length ? `<div class="stack">${lessons.map((l) => lessonCard(l, multi)).join('')}</div>` : `<p class="card muted">${t('noLessons')}</p>`}`,
     homework: () => `<h1 class="page-title">${t('homework')}</h1>
-      <div class="stack">${assignments.length ? assignments.map((a) => hwRow(a, subFor(a.id), true)).join('') : `<p class="card muted">${t('noHomework')}</p>`}</div>`,
+      <div class="stack">${assignments.length ? assignments.map((a) => hwRow(a, subFor(a.id), true, multi)).join('') : `<p class="card muted">${t('noHomework')}</p>`}</div>`,
     play: () => `<h1 class="page-title">${t('play')}</h1><p class="muted">${t('playLead')}</p>
       <div id="gameArea"><div class="game-grid">${games.map(gameTile).join('')}</div></div>`,
     progress: () => {
@@ -535,7 +544,7 @@ async function renderStudent() {
         <div class="badge ${b.on ? 'on' : ''}"><span class="badge-icon">${b.on ? b.icon : '🔒'}</span><strong>${b.name}</strong><small>${b.on ? b.desc : t('locked') + ' · ' + b.desc}</small></div>`).join('')}
       </div>`,
   };
-  shell(tabs, views[tab](), { live: group });
+  shell(tabs, views[tab](), { live: myGroups });
 
   if (tab === 'homework') bindHomework(assignments, subFor);
   if (tab === 'progress') $$('[data-practice]').forEach((b) => (b.onclick = () => {
@@ -553,19 +562,20 @@ async function renderStudent() {
   }
 }
 
-function liveCard(group) {
+function liveCard(group, multi = false) {
   return `<section class="card live-card">
-    <p class="eyebrow">${t('nextLesson')}</p>
+    <p class="eyebrow">${multi ? `${subjIcon(group)} ` : ''}${t('nextLesson')}</p>
     <h2>${esc(group?.schedule || t('none'))}</h2>
     <p class="muted">${esc(group?.name || '')}</p>
     ${safeUrl(group?.live_url) ? `<a class="btn btn-live btn-block" href="${safeUrl(group.live_url)}" target="_blank" rel="noopener">${icon('video', 18)} ${t('joinLive')}</a>`
       : `<p class="muted small">${t('noLive')}</p>`}
   </section>`;
 }
-function lessonCard(l) {
+function lessonCard(l, multi = false) {
   return `<article class="lesson">
     <div class="lesson-date"><span>${esc(fmtDate(l.lesson_date))}</span></div>
     <div class="lesson-body">
+      ${multi ? `<p class="tag-row">${groupTag(l.group_id)}</p>` : ''}
       <h3>${esc(l.title)}</h3>
       ${l.description ? `<p>${esc(l.description)}</p>` : ''}
       <div class="row-gap">
@@ -575,15 +585,17 @@ function lessonCard(l) {
     </div>
   </article>`;
 }
-function hwRow(a, sub, full = false) {
+function hwRow(a, sub, full = false, multi = false) {
   const late = !sub && a.due_date && a.due_date < todayIso();
   return `<article class="hw ${sub ? 'is-' + sub.status : ''}" data-id="${esc(a.id)}">
     <div class="hw-main">
+      ${multi ? `<p class="tag-row">${groupTag(a.group_id)}</p>` : ''}
       <h3>${esc(a.title)}</h3>
       ${isFamily(a) ? `<p class="tag-row">${familyTag()} ${currentChecks.some((c) => c.assignment_id === a.id) ? `<span class="chip chip-done">✓ ${t('familyConfirmed')}</span>` : `<span class="muted small">${t('familyWaiting')}</span>`}</p>` : ''}
       ${full && a.instructions ? `<p>${esc(a.instructions)}</p>` : ''}
       <p class="small ${late ? 'late' : 'muted'}">${t('due')}: ${esc(fmtDate(a.due_date)) || t('none')} · ${a.points ?? 10} ${t('xp')}</p>
       ${filesOf(sub).length ? `<p class="small muted">${icon('clip', 14)} ${filesOf(sub).length} ${t('attached')}</p>` : ''}
+      ${safeUrl(sub?.link) ? `<p class="small"><a class="link" href="${safeUrl(sub.link)}" target="_blank" rel="noopener">${icon('video', 14)} ${esc(videoLabel(sub.link))}</a></p>` : ''}
       ${sub?.status === 'reviewed' && sub.feedback ? `<div class="feedback"><strong>${t('feedback')}:</strong> ${esc(sub.feedback)}</div>` : ''}
     </div>
     <div class="hw-side">${statusChip(sub)}
@@ -601,6 +613,9 @@ function bindHomework(assignments, subFor) {
     row.insertAdjacentHTML('beforeend', `
       <form class="hw-form">
         <textarea name="body" rows="4" placeholder="${t('yourAnswer')}">${esc(sub?.body || '')}</textarea>
+        <label class="link-field ${['dance', 'music', 'sport'].includes(subjOf(groupsCache.find((g) => g.id === a.group_id))) ? 'is-main' : ''}"><span class="link-field-head">${icon('video', 16)} ${t('hwLink')}</span>
+          <input name="link" type="url" inputmode="url" placeholder="https://youtu.be/… · https://drive.google.com/…" value="${esc(sub?.link || '')}">
+          <small class="muted">${t('hwLinkHelp')}</small></label>
         <ul class="file-list" aria-live="polite"></ul>
         <div class="row-gap">
           ${canRec ? `<button type="button" class="btn btn-ghost btn-sm" data-rec>${icon('mic', 18)} <span>${t('record')}</span></button>` : ''}
@@ -663,11 +678,13 @@ function bindHomework(assignments, subFor) {
       e.preventDefault();
       stopRec();
       const body = f.body.value.trim();
-      if (!body && !files.length) return f.body.focus();
+      const link = f.link.value.trim();
+      if (link && !/^https?:\/\//i.test(link)) { toast(t('hwLinkBad'), 'bad'); return f.link.focus(); }
+      if (!body && !files.length && !link) return f.body.focus();
       const send = $('[data-send]', f);
       send.disabled = true; send.textContent = t('loading');
       guard(async () => {
-        await api.submit(a.id, body, files);
+        await api.submit(a.id, body, files, link);
         if (!sub) await api.addXp(20);
         toast(t('sentOk'));
         route();
@@ -722,21 +739,21 @@ async function renderParent() {
   const anns = await api.announcements().catch(() => []);
   const [learn, vocabList] = await Promise.all([api.learning(kids.map((k) => k.id)).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => [])]);
   const data = await Promise.all(kids.map(async (k) => {
-    const [subs, act, asg, checks] = await Promise.all([api.submissions(k.id), api.activity(k.id), api.assignments(k.group_id), api.familyChecks(k.id)]);
+    const [subs, act, asg, checks] = await Promise.all([api.submissions(k.id), api.activity(k.id), api.assignments(groupsOf(k)), api.familyChecks(k.id)]);
     return { k, subs, asg, checks: checks || [], st: stats(act, subs) };
   }));
   shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1>
     ${upcoming(anns).length ? `<section class="stack-sm"><h2>${t('tabNews')}</h2>${upcoming(anns).map((a) => annCard(a)).join('')}</section>` : ''}
     <div class="stack">${data.map(({ k, subs, asg, checks, st }) => {
       const fam = asg.filter(isFamily);
-      const group = groupsCache.find((g) => g.id === k.group_id);
+      const kg = myGroupsOf(k);
       const open = asg.filter((a) => !subs.some((s) => s.assignment_id === a.id));
       return `<section class="card child">
         <div class="child-head">
           ${avatar(k, 'xl')}
-          <div><h2>${esc(k.full_name)}</h2><p class="muted">${esc(group?.name || t('none'))}${group?.schedule ? ' · ' + esc(group.schedule) : ''}</p>
+          <div><h2>${esc(k.full_name)}</h2><p class="muted">${kg.length ? kg.map((g) => `${kg.length > 1 ? subjIcon(g) + ' ' : ''}${esc(g.name)}${g.schedule ? ' · ' + esc(g.schedule) : ''}`).join('<br>') : t('none')}</p>
             <p class="small">${k.team_name ? `${t('team')}: <b>${teamLine(k)}</b> · ` : ''}<button class="link" data-team="${esc(k.id)}">${t('teamEdit')}</button></p></div>
-          ${safeUrl(group?.live_url) ? `<a class="btn btn-live btn-sm push" href="${safeUrl(group.live_url)}" target="_blank" rel="noopener">${icon('video', 16)} ${t('joinLive')}</a>` : ''}
+          <div class="push stack-xs">${kg.filter((g) => safeUrl(g.live_url)).map((g) => `<a class="btn btn-live btn-sm" href="${safeUrl(g.live_url)}" target="_blank" rel="noopener">${icon('video', 16)} ${kg.length > 1 ? subjIcon(g) + ' ' : ''}${t('joinLive')}</a>`).join('')}</div>
         </div>
         <div class="kpis">
           <div class="kpi"><small>${t('streakLabel')}</small><span>${st.streak} 🔥</span></div>
@@ -816,7 +833,11 @@ async function renderStaff() {
 }
 
 async function staffReview(tabs) {
-  const [subs, asg, checks] = await Promise.all([api.submissions(), api.assignments(), api.familyChecks()]);
+  const [subsAll, asg, checks] = await Promise.all([api.submissions(), api.assignments(), api.familyChecks()]);
+  let rg = ''; try { rg = sessionStorage.getItem('erdemReviewGroup') || ''; } catch {}
+  if (rg && !groupsCache.some((g) => g.id === rg)) rg = '';
+  const gOfSub = (s) => asg.find((a) => a.id === s.assignment_id)?.group_id;
+  const subs = rg ? subsAll.filter((s) => gOfSub(s) === rg) : subsAll;
   const title = (id) => asg.find((a) => a.id === id)?.title || '';
   const famInfo = (s) => {
     const a = asg.find((x) => x.id === s.assignment_id);
@@ -829,10 +850,11 @@ async function staffReview(tabs) {
   const card = (s) => `<article class="card review" data-id="${esc(s.id)}">
       <div class="review-head">
         ${avatar(s.student)}
-        <div><strong>${esc(s.student?.full_name || '')}</strong><p class="muted small">${esc(title(s.assignment_id))} · ${esc(groupName(s.student?.group_id))} · ${esc(fmtDate(s.submitted_at))}</p></div>
+        <div><strong>${esc(s.student?.full_name || '')}</strong><p class="muted small">${esc(title(s.assignment_id))} · ${esc(groupName(gOfSub(s)))} · ${esc(fmtDate(s.submitted_at))}</p></div>
       </div>
       ${famInfo(s)}
       ${s.body ? `<blockquote class="mn">${esc(s.body)}</blockquote>` : ''}
+      ${safeUrl(s.link) ? `<p><a class="btn btn-navy btn-sm" href="${safeUrl(s.link)}" target="_blank" rel="noopener">${icon('video', 16)} ${t('watchVideo')} · ${esc(videoLabel(s.link))}</a></p>` : ''}
       ${filesOf(s).length ? `<div class="media-row">${filesOf(s).map((p) => `<div class="media" data-file="${esc(p)}"><span class="file-chip">${icon(isAudio(p) ? 'mic' : isImage(p) ? 'image' : 'clip', 14)} ${esc(p.split('/').pop().replace(/^(?:.*?-)?\d{12,}-(?:\d{1,2}-)?/, ''))}</span></div>`).join('')}</div>` : ''}
       <form class="review-form">
         <label>${t('score')}<input name="score" type="number" min="0" max="100" value="${s.score ?? 10}"></label>
@@ -840,9 +862,11 @@ async function staffReview(tabs) {
         <button class="btn btn-gold">${t('give')}</button>
       </form>
     </article>`;
-  shell(tabs, `<h1 class="page-title">${t('toReview')} <span class="count">${pending.length}</span></h1>
+  shell(tabs, `<div class="page-head"><h1 class="page-title">${t('toReview')} <span class="count">${pending.length}</span></h1>
+    <label class="inline">${t('group')}<select id="reviewGroup"><option value="">${t('annAllGroups')}</option>${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === rg ? 'selected' : ''}>${subjIcon(g)} ${esc(g.name)}</option>`).join('')}</select></label></div>
     <div class="stack">${pending.length ? pending.map(card).join('') : `<p class="card muted">${t('nothingToReview')}</p>`}</div>
     ${done.length ? `<details class="mt"><summary>${t('reviewed')} (${done.length})</summary><div class="stack mt">${done.map(card).join('')}</div></details>` : ''}`);
+  $('#reviewGroup').onchange = (e) => { try { sessionStorage.setItem('erdemReviewGroup', e.target.value); } catch {} route(); };
   $$('.review-form').forEach((f) => (f.onsubmit = (e) => {
     e.preventDefault();
     const id = f.closest('.review').dataset.id;
@@ -873,7 +897,7 @@ async function staffManage(tabs) {
     <div class="page-head">
       <h1 class="page-title">${t('tabManage')}</h1>
       <label class="inline">${t('group')}
-        <select id="groupSel">${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === gid ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select>
+        <select id="groupSel">${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === gid ? 'selected' : ''}>${subjIcon(g)} ${esc(g.name)}</option>`).join('')}</select>
       </label>
     </div>
     ${savedBanner}
@@ -923,11 +947,11 @@ async function staffGroups(tabs, isAdmin) {
     return withPhone.map((p) => `<a class="btn btn-wa btn-xs" href="${esc(waDirect(p.phone, msgStudent(s, o)))}" target="_blank" rel="noopener" title="${esc(p.phone)}">${WA_ICON} ${esc(p.full_name.split(' ')[0])} (${o.length})</a>`).join(' ');
   };
   const students = profiles.filter((p) => p.role === 'student');
-  const openFor = (s) => asg.filter((a) => a.group_id === s.group_id && !subs.some((x) => x.assignment_id === a.id && x.student_id === s.id) && (!a.due_date || a.due_date <= iso(new Date(Date.now() + 2 * 864e5))));
+  const openFor = (s, gid) => asg.filter((a) => a.group_id === gid && !subs.some((x) => x.assignment_id === a.id && x.student_id === s.id) && (!a.due_date || a.due_date <= iso(new Date(Date.now() + 2 * 864e5))));
   const rows = await Promise.all(students.map(async (s) => ({ s, st: stats(await api.activity(s.id), subs.filter((x) => x.student_id === s.id)) })));
   shell(tabs, `<h1 class="page-title">${t('tabGroups')}</h1>
     <div class="stack">${groupsCache.map((g) => {
-      const mine = rows.filter((r) => r.s.group_id === g.id);
+      const mine = rows.filter((r) => groupsOf(r.s).includes(g.id));
       const total = asg.filter((a) => a.group_id === g.id).length;
       return `<section class="card">
         <div class="wa-bar"><span class="small muted">${t('waGroupLead')}</span>
@@ -936,17 +960,19 @@ async function staffGroups(tabs, isAdmin) {
         </div>
         <form class="group-form" data-g="${esc(g.id)}">
           <label class="grow">${t('groupName')}<input name="name" value="${esc(g.name)}" ${isAdmin ? '' : 'readonly'}></label>
+          <label>${t('subject')}<select name="subject" ${isAdmin ? '' : 'disabled'}>${Object.keys(SUBJ).map((k) => `<option value="${k}" ${subjOf(g) === k ? 'selected' : ''}>${SUBJ[k]} ${t('subj_' + k)}</option>`).join('')}</select></label>
           <label>${t('schedule')}<input name="schedule" value="${esc(g.schedule || '')}"></label>
           <label class="grow">${t('liveUrl')}<input name="live_url" type="url" value="${esc(g.live_url || '')}" placeholder="https://meet.google.com/…"></label>
           <button class="btn btn-gold btn-sm">${t('save')}</button>
         </form>
         <table class="table"><thead><tr><th>${t('student')}</th><th>${t('streak')}</th><th>${t('totalXp')}</th><th>${t('doneHw')}</th><th></th></tr></thead>
-        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}${s.team_name ? ` <small class="muted">· ${esc(s.team_name)}</small>` : ''}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td><td class="right">${(() => { const o = openFor(s); return o.length ? remindBtns(s, o) : ''; })()}</td></tr>`).join('') || `<tr><td colspan="5" class="muted">${t('none')}</td></tr>`}</tbody></table>
+        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}${s.team_name ? ` <small class="muted">· ${esc(s.team_name)}</small>` : ''}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td><td class="right">${(() => { const o = openFor(s, g.id); return o.length ? remindBtns(s, o) : ''; })()}</td></tr>`).join('') || `<tr><td colspan="5" class="muted">${t('none')}</td></tr>`}</tbody></table>
       </section>`;
     }).join('')}
     ${isAdmin ? `<form class="card group-form" data-g="">
         <h2 class="full">${t('newGroup')}</h2>
         <label class="grow">${t('groupName')}<input name="name" required></label>
+        <label>${t('subject')}<select name="subject">${Object.keys(SUBJ).map((k) => `<option value="${k}">${SUBJ[k]} ${t('subj_' + k)}</option>`).join('')}</select></label>
         <label>${t('schedule')}<input name="schedule" placeholder="Бямба 10:40"></label>
         <label class="grow">${t('liveUrl')}<input name="live_url" type="url" placeholder="https://"></label>
         <button class="btn btn-gold btn-sm">${t('save')}</button>
@@ -968,11 +994,13 @@ async function adminUsers(tabs) {
   const sorted = [...profiles].sort((a, b) => (a.role === 'pending' ? -1 : 0) - (b.role === 'pending' ? -1 : 0));
   shell(tabs, `<h1 class="page-title">${t('tabUsers')}</h1>
     <section class="card table-wrap">
-      <table class="table"><thead><tr><th>${t('fullName')}</th><th>${t('role')}</th><th>${t('group')}</th></tr></thead><tbody>
+      <table class="table"><thead><tr><th>${t('fullName')}</th><th>${t('role')}</th><th>${t('group')}</th><th>${t('extraGroups')}</th></tr></thead><tbody>
       ${sorted.map((p) => `<tr data-u="${esc(p.id)}" class="${p.role === 'pending' ? 'row-pending' : ''}">
         <td class="user-cell">${avatar(p)} <span>${esc(p.full_name)}${p.family ? ` <small class="muted">· ${esc(p.family)}</small>` : ''}</span></td>
         <td><select class="u-role" ${p.id === me.id ? 'disabled' : ''}>${roles.map((r) => `<option value="${r}" ${r === p.role ? 'selected' : ''}>${t('r' + r)}</option>`).join('')}</select></td>
         <td><select class="u-group"><option value="">${t('none')}</option>${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === p.group_id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></td>
+        <td>${p.role === 'student' ? `<details class="multi"><summary>${(p.extra_groups || []).map((id) => groupsCache.find((g) => g.id === id)).filter(Boolean).map((g) => subjIcon(g) + ' ' + esc(g.name)).join(', ') || '＋'}</summary>
+          <div class="multi-list">${groupsCache.filter((g) => g.id !== p.group_id).map((g) => `<label><input type="checkbox" class="u-extra" value="${esc(g.id)}" ${(p.extra_groups || []).includes(g.id) ? 'checked' : ''}> ${subjIcon(g)} ${esc(g.name)}</label>`).join('')}</div></details>` : ''}</td>
       </tr>`).join('')}
       </tbody></table>
     </section>
@@ -988,6 +1016,7 @@ async function adminUsers(tabs) {
   $$('tr[data-u]').forEach((tr) => {
     const save = () => guard(async () => { await api.setProfile(tr.dataset.u, $('.u-role', tr).value, $('.u-group', tr).value); toast(t('saved')); });
     $('.u-role', tr).onchange = save; $('.u-group', tr).onchange = save;
+    $$('.u-extra', tr).forEach((c) => (c.onchange = () => guard(async () => { await api.setExtraGroups(tr.dataset.u, $$('.u-extra:checked', tr).map((x) => x.value)); toast(t('saved')); })));
   });
   $('#linkForm').onsubmit = (e) => { e.preventDefault(); const f = e.target; if (!f.p.value || !f.c.value) return; guard(async () => { await api.linkParent(f.p.value, f.c.value); toast(t('linked')); route(); }); };
   $$('[data-unlink]').forEach((b) => (b.onclick = () => { const [p, c] = b.dataset.unlink.split('|'); guard(async () => { await api.unlinkParent(p, c); route(); }); }));
@@ -1173,7 +1202,7 @@ async function staffInsights(tabs) {
   let gid; try { gid = sessionStorage.getItem('erdemGroup'); } catch {}
   if (!groupsCache.some((g) => g.id === gid)) gid = groupsCache[0]?.id;
   const [profiles, subs, asg, vocabList] = await Promise.all([api.profiles(), api.submissions(), api.assignments(gid), api.vocab()]);
-  const kids = profiles.filter((p) => p.role === 'student' && p.group_id === gid);
+  const kids = profiles.filter((p) => p.role === 'student' && groupsOf(p).includes(gid));
   const learn = await api.learning(kids.map((k) => k.id));
   const rows = kids.map((k) => ({ k, s: summarize(k.id, learn, vocabList, subs.filter((x) => x.student_id === k.id), asg) }));
   const avg = (f) => (rows.length ? Math.round(rows.reduce((a, r) => a + f(r.s), 0) / rows.length) : 0);
@@ -1190,7 +1219,7 @@ async function staffInsights(tabs) {
   shell(tabs, `
     <div class="page-head">
       <div><h1 class="page-title">${t('tabInsights')}</h1><p class="muted small">${t('insStaffLead')}</p></div>
-      <label class="inline">${t('group')}<select id="groupSel">${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === gid ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></label>
+      <label class="inline">${t('group')}<select id="groupSel">${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === gid ? 'selected' : ''}>${subjIcon(g)} ${esc(g.name)}</option>`).join('')}</select></label>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card"><span class="kpi-label">${t('insAvgWords')}</span><span class="kpi-value">${avg((s) => s.wordsMastered.length)}<small> / ${vocabList.length}</small></span></div>

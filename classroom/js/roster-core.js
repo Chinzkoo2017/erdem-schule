@@ -76,7 +76,8 @@ export function normalizeRow(raw) {
     email: toEmail(r.login),
     roleRaw: r.role || '',
     role: ROLES[roleRaw] || null,
-    group: (r.group || '').trim(),
+    groups: splitGroups(r.group),
+    group: splitGroups(r.group).join(', '),
     family: (r.family || '').trim(),
     password: r.password || '',
     newPassword: r.newPassword || '',
@@ -84,6 +85,22 @@ export function normalizeRow(raw) {
     contactEmail: 'contactEmail' in r ? r.contactEmail.toLowerCase() : undefined,
     phoneRaw: r.phone || '',
   };
+}
+
+/** "Монгол хэл 1, Бүжиг" → ['Монгол хэл 1', 'Бүжиг'] (эхнийх нь үндсэн анги) */
+export function splitGroups(v) {
+  const out = [];
+  for (const x of String(v ?? '').split(/[,;\n]+/)) { const t = x.trim(); if (t && !out.some((o) => norm(o) === norm(t))) out.push(t); }
+  return out;
+}
+/** Ангийн нэрээс төрлийг таах */
+export function guessSubject(name) {
+  const n = norm(name);
+  if (/бүжиг|bujig|tanz|dance/.test(n)) return 'dance';
+  if (/гитар|дуу|хөгжим|морин хуур|укулеле|gitar|guitar|musik|music|ukulele|chor/.test(n)) return 'music';
+  if (/сагс|волейбол|спорт|basketball|volleyball|sport/.test(n)) return 'sport';
+  if (/монгол хэл|mongol|хэл|sprache|kirill/.test(n)) return 'mongolian';
+  return 'other';
 }
 
 const WORDS = ['Mori', 'Temee', 'Khoni', 'Yamaa', 'Nar', 'Sar', 'Uul', 'Gol', 'Tal', 'Ger', 'Od', 'Mod', 'Shuvuu', 'Tsetseg'];
@@ -120,13 +137,13 @@ export function planRoster(rows, state, opts = {}) {
     for (const pw of [n.password, n.newPassword]) if (pw && pw.length < 8) return errors.push({ row: rowNo, msg: `"${n.login}": нууц үг 8-аас дээш тэмдэгт байх ёстой` });
     seen.add(n.email);
     const name = n.name || n.login;
-    if (n.group && !groupByName.has(norm(n.group)) && !groupsToCreate.some((g) => norm(g) === norm(n.group))) groupsToCreate.push(n.group);
+    for (const gname of n.groups) if (!groupByName.has(norm(gname)) && !groupsToCreate.some((g) => norm(g) === norm(gname))) groupsToCreate.push(gname);
 
     const ex = byEmail.get(n.email);
     if (ex && ex.id === opts.callerId && n.role !== 'admin') {
       return errors.push({ row: rowNo, msg: `"${n.login}": өөрийн админ эрхийг Excel-ээр хасах боломжгүй` });
     }
-    const item = { row: rowNo, name, email: n.email, login: loginOf(n.email), role: n.role, group: n.group, family: n.family, password: n.password, newPassword: n.newPassword, phone: n.phone, contactEmail: n.contactEmail };
+    const item = { row: rowNo, name, email: n.email, login: loginOf(n.email), role: n.role, group: n.group, groups: n.groups, family: n.family, password: n.password, newPassword: n.newPassword, phone: n.phone, contactEmail: n.contactEmail };
     if (!ex) {
       item.action = 'create';
       item.changes = [];
@@ -135,7 +152,8 @@ export function planRoster(rows, state, opts = {}) {
       const ch = [];
       if ((ex.full_name || '') !== name) ch.push(`нэр: ${ex.full_name || '—'} → ${name}`);
       if (ex.role !== n.role) ch.push(`эрх: ${ROLE_LABEL[ex.role] || ex.role} → ${ROLE_LABEL[n.role]}`);
-      if (norm(groupName(ex.group_id)) !== norm(n.group)) ch.push(`анги: ${groupName(ex.group_id) || '—'} → ${n.group || '—'}`);
+      const exGroups = [ex.group_id, ...(ex.extra_groups || [])].filter(Boolean).map(groupName).filter(Boolean).join(', ');
+      if (norm(exGroups) !== norm(n.group)) ch.push(`анги: ${exGroups || '—'} → ${n.group || '—'}`);
       if (norm(ex.family) !== norm(n.family)) ch.push(`гэр бүл: ${ex.family || '—'} → ${n.family || '—'}`);
       if (n.phone !== undefined && (ex.phone || '') !== n.phone) ch.push(`утас: ${ex.phone || '—'} → ${n.phone || '—'}`);
       if (n.contactEmail !== undefined && (ex.contact_email || '') !== n.contactEmail) ch.push(`имэйл: ${ex.contact_email || '—'} → ${n.contactEmail || '—'}`);
@@ -190,13 +208,14 @@ export async function applyPlan(plan, state, io) {
   const log = [], credentials = [];
   const groupId = new Map(state.groups.map((g) => [norm(g.name), g.id]));
   for (const name of plan.groupsToCreate) {
-    try { groupId.set(norm(name), await io.createGroup(name)); log.push({ ok: true, msg: `Анги үүслээ: ${name}` }); }
+    try { groupId.set(norm(name), await io.createGroup(name, guessSubject(name))); log.push({ ok: true, msg: `Анги үүслээ: ${name}` }); }
     catch (e) { log.push({ ok: false, msg: `Анги "${name}": ${e.message}` }); }
   }
   const idByEmail = new Map(state.users.filter((u) => u.email).map((u) => [u.email.toLowerCase(), u.id]));
   for (const it of plan.items) {
     if (it.action === 'same') continue;
-    const fields = { full_name: it.name, role: it.role, group_id: it.group ? groupId.get(norm(it.group)) || null : null, family: it.family || null };
+    const gids = (it.groups || []).map((g) => groupId.get(norm(g))).filter(Boolean);
+    const fields = { full_name: it.name, role: it.role, group_id: gids[0] || null, extra_groups: gids.slice(1), family: it.family || null };
     if (it.phone !== undefined) fields.phone = it.phone || null;
     if (it.contactEmail !== undefined) fields.contact_email = it.contactEmail || null;
     try {
@@ -245,7 +264,7 @@ export function exportRows(state) {
       'Овог нэр': u.full_name || '',
       'Имэйл / нэвтрэх нэр': loginOf(u.email),
       'Эрх': ROLE_LABEL[u.role] || u.role,
-      'Анги': gname(u.group_id),
+      'Анги': [u.group_id, ...(u.extra_groups || [])].filter(Boolean).map(gname).filter(Boolean).join(', '),
       'Гэр бүл': u.family || '',
       'Нууц үг': '',
       'Шинэ нууц үг': '',
@@ -254,7 +273,7 @@ export function exportRows(state) {
     }));
 }
 export const TEMPLATE_ROWS = [
-  { 'Овог нэр': 'Б. Тэмүүлэн', 'Имэйл / нэвтрэх нэр': 'temuulen', 'Эрх': 'Сурагч', 'Анги': 'Монгол хэл · 1-р бүлэг', 'Гэр бүл': 'BAT', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' },
+  { 'Овог нэр': 'Б. Тэмүүлэн', 'Имэйл / нэвтрэх нэр': 'temuulen', 'Эрх': 'Сурагч', 'Анги': 'Монгол хэл · 1-р бүлэг, Үндэсний бүжиг', 'Гэр бүл': 'BAT', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' },
   { 'Овог нэр': 'Б. Сарнай', 'Имэйл / нэвтрэх нэр': 'sarnai@example.com', 'Эрх': 'Эцэг эх', 'Анги': '', 'Гэр бүл': 'BAT', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '0176 12345678', 'Холбоо барих имэйл': 'sarnai@example.com' },
   { 'Овог нэр': 'Мөнх-Эрдэнэ', 'Имэйл / нэвтрэх нэр': 'monkherdene@example.com', 'Эрх': 'Багш', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' },
 ];

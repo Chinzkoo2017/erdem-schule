@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       if (data.users.length < 1000) break;
     }
     const [{ data: profiles, error: e1 }, { data: groups, error: e2 }, { data: links, error: e3 }] = await Promise.all([
-      db.from('profiles').select('*'), db.from('groups').select('id,name'), db.from('parent_children').select('*'),
+      db.from('profiles').select('*'), db.from('groups').select('*'), db.from('parent_children').select('*'),
     ]);
     if (e1 || e2 || e3) throw e1 || e2 || e3;
     const emailOf = new Map(users.map((u) => [u.id, (u.email || '').toLowerCase()]));
@@ -65,7 +65,11 @@ Deno.serve(async (req) => {
 
     const ok = (r: any) => { if (r.error) throw r.error; return r.data; };
     const result = await applyPlan(plan, state, {
-      createGroup: async (name: string) => ok(await db.from('groups').insert({ name }).select('id').single()).id,
+      createGroup: async (name: string, subject?: string) => {
+        let r = await db.from('groups').insert({ name, subject }).select('id').single();
+        if (r.error && /subject/.test(r.error.message)) r = await db.from('groups').insert({ name }).select('id').single();
+        return ok(r).id;
+      },
       createUser: async ({ email, password, name }: any) =>
         ok(await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: name } })).user.id,
       updateProfile: async (id: string, fields: any) => {
@@ -73,7 +77,7 @@ Deno.serve(async (req) => {
         let r = await db.from('profiles').upsert({ id, ...f });
         // Шинэ багана (migration ажиллаагүй) байхгүй бол түүнийг хасаад дахин оролдоно
         for (let i = 0; i < 4 && r.error; i++) {
-          const col = ['must_change_password', 'phone', 'contact_email'].find((c) => c in f && r.error.message.includes(c));
+          const col = ['must_change_password', 'phone', 'contact_email', 'extra_groups'].find((c) => c in f && r.error.message.includes(c));
           if (!col) break;
           delete (f as any)[col];
           r = await db.from('profiles').upsert({ id, ...f });

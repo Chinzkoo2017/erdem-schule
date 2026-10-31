@@ -88,6 +88,7 @@ const dict = {
     pwIgnoredLead: 'Эдгээр хэрэглэгч баазад аль хэдийн байгаа тул "Нууц үг" баганыг үл тооцно. Нууц үгийг нь солих бол утгыг "Шинэ нууц үг" баганад бичнэ үү.',
     badLogin: 'Нэвтрэх нэр эсвэл нууц үг буруу байна. Нууц үгийн том, жижиг үсгийг шалгана уу.',
     teamUpload: 'Өөрийн зураг оруулах', teamUploadHint: 'Сүүлийн нүдийг дарж өөрийн зургаа (жишээ нь хүүхдийн зурсан багийн лого) оруулж болно. Зургийг зөвхөн хүүхэд, эцэг эх, багш нар харна.',
+    teamNotReady: 'Багийн тохиргоо сургууль дээр хараахан идэвхжээгүй байна. Дараа дахин оролдоорой.',
     error: 'Алдаа гарлаа', loading: 'Ачаалж байна…', file: 'Файл', days: ['Ня','Да','Мя','Лх','Пү','Ба','Бя'],
   },
   de: {
@@ -179,6 +180,7 @@ const dict = {
     pwIgnoredLead: 'Diese Nutzer existieren bereits, daher wird „Passwort“ ignoriert. Zum Ändern den Wert in „Neues Passwort“ eintragen.',
     badLogin: 'Benutzername oder Passwort falsch. Bitte Groß-/Kleinschreibung prüfen.',
     teamUpload: 'Eigenes Bild hochladen', teamUploadHint: 'Mit dem letzten Feld kannst du ein eigenes Bild hochladen (z. B. ein selbst gemaltes Teamlogo). Nur Kind, Eltern und Lehrkräfte sehen es.',
+    teamNotReady: 'Teams sind von der Schule noch nicht aktiviert. Bitte später erneut versuchen.',
     error: 'Fehler', loading: 'Lädt…', file: 'Datei', days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
   },
 };

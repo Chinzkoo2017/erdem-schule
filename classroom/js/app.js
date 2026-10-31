@@ -86,7 +86,7 @@ function teamEditorHtml(p, { first = false } = {}) {
     <div class="row-gap"><button class="btn btn-gold">${t('teamSave')}</button>${first ? `<button type="button" class="btn btn-ghost" data-later>${t('teamLater')}</button>` : `<button type="button" class="btn btn-ghost" data-cancel>${t('cancel')}</button>`}</div>
   </form>`;
 }
-function bindTeamEditor(f, done) {
+function bindTeamEditor(f, done, onMissing) {
   const prev = $('.team-preview', f);
   const radio = $('[data-imgradio]', f), fileIn = $('[data-imgfile]', f);
   let blob = null, blobUrl = '';
@@ -120,7 +120,11 @@ function bindTeamEditor(f, done) {
         if (!blob) { fileIn.click(); return; }
         iconVal = 'img:' + await api.uploadTeamImage(f.dataset.target, blob);
       }
-      await api.setTeam(f.dataset.target, name, iconVal);
+      try { await api.setTeam(f.dataset.target, name, iconVal); }
+      catch (err) {
+        if (/set_team|schema cache/i.test(err.message || '')) { toast(t('teamNotReady'), 'bad'); if (onMissing) onMissing(); return; }
+        throw err;
+      }
       toast(t('saved')); done();
     }).finally(() => { if (btn.isConnected) btn.disabled = false; });
   };
@@ -959,8 +963,9 @@ function renderTeamOnboarding() {
     ${teamEditorHtml(me, { first: true })}
   </section>`);
   const f = $('.team-form');
-  $('[data-later]', f).onclick = () => { try { sessionStorage.setItem('erdemTeamLater', '1'); } catch {} route(); };
-  bindTeamEditor(f, () => route());
+  const later = () => { try { sessionStorage.setItem('erdemTeamLater', '1'); } catch {} route(); };
+  $('[data-later]', f).onclick = later;
+  bindTeamEditor(f, () => route(), later);
 }
 async function renderMe() {
   groupsCache = groupsCache.length ? groupsCache : await api.groups().catch(() => []);

@@ -90,5 +90,16 @@ Excel-ээр үүсгэсэн эсвэл "Шинэ нууц үг" өгсөн х�
 Өмнө суулгасан бол SQL Editor дээр дарааллаар нь нэг удаа ажиллуулна:
 1. `supabase/migrations/002_roster_family.sql`
 2. `supabase/migrations/004_team_image.sql` (003-ыг агуулсан: нууц үг солих, баг, багийн зураг)
+3. `supabase/migrations/005_contact_reports.sql` (утас, холбоо барих имэйл, тайлангийн тохиргоо)
 
 `roster-sync` функцийг шинэчлэх: Edge Functions → roster-sync → **Code** → `index.ts`-ийн шинэ агуулгыг буулгаад **Deploy**.
+
+## Имэйл тайлан (долоо хоног бүр, үнэгүй)
+Ням гараг бүрийн орой эцэг эх бүрт хүүхдийн явцын тайлан очно. Илгээгч: Brevo (өдөрт 300 имэйл үнэгүй). Хуваарь: Supabase pg_cron.
+
+1. **Brevo:** brevo.com дээр бүртгүүлэх → Senders, Domains → **Domains → Add a domain** → `erdem-schule.de` → гарч ирэх DNS бичлэгүүдийг (Brevo code TXT, 2 DKIM, DMARC) **IONOS → Domains & SSL → erdem-schule.de → DNS** хэсэгт нэмэх → Brevo дээр **Authenticate**.
+2. Brevo → **SMTP & API → API Keys → Generate** → түлхүүрийг хуулах.
+3. Supabase → Edge Functions → **Deploy a new function → Via Editor** → нэр `weekly-report` → `supabase/functions/weekly-report/index.ts`-ийг буулгах → Deploy → Settings → **Verify JWT** унтраах.
+4. Supabase → Edge Functions → **Secrets**: `BREVO_API_KEY`, `SENDER_EMAIL` (жишээ нь `noreply@erdem-schule.de`), `REPLY_TO` (хариу очих имэйл), `CRON_SECRET` (урт санамсаргүй тэмдэгт мөр).
+5. SQL Editor дээр `supabase/migrations/006_schedule_weekly_report.sql`-ийн `PASTE_CRON_SECRET`-ийг 4-р алхмын утгаар солиод ажиллуулах.
+6. Админ → **Имэйл тайлан** → **Надад туршилтаар илгээх**.

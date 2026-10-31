@@ -397,6 +397,10 @@ a.side-user-text:hover strong { text-decoration: underline; }
 .share-banner p { margin: .2rem 0 0; }
 td.right { text-align: right; }
 
+.report-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: start; }
+@media (max-width: 1200px) { .report-grid { grid-template-columns: minmax(0, 1fr); } }
+.mail-frame { width: 100%; height: 640px; border: 1px solid var(--line); border-radius: 12px; background: #F4F6FB; }
+
 /* ---------- toast ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; background: var(--side); color: #fff; padding: .8rem 1.2rem; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.2); transition: .25s; z-index: 50; max-width: calc(100% - 32px); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }

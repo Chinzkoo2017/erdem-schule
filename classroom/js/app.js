@@ -33,6 +33,7 @@ const ICONS = {
   sheet: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   download: '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
   logout: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>',
   image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
 };
@@ -152,6 +153,7 @@ const SITE_URL = () => location.origin + location.pathname;
 const mnDate = (d) => { if (!d) return ''; const x = new Date(d.length === 10 ? d + 'T12:00' : d); return `${x.getMonth() + 1}-р сарын ${x.getDate()}`; };
 const clip = (txt, n) => { const v = String(txt || '').trim(); return v.length > n ? v.slice(0, n - 1) + '…' : v; };
 const waHref = (text) => 'https://wa.me/?text=' + encodeURIComponent(text);
+const waDirect = (phone, text) => `https://wa.me/${String(phone).replace(/\D/g, '')}?text=` + encodeURIComponent(text);
 const waBtn = (text, label, cls = 'btn-sm') => `<a class="btn btn-wa ${cls}" href="${esc(waHref(text))}" target="_blank" rel="noopener">${WA_ICON} ${esc(label)}</a>`;
 const WA_ICON = '<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg>';
 const gName = (g) => (g?.name ? ` · ${g.name}` : '');
@@ -270,7 +272,7 @@ function shell(tabs, body, opts = {}) {
       <aside class="side">
         <div class="side-top">
           <a class="brand" href="../index.html" title="${t('backHome')}"><img src="../images/logo.jpg" alt="" width="38" height="38"><span><strong>${t('brand')}</strong><small>${t('brandSub')}</small></span></a>
-          <div class="side-mobile-actions">${langBtn.replace('id="langBtn"', 'id="langBtnM"')}<button class="icon-btn" id="logoutM" aria-label="${t('logout')}">${icon('logout')}</button></div>
+          <div class="side-mobile-actions"><a class="icon-btn" href="#me" aria-label="${t('myProfile')}">${icon('users')}</a>${langBtn.replace('id="langBtn"', 'id="langBtnM"')}<button class="icon-btn" id="logoutM" aria-label="${t('logout')}">${icon('logout')}</button></div>
         </div>
         ${tabs.length ? `<nav class="side-nav" aria-label="${t('menu')}">${tabs.map((x) => `<a href="#${x.id}" class="${x.id === current ? 'active' : ''}" ${x.id === current ? 'aria-current="page"' : ''}>${icon(x.icon)}<span>${x.label}</span>${x.count ? `<b class="nav-count">${x.count}</b>` : ''}</a>`).join('')}</nav>` : ''}
         ${g ? `<div class="side-live">
@@ -673,7 +675,7 @@ async function renderStaff() {
     { id: 'review', icon: 'review', label: t('tabReview') },
     { id: 'manage', icon: 'manage', label: t('tabManage') },
     { id: 'groups', icon: 'groups', label: t('tabGroups') },
-    ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }] : []),
+    ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }, { id: 'reports', icon: 'mail', label: t('tabReports') }] : []),
   ];
   const tab = currentTab(tabs);
   if (tab === 'review') return staffReview(tabs);
@@ -681,6 +683,7 @@ async function renderStaff() {
   if (tab === 'groups') return staffGroups(tabs, isAdmin);
   if (tab === 'users') return adminUsers(tabs);
   if (tab === 'roster') return adminRoster(tabs);
+  if (tab === 'reports') return adminReports(tabs);
 }
 
 async function staffReview(tabs) {
@@ -783,7 +786,13 @@ async function staffManage(tabs) {
 }
 
 async function staffGroups(tabs, isAdmin) {
-  const [profiles, subs, asg, lessonsAll] = await Promise.all([api.profiles(), api.submissions(), api.assignments(), api.lessons()]);
+  const [profiles, subs, asg, lessonsAll, links] = await Promise.all([api.profiles(), api.submissions(), api.assignments(), api.lessons(), api.links()]);
+  const parentsOf = (s) => links.filter((l) => l.child_id === s.id).map((l) => profiles.find((p) => p.id === l.parent_id)).filter(Boolean);
+  const remindBtns = (s, o) => {
+    const withPhone = parentsOf(s).filter((p) => p.phone);
+    if (!withPhone.length) return waBtn(msgStudent(s, o), `${t('waRemind')} (${o.length})`, 'btn-xs');
+    return withPhone.map((p) => `<a class="btn btn-wa btn-xs" href="${esc(waDirect(p.phone, msgStudent(s, o)))}" target="_blank" rel="noopener" title="${esc(p.phone)}">${WA_ICON} ${esc(p.full_name.split(' ')[0])} (${o.length})</a>`).join(' ');
+  };
   const students = profiles.filter((p) => p.role === 'student');
   const openFor = (s) => asg.filter((a) => a.group_id === s.group_id && !subs.some((x) => x.assignment_id === a.id && x.student_id === s.id) && (!a.due_date || a.due_date <= iso(new Date(Date.now() + 2 * 864e5))));
   const rows = await Promise.all(students.map(async (s) => ({ s, st: stats(await api.activity(s.id), subs.filter((x) => x.student_id === s.id)) })));
@@ -803,7 +812,7 @@ async function staffGroups(tabs, isAdmin) {
           <button class="btn btn-gold btn-sm">${t('save')}</button>
         </form>
         <table class="table"><thead><tr><th>${t('student')}</th><th>${t('streak')}</th><th>${t('totalXp')}</th><th>${t('doneHw')}</th><th></th></tr></thead>
-        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}${s.team_name ? ` <small class="muted">· ${esc(s.team_name)}</small>` : ''}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td><td class="right">${(() => { const o = openFor(s); return o.length ? waBtn(msgStudent(s, o), `${t('waRemind')} (${o.length})`, 'btn-xs') : ''; })()}</td></tr>`).join('') || `<tr><td colspan="5" class="muted">${t('none')}</td></tr>`}</tbody></table>
+        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}${s.team_name ? ` <small class="muted">· ${esc(s.team_name)}</small>` : ''}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td><td class="right">${(() => { const o = openFor(s); return o.length ? remindBtns(s, o) : ''; })()}</td></tr>`).join('') || `<tr><td colspan="5" class="muted">${t('none')}</td></tr>`}</tbody></table>
       </section>`;
     }).join('')}
     ${isAdmin ? `<form class="card group-form" data-g="">
@@ -987,7 +996,65 @@ async function adminRoster(tabs) {
     })), `erdem-nevtreh-${todayIso()}.xlsx`, 'Нэвтрэх'));
   }
 }
-const TEMPLATE_HEAD = (examples = false) => (examples ? TEMPLATE_ROWS : [{ 'Овог нэр': '', 'Имэйл / нэвтрэх нэр': '', 'Эрх': '', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '' }]);
+const TEMPLATE_HEAD = (examples = false) => (examples ? TEMPLATE_ROWS : [{ 'Овог нэр': '', 'Имэйл / нэвтрэх нэр': '', 'Эрх': '', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' }]);
+
+// ------------------------------------------------------------ ADMIN: weekly email reports
+async function adminReports(tabs) {
+  shell(tabs, `<p class="card muted">${t('loading')}</p>`);
+  const st = await api.report('status');
+  const ps = st.parents || [];
+  const ready = ps.filter((p) => p.email && !p.optOut && p.kids);
+  shell(tabs, `
+    <div><h1 class="page-title">${t('tabReports')}</h1><p class="muted lead">${t('repLead')}</p></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><span class="kpi-label">${t('repReady')}</span><span class="kpi-value">${ready.length}<small> / ${ps.length}</small></span></div>
+      <div class="kpi-card"><span class="kpi-label">${t('repNoEmail')}</span><span class="kpi-value">${ps.filter((p) => !p.email).length}</span></div>
+      <div class="kpi-card"><span class="kpi-label">${t('repSchedule')}</span><span class="kpi-value" style="font-size:1.2rem">${t('repSunday')}</span><span class="kpi-note ${st.cron ? '' : 'bad'}">${st.demo ? 'Демо' : st.cron ? '✓' : t('repNotSet')}</span></div>
+      <div class="kpi-card"><span class="kpi-label">${t('repSender')}</span><span class="kpi-value mono" style="font-size:.95rem">${esc(st.sender || '—')}</span><span class="kpi-note ${st.configured ? '' : 'bad'}">${st.configured ? '✓ Brevo' : t('repNotSet')}</span></div>
+    </div>
+    <div class="report-grid">
+      <section class="card table-wrap">
+        <h2>${t('repParents')}</h2>
+        <table class="table"><thead><tr><th>${t('parent')}</th><th>${t('contactEmail')}</th><th></th></tr></thead><tbody>
+        ${ps.map((p) => `<tr class="${p.email && !p.optOut ? '' : 'row-dim'}"><td>${esc(p.name)}</td>
+          <td class="mono small">${p.email ? esc(p.email) : `<span class="late">${t('repMissing')}</span>`}${p.optOut ? ` <span class="chip chip-muted">${t('repOptOut')}</span>` : ''}</td>
+          <td class="right"><button class="btn btn-ghost btn-xs" data-prev="${esc(p.id)}" ${p.kids ? '' : 'disabled'}>${t('repPreview')}</button></td></tr>`).join('') || `<tr><td colspan="3" class="muted">${t('none')}</td></tr>`}
+        </tbody></table>
+        <p class="small muted">${t('repHowEmail')}</p>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2>${t('repPreview')}</h2><span class="muted small" id="prevSubject"></span></div>
+        <iframe id="prevFrame" title="${t('repPreview')}" class="mail-frame" sandbox=""></iframe>
+        <div class="row-gap mt">
+          <button class="btn btn-ghost btn-sm" id="repTest">${icon('mail', 18)} ${t('repTest')}</button>
+          <button class="btn btn-gold btn-sm" id="repSend" ${ready.length ? '' : 'disabled'}>${t('repSendAll')} (${ready.length})</button>
+        </div>
+        <p class="form-msg" id="repMsg" aria-live="polite"></p>
+      </section>
+    </div>`);
+  let current = null;
+  const show = async (pid) => {
+    const r = await guard(() => api.report('preview', pid));
+    if (!r) return;
+    current = r.parentId;
+    $('#prevFrame').srcdoc = r.html;
+    $('#prevSubject').textContent = r.subject;
+  };
+  $$('[data-prev]').forEach((b) => (b.onclick = () => show(b.dataset.prev)));
+  if (ps.some((p) => p.kids)) show(ps.find((p) => p.kids).id);
+  const result = (r) => {
+    const m = $('#repMsg');
+    m.className = 'form-msg' + (r.failed?.length ? ' bad' : '');
+    m.innerHTML = `✓ ${r.sent} ${t('repSent')}` + (r.skipped?.length ? `<br><span class="muted small">${r.skipped.map(esc).join(' · ')}</span>` : '') + (r.failed?.length ? `<br>${r.failed.map(esc).join('<br>')}` : '');
+  };
+  $('#repTest').onclick = () => guard(async () => result(await api.report('test', current)));
+  const sendBtn = $('#repSend');
+  sendBtn.onclick = () => {
+    if (sendBtn.dataset.armed !== '1') { sendBtn.dataset.armed = '1'; sendBtn.textContent = t('repConfirm'); return; }
+    sendBtn.disabled = true;
+    guard(async () => result(await api.report('send'))).finally(() => { sendBtn.disabled = false; sendBtn.dataset.armed = ''; sendBtn.textContent = `${t('repSendAll')} (${ready.length})`; });
+  };
+}
 
 // ------------------------------------------------------------ account
 const teamSkipped = () => { try { return sessionStorage.getItem('erdemTeamLater') === '1'; } catch { return false; } };
@@ -1038,7 +1105,17 @@ async function renderMe() {
     <div class="grid-2">
       ${me.role === 'student' ? `<section class="card"><h2>${t('team')}</h2>${teamEditorHtml(me)}</section>` : ''}
       <section class="card"><h2>${t('changePw')}</h2>${pwFormHtml('mePw')}</section>
+      ${me.role === 'parent' ? `<section class="card"><h2>${t('contactTitle')}</h2>
+        <form class="form" id="contactForm">
+          <label>${t('contactEmail')}<input name="email" type="email" value="${esc(me.contact_email || '')}" autocomplete="email"></label>
+          <label>${t('contactPhone')}<input name="phone" type="tel" value="${esc(me.phone || '')}" placeholder="+49 176 …" autocomplete="tel"></label>
+          <label class="check-line"><input type="checkbox" name="reports" ${me.email_reports === false ? '' : 'checked'}> ${t('contactReports')}</label>
+          <p class="small muted">${t('contactLead')}</p>
+          <button class="btn btn-gold">${t('save')}</button>
+        </form></section>` : ''}
     </div>`);
+  const cf = $('#contactForm');
+  if (cf) cf.onsubmit = (e) => { e.preventDefault(); guard(async () => { await api.setContact(cf.email.value.trim(), cf.phone.value.trim(), cf.reports.checked); toast(t('saved')); }); };
   bindPwForm($('#mePw'), () => { location.hash = back; });
   const f = $('.team-form');
   if (f) { $('[data-cancel]', f).onclick = () => { location.hash = back; }; bindTeamEditor(f, () => { location.hash = back; }); }

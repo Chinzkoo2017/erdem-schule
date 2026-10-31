@@ -1,6 +1,7 @@
 // Нэг интерфейс, хоёр хэрэгжилт: Supabase (жинхэнэ) ба Demo (localStorage).
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { planRoster, applyPlan, exportRows, toEmail } from './roster-core.js';
+import { buildParentReport } from './report-core.js';
 
 const iso = (d) => d.toISOString().slice(0, 10);
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
@@ -19,12 +20,13 @@ function seed() {
       { id: 's1', full_name: 'Тэмүүлэн', role: 'student', group_id: 'g1', family: 'BAT', email: 'temuulen@student.erdem-schule.de' },
       { id: 's2', full_name: 'Номин', role: 'student', group_id: 'g1', family: 'DORJ', email: 'nomin@student.erdem-schule.de' },
       { id: 's3', full_name: 'Анужин', role: 'student', group_id: 'g2', family: 'BAT', email: 'anujin@student.erdem-schule.de' },
-      { id: 'p1', full_name: 'Сарнай (ээж)', role: 'parent', group_id: null, family: 'BAT', email: 'sarnai@example.com' },
+      { id: 'p1', full_name: 'Сарнай (ээж)', role: 'parent', group_id: null, family: 'BAT', email: 'sarnai@example.com', contact_email: 'sarnai@example.com', phone: '+4917612345678' },
+      { id: 'p2', full_name: 'Дорж (аав)', role: 'parent', group_id: null, family: 'DORJ', email: 'dorj@student.erdem-schule.de', phone: '+4915198765432' },
       { id: 't1', full_name: 'Мөнх-Эрдэнэ багш', role: 'teacher', group_id: null, email: 'monkherdene@example.com' },
       { id: 'a1', full_name: 'Админ', role: 'admin', group_id: null, email: 'admin@example.com' },
       { id: 'n1', full_name: 'Шинэ хэрэглэгч', role: 'pending', group_id: null, email: 'new@example.com' },
     ],
-    parent_children: [{ parent_id: 'p1', child_id: 's1' }, { parent_id: 'p1', child_id: 's3' }],
+    parent_children: [{ parent_id: 'p1', child_id: 's1' }, { parent_id: 'p1', child_id: 's3' }, { parent_id: 'p2', child_id: 's2' }],
     lessons: [
       { id: 'l1', group_id: 'g1', title: 'Мал аж ахуй: таван хошуу мал', description: 'Морь, үхэр, тэмээ, хонь, ямааны нэрийг сурна.', video_url: 'https://www.youtube.com/', material_url: '', lesson_date: daysAgo(14) },
       { id: 'l2', group_id: 'g1', title: 'Миний гэр бүл', description: 'Ээж, аав, ах, эгч — гэр бүлийн гишүүдийн нэр.', video_url: '', material_url: '', lesson_date: daysAgo(7) },
@@ -61,7 +63,7 @@ function seed() {
 }
 
 function demoApi() {
-  const KEY = 'erdemDemo_v2';
+  const KEY = 'erdemDemo_v3';
   let db;
   try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
   db.family_checks ||= [];
@@ -122,6 +124,23 @@ function demoApi() {
     async saveGroup(g) {
       if (g.id) Object.assign(db.groups.find((x) => x.id === g.id), g); else db.groups.push({ ...g, id: uid() });
       persist();
+    },
+    async setContact(email, phone, reports) { Object.assign(me(), { contact_email: email || null, phone: phone || null, email_reports: reports }); persist(); },
+    async report(action, parentId) {
+      const parents = db.profiles.filter((p) => p.role === 'parent');
+      const emailOf = (p) => p.contact_email || (p.email && !p.email.endsWith('@student.erdem-schule.de') ? p.email : '');
+      const build = (p) => {
+        const kids = db.parent_children.filter((l) => l.parent_id === p.id).map((l) => db.profiles.find((k) => k.id === l.child_id)).filter(Boolean).map((k) => {
+          const g = db.groups.find((x) => x.id === k.group_id) || {};
+          return { name: k.full_name, groupName: g.name, schedule: g.schedule, assignments: db.assignments.filter((a) => a.group_id === k.group_id),
+            submissions: db.submissions.filter((s) => s.student_id === k.id), activity: db.activity.filter((a) => a.student_id === k.id),
+            checks: db.family_checks.filter((c) => c.student_id === k.id) };
+        });
+        return kids.length ? buildParentReport({ parentName: p.full_name, kids, siteUrl: location.origin + location.pathname }) : null;
+      };
+      if (action === 'status') return { configured: false, demo: true, parents: parents.map((p) => ({ id: p.id, name: p.full_name, email: emailOf(p), optOut: p.email_reports === false, kids: db.parent_children.filter((l) => l.parent_id === p.id).length })) };
+      if (action === 'preview') { const p = parents.find((x) => x.id === parentId) || parents[0]; return { parentId: p.id, ...build(p) }; }
+      return { sent: 0, skipped: ['Демо горимд имэйл илгээгдэхгүй'], failed: [] };
     },
     async changePassword() { const p = me(); if (p) p.must_change_password = false; persist(); },
     async setTeam(id, team_name, avatar) { Object.assign(db.profiles.find((p) => p.id === id), { team_name, avatar }); persist(); },
@@ -257,6 +276,20 @@ async function liveApi() {
       return data;
     },
     async confirmFamily(aid, child, note) { ok(await sb.rpc('confirm_family', { aid, child, note: note || '' })); },
+    async setContact(email, phone, reports) {
+      ok(await sb.rpc('set_contact', { email: email || '', phone: phone || '', reports }));
+      Object.assign(profile, { contact_email: email || null, phone: phone || null, email_reports: reports });
+    },
+    async report(action, parentId) {
+      const { data, error } = await sb.functions.invoke('weekly-report', { body: { action, parentId } });
+      if (error) {
+        let msg = error.message;
+        try { const b = await error.context?.json?.(); if (b?.error) msg = b.error; } catch {}
+        if (/not found|404|Failed to send/i.test(msg)) msg = 'weekly-report функц суугаагүй байна (README → "Имэйл тайлан")';
+        throw new Error(msg);
+      }
+      return data;
+    },
     async changePassword(password) {
       ok(await sb.auth.updateUser({ password }));
       const r = await sb.rpc('password_changed');

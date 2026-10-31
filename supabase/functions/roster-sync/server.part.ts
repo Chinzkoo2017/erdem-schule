@@ -69,10 +69,14 @@ Deno.serve(async (req) => {
       createUser: async ({ email, password, name }: any) =>
         ok(await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: name } })).user.id,
       updateProfile: async (id: string, fields: any) => {
-        let r = await db.from('profiles').upsert({ id, ...fields });
-        if (r.error && 'must_change_password' in fields && /must_change_password/.test(r.error.message)) {
-          const { must_change_password: _skip, ...rest } = fields; // 003 migration ажиллаагүй бол
-          r = await db.from('profiles').upsert({ id, ...rest });
+        let f = { ...fields };
+        let r = await db.from('profiles').upsert({ id, ...f });
+        // Шинэ багана (migration ажиллаагүй) байхгүй бол түүнийг хасаад дахин оролдоно
+        for (let i = 0; i < 4 && r.error; i++) {
+          const col = ['must_change_password', 'phone', 'contact_email'].find((c) => c in f && r.error.message.includes(c));
+          if (!col) break;
+          delete (f as any)[col];
+          r = await db.from('profiles').upsert({ id, ...f });
         }
         ok(r);
       },

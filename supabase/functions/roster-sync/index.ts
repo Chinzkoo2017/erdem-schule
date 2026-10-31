@@ -42,7 +42,19 @@ const HEADERS = {
   family: ['гэр бүл', 'гэр бүлийн код', 'family', 'familie'],
   password: ['нууц үг', 'password', 'passwort'],
   newPassword: ['шинэ нууц үг', 'new password', 'neues passwort'],
+  phone: ['утас', 'утасны дугаар', 'phone', 'telefon', 'handy', 'whatsapp'],
+  contactEmail: ['холбоо барих имэйл', 'контакт имэйл', 'contact email', 'kontakt e-mail', 'kontakt-e-mail'],
 };
+
+/** "0176 1234 5678" → "+4917612345678" (Германы дугаар гэж үзнэ), "+976 9911…" хэвээр */
+function normPhone(v) {
+  let x = String(v ?? '').trim().replace(/[^\d+]/g, '');
+  if (!x) return '';
+  if (x.startsWith('00')) x = '+' + x.slice(2);
+  else if (x.startsWith('0')) x = '+49' + x.slice(1);
+  else if (!x.startsWith('+')) x = '+' + x;
+  return x.length >= 8 ? x : '';
+}
 const norm = (s) => String(s ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
 
 function canonicalKey(header) {
@@ -70,6 +82,9 @@ function normalizeRow(raw) {
     family: (r.family || '').trim(),
     password: r.password || '',
     newPassword: r.newPassword || '',
+    phone: 'phone' in r ? normPhone(r.phone) : undefined,          // багана байхгүй бол хөндөхгүй
+    contactEmail: 'contactEmail' in r ? r.contactEmail.toLowerCase() : undefined,
+    phoneRaw: r.phone || '',
   };
 }
 
@@ -102,6 +117,8 @@ function planRoster(rows, state, opts = {}) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(n.email)) return errors.push({ row: rowNo, msg: `"${n.login}": имэйл буруу байна` });
     if (!n.role) return errors.push({ row: rowNo, msg: `"${n.name || n.login}": эрх "${n.roleRaw}" танигдсангүй (Админ / Багш / Сурагч / Эцэг эх)` });
     if (seen.has(n.email)) return errors.push({ row: rowNo, msg: `"${n.login}" давхардсан байна` });
+    if (n.contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(n.contactEmail)) return errors.push({ row: rowNo, msg: `"${n.name || n.login}": холбоо барих имэйл буруу байна` });
+    if (n.phoneRaw && !n.phone) return errors.push({ row: rowNo, msg: `"${n.name || n.login}": утасны дугаар буруу байна` });
     for (const pw of [n.password, n.newPassword]) if (pw && pw.length < 8) return errors.push({ row: rowNo, msg: `"${n.login}": нууц үг 8-аас дээш тэмдэгт байх ёстой` });
     seen.add(n.email);
     const name = n.name || n.login;
@@ -111,7 +128,7 @@ function planRoster(rows, state, opts = {}) {
     if (ex && ex.id === opts.callerId && n.role !== 'admin') {
       return errors.push({ row: rowNo, msg: `"${n.login}": өөрийн админ эрхийг Excel-ээр хасах боломжгүй` });
     }
-    const item = { row: rowNo, name, email: n.email, login: loginOf(n.email), role: n.role, group: n.group, family: n.family, password: n.password, newPassword: n.newPassword };
+    const item = { row: rowNo, name, email: n.email, login: loginOf(n.email), role: n.role, group: n.group, family: n.family, password: n.password, newPassword: n.newPassword, phone: n.phone, contactEmail: n.contactEmail };
     if (!ex) {
       item.action = 'create';
       item.changes = [];
@@ -122,6 +139,8 @@ function planRoster(rows, state, opts = {}) {
       if (ex.role !== n.role) ch.push(`эрх: ${ROLE_LABEL[ex.role] || ex.role} → ${ROLE_LABEL[n.role]}`);
       if (norm(groupName(ex.group_id)) !== norm(n.group)) ch.push(`анги: ${groupName(ex.group_id) || '—'} → ${n.group || '—'}`);
       if (norm(ex.family) !== norm(n.family)) ch.push(`гэр бүл: ${ex.family || '—'} → ${n.family || '—'}`);
+      if (n.phone !== undefined && (ex.phone || '') !== n.phone) ch.push(`утас: ${ex.phone || '—'} → ${n.phone || '—'}`);
+      if (n.contactEmail !== undefined && (ex.contact_email || '') !== n.contactEmail) ch.push(`имэйл: ${ex.contact_email || '—'} → ${n.contactEmail || '—'}`);
       if (n.newPassword) ch.push('нууц үг шинэчлэх');
       item.changes = ch;
       item.action = ch.length ? 'update' : 'same';
@@ -180,6 +199,8 @@ async function applyPlan(plan, state, io) {
   for (const it of plan.items) {
     if (it.action === 'same') continue;
     const fields = { full_name: it.name, role: it.role, group_id: it.group ? groupId.get(norm(it.group)) || null : null, family: it.family || null };
+    if (it.phone !== undefined) fields.phone = it.phone || null;
+    if (it.contactEmail !== undefined) fields.contact_email = it.contactEmail || null;
     try {
       if (it.action === 'create') {
         const password = it.password || makePassword();
@@ -230,12 +251,14 @@ function exportRows(state) {
       'Гэр бүл': u.family || '',
       'Нууц үг': '',
       'Шинэ нууц үг': '',
+      'Утас': u.phone || '',
+      'Холбоо барих имэйл': u.contact_email || '',
     }));
 }
 const TEMPLATE_ROWS = [
-  { 'Овог нэр': 'Б. Тэмүүлэн', 'Имэйл / нэвтрэх нэр': 'temuulen', 'Эрх': 'Сурагч', 'Анги': 'Монгол хэл · 1-р бүлэг', 'Гэр бүл': 'BAT', 'Нууц үг': '', 'Шинэ нууц үг': '' },
-  { 'Овог нэр': 'Б. Сарнай', 'Имэйл / нэвтрэх нэр': 'sarnai@example.com', 'Эрх': 'Эцэг эх', 'Анги': '', 'Гэр бүл': 'BAT', 'Нууц үг': '', 'Шинэ нууц үг': '' },
-  { 'Овог нэр': 'Мөнх-Эрдэнэ', 'Имэйл / нэвтрэх нэр': 'monkherdene@example.com', 'Эрх': 'Багш', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '' },
+  { 'Овог нэр': 'Б. Тэмүүлэн', 'Имэйл / нэвтрэх нэр': 'temuulen', 'Эрх': 'Сурагч', 'Анги': 'Монгол хэл · 1-р бүлэг', 'Гэр бүл': 'BAT', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' },
+  { 'Овог нэр': 'Б. Сарнай', 'Имэйл / нэвтрэх нэр': 'sarnai@example.com', 'Эрх': 'Эцэг эх', 'Анги': '', 'Гэр бүл': 'BAT', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '0176 12345678', 'Холбоо барих имэйл': 'sarnai@example.com' },
+  { 'Овог нэр': 'Мөнх-Эрдэнэ', 'Имэйл / нэвтрэх нэр': 'monkherdene@example.com', 'Эрх': 'Багш', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' },
 ];
 
 // ===================================================================
@@ -308,10 +331,14 @@ Deno.serve(async (req) => {
       createUser: async ({ email, password, name }: any) =>
         ok(await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: name } })).user.id,
       updateProfile: async (id: string, fields: any) => {
-        let r = await db.from('profiles').upsert({ id, ...fields });
-        if (r.error && 'must_change_password' in fields && /must_change_password/.test(r.error.message)) {
-          const { must_change_password: _skip, ...rest } = fields; // 003 migration ажиллаагүй бол
-          r = await db.from('profiles').upsert({ id, ...rest });
+        let f = { ...fields };
+        let r = await db.from('profiles').upsert({ id, ...f });
+        // Шинэ багана (migration ажиллаагүй) байхгүй бол түүнийг хасаад дахин оролдоно
+        for (let i = 0; i < 4 && r.error; i++) {
+          const col = ['must_change_password', 'phone', 'contact_email'].find((c) => c in f && r.error.message.includes(c));
+          if (!col) break;
+          delete (f as any)[col];
+          r = await db.from('profiles').upsert({ id, ...f });
         }
         ok(r);
       },

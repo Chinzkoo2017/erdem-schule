@@ -35,6 +35,7 @@ const ICONS = {
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   download: '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   chart: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
   logout: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>',
   image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
@@ -274,7 +275,7 @@ function shell(tabs, body, opts = {}) {
       <aside class="side">
         <div class="side-top">
           <a class="brand" href="../index.html" title="${t('backHome')}"><img src="../images/logo.jpg" alt="" width="38" height="38"><span><strong>${t('brand')}</strong><small>${t('brandSub')}</small></span></a>
-          <div class="side-mobile-actions"><a class="icon-btn" href="#me" aria-label="${t('myProfile')}">${icon('users')}</a>${langBtn.replace('id="langBtn"', 'id="langBtnM"')}<button class="icon-btn" id="logoutM" aria-label="${t('logout')}">${icon('logout')}</button></div>
+          <div class="side-mobile-actions"><a class="icon-btn" href="#me" aria-label="${t('myProfile')}">${icon('person')}</a>${langBtn.replace('id="langBtn"', 'id="langBtnM"')}<button class="icon-btn" id="logoutM" aria-label="${t('logout')}">${icon('logout')}</button></div>
         </div>
         ${tabs.length ? `<nav class="side-nav" aria-label="${t('menu')}">${tabs.map((x) => `<a href="#${x.id}" class="${x.id === current ? 'active' : ''}" ${x.id === current ? 'aria-current="page"' : ''}>${icon(x.icon)}<span>${x.label}</span>${x.count ? `<b class="nav-count">${x.count}</b>` : ''}</a>`).join('')}</nav>` : ''}
         ${g ? `<div class="side-live">
@@ -363,6 +364,10 @@ async function renderStudent() {
     api.lessons(me.group_id), api.assignments(me.group_id), api.submissions(me.id), api.activity(me.id), api.getMeta('lettersPerfect'),
     api.familyChecks(me.id),
   ]);
+  const [learn, vocabList] = await Promise.all([api.learning([me.id]).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => [])]);
+  const prog = summarize(me.id, learn, vocabList, subs, assignments);
+  const newWeek = prog.wordsMastered.filter((w) => w.last_at && Date.parse(w.last_at) > Date.now() - 7 * 864e5);
+  const toReview = [...prog.wordsWeak, ...prog.wordsLearning.filter((w) => w.wrong > 0 && !prog.wordsWeak.includes(w))].slice(0, 12);
   currentChecks = checks || [];
   const group = groupsCache.find((g) => g.id === me.group_id);
   const st = stats(activity, subs);
@@ -380,9 +385,18 @@ async function renderStudent() {
     { id: 'lessons', icon: 'lessons', label: t('tabLessons') },
     { id: 'homework', icon: 'homework', label: t('tabHomework'), count: openHw.length },
     { id: 'play', icon: 'play', label: t('tabPlay') },
+    { id: 'progress', icon: 'chart', label: t('tabProgress'), count: toReview.length + prog.lettersWeak.length || 0 },
     { id: 'badges', icon: 'badges', label: t('tabBadges') },
   ];
   const tab = currentTab(tabs);
+  const de = (mn) => vocabList.find((v) => v.mn === mn)?.de || '';
+  const encourage = () => {
+    const n = prog.wordsMastered.length;
+    if (!n && !prog.lettersMastered.length) return t('myProgStart');
+    if (newWeek.length >= 3) return t('myProgGreat').replace('{n}', newWeek.length);
+    if (toReview.length) return t('myProgReview');
+    return t('myProgKeep');
+  };
 
   const goals = [
     { done: playedToday, title: t('goalPlay'), meta: playedToday ? t('goalsDone') : '+10–20', href: '#play', late: false },
@@ -422,6 +436,7 @@ async function renderStudent() {
         </section>
         <section class="card"><h2>${t('week')}</h2>${weekChart(st.week)}</section>
       </div>
+      ${toReview.length ? `<a class="card review-nudge" href="#progress"><span class="nudge-ico">↻</span><span><b>${t('myReview')}: ${toReview.length}</b><small>${toReview.slice(0, 5).map((w) => esc(w.item)).join(', ')}${toReview.length > 5 ? '…' : ''}</small></span><span class="goal-go">→</span></a>` : ''}
       <section>
         <div class="card-head"><h2>${t('play')}</h2><a href="#play" class="link">→</a></div>
         <div class="game-row">${games.slice(0, 3).map((x) => `<a class="game-tile tone-${x.tone}" href="#play" data-start="${x.g}"><span class="game-glyph">${x.glyph}</span><span class="game-text"><b>${x.name}</b><small>${x.d}</small></span></a>`).join('')}</div>
@@ -433,6 +448,39 @@ async function renderStudent() {
       <div class="stack">${assignments.length ? assignments.map((a) => hwRow(a, subFor(a.id), true)).join('') : `<p class="card muted">${t('noHomework')}</p>`}</div>`,
     play: () => `<h1 class="page-title">${t('play')}</h1><p class="muted">${t('playLead')}</p>
       <div id="gameArea"><div class="game-grid">${games.map(gameTile).join('')}</div></div>`,
+    progress: () => {
+      const pctW = prog.vocabTotal ? Math.round((prog.wordsMastered.length / prog.vocabTotal) * 100) : 0;
+      return `<h1 class="page-title">${t('myProgress')}</h1>
+      <section class="prog-hero">
+        <div class="ring" style="--p:${pctW}"><span><b>${prog.wordsMastered.length}</b><small>/ ${prog.vocabTotal}</small></span></div>
+        <div><p class="eyebrow">${t('insWords')}</p><h2>${esc(encourage())}</h2>
+          ${newWeek.length ? `<p class="muted">${t('myProgNew')}: ${newWeek.map((w) => `<b class="mn">${esc(w.item)}</b>`).join(', ')}</p>` : ''}</div>
+      </section>
+      <div class="kpi-grid">
+        <div class="kpi-card"><span class="kpi-label">${t('insWords')}</span><span class="kpi-value">${prog.wordsMastered.length}<small> / ${prog.vocabTotal}</small></span>
+          <span class="meter green"><span style="width:${pctW}%"></span></span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('insLetters')}</span><span class="kpi-value">${prog.lettersMastered.length}<small> / 32</small></span>
+          <span class="meter green"><span style="width:${(prog.lettersMastered.length / 32) * 100}%"></span></span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('insAccuracy')}</span><span class="kpi-value">${prog.accAll.n ? prog.accAll.pct + '%' : '—'}</span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('insGames7')}</span><span class="kpi-value">${prog.sessionsWeek}</span></div>
+      </div>
+      <section class="card">
+        <div class="card-head"><h2>↻ ${t('myReview')}</h2></div>
+        ${toReview.length || prog.lettersWeak.length ? `
+          <p class="muted small">${t('myReviewLead')}</p>
+          <p class="chips">${toReview.map((w) => `<span class="wchip weak">${esc(w.item)}${de(w.item) ? ` <small>${esc(de(w.item))}</small>` : ''}</span>`).join('')}
+            ${prog.lettersWeak.slice(0, 6).map((w) => `<span class="wchip weak">${esc(w.item)} <small>${t('insLetterLbl')}</small></span>`).join('')}</p>
+          <div class="row-gap mt">
+            ${toReview.length ? `<button class="btn btn-gold" data-practice="vocab">${t('myPracticeWords')} (${toReview.length})</button>` : ''}
+            ${prog.lettersWeak.length ? `<button class="btn btn-ghost" data-practice="letters">${t('myPracticeLetters')} (${prog.lettersWeak.length})</button>` : ''}
+          </div>` : `<p class="muted">${t('myReviewNone')}</p>`}
+      </section>
+      <section class="card">
+        <h2>✓ ${t('insMasteredWords')} (${prog.wordsMastered.length})</h2>
+        <p class="chips">${prog.wordsMastered.map((w) => `<span class="wchip ok">${esc(w.item)}${de(w.item) ? ` <small>${esc(de(w.item))}</small>` : ''}</span>`).join('') || `<span class="muted">${t('myProgStart')}</span>`}</p>
+        <p class="small muted">${t('myMasterRule')}</p>
+      </section>`;
+    },
     badges: () => `<h1 class="page-title">${t('badges')}</h1>
       <div class="badge-grid">${badges.map((b) => `
         <div class="badge ${b.on ? 'on' : ''}"><span class="badge-icon">${b.on ? b.icon : '🔒'}</span><strong>${b.name}</strong><small>${b.on ? b.desc : t('locked') + ' · ' + b.desc}</small></div>`).join('')}
@@ -441,11 +489,18 @@ async function renderStudent() {
   shell(tabs, views[tab](), { live: group });
 
   if (tab === 'homework') bindHomework(assignments, subFor);
+  if (tab === 'progress') $$('[data-practice]').forEach((b) => (b.onclick = () => {
+    const kind = b.dataset.practice;
+    const items = kind === 'vocab' ? toReview.map((w) => w.item) : prog.lettersWeak.map((w) => w.item);
+    try { sessionStorage.setItem('erdemPractice', JSON.stringify({ kind, items })); } catch {}
+    location.hash = '#play';
+  }));
   if (tab === 'home') $$('[data-start]').forEach((a) => (a.onclick = () => { try { sessionStorage.setItem('erdemStartGame', a.dataset.start); } catch {} }));
   if (tab === 'play') {
     bindGames();
-    let start; try { start = sessionStorage.getItem('erdemStartGame'); sessionStorage.removeItem('erdemStartGame'); } catch {}
-    if (start) $(`.game-tile[data-g="${start}"]`)?.click();
+    let start, practice; try { start = sessionStorage.getItem('erdemStartGame'); sessionStorage.removeItem('erdemStartGame'); practice = JSON.parse(sessionStorage.getItem('erdemPractice') || 'null'); sessionStorage.removeItem('erdemPractice'); } catch {}
+    if (practice?.items?.length) startPractice(practice);
+    else if (start) $(`.game-tile[data-g="${start}"]`)?.click();
   }
 }
 
@@ -573,9 +628,22 @@ function bindHomework(assignments, subFor) {
 }
 const isAudioFile = (x) => (x.type || '').startsWith('audio/');
 
+let gameDone = null;
+async function startPractice({ kind, items }) {
+  const area = $('#gameArea');
+  area.dataset.g = kind === 'letters' ? 'letters' : 'flash';
+  const box = document.createElement('div');
+  box.className = 'card game-box';
+  area.replaceChildren(box);
+  box.insertAdjacentHTML('beforebegin', `<p class="practice-note">↻ ${t('myPracticeMode')}</p>`);
+  if (kind === 'letters') return letters(box, gameDone, items);
+  const vocab = (await guard(() => api.vocab())) || [];
+  const pick = vocab.filter((v) => items.includes(v.mn));
+  flashcards(box, pick.length ? pick : vocab, getLang(), gameDone);
+}
 function bindGames() {
   const area = $('#gameArea');
-  const onDone = async (res) => {
+  const onDone = gameDone = async (res) => {
     if (!res) return route();
     if (res.xp > 0) await guard(() => api.addXp(res.xp));
     if (res.items?.length) api.recordAnswers(res.game, res.score, res.total, res.items).catch(() => {});

@@ -101,9 +101,10 @@ function quiz(root, rounds, onDone, replay, { bonusPerfect = 0 } = {}) {
 }
 
 // ------------------------------------------------------------ Cyrillic letters
-export function letters(root, onDone) {
+export function letters(root, onDone, only = null) {
   begin('letters');
-  const picks = shuffle(LETTERS).slice(0, 10);
+  const pool = only?.length ? LETTERS.filter((l) => only.includes(l[0])) : LETTERS;
+  const picks = shuffle(pool).slice(0, 10);
   const rounds = picks.map(([L, s, ex]) => {
     const wrong = shuffle(LETTERS.filter((x) => x[1] !== s)).slice(0, 3).map((x) => ({ label: esc(x[1]), correct: false }));
     return {
@@ -114,7 +115,7 @@ export function letters(root, onDone) {
       after: `<span class="mn">— ${esc(ex)}</span>`,
     };
   });
-  quiz(root, rounds, onDone, () => letters(root, onDone), { bonusPerfect: 5 });
+  quiz(root, rounds, onDone, () => letters(root, onDone, only), { bonusPerfect: 5 });
 }
 
 // ------------------------------------------------------------ Picture match

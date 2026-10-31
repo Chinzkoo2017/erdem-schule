@@ -479,3 +479,20 @@ td.right { text-align: right; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 h3.sub .chip { text-transform: none; letter-spacing: 0; margin-left: .4rem; }
+
+/* ---------- student progress ---------- */
+.prog-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: var(--side); color: #fff; border-radius: var(--radius); padding: 20px 24px; }
+.prog-hero h2 { color: #fff; font-size: 1.35rem; margin: 0; }
+.prog-hero .eyebrow { color: var(--side-muted); }
+.prog-hero .muted { color: var(--side-text); margin: .4rem 0 0; }
+.prog-hero > div:last-child { flex: 1 1 260px; min-width: 0; }
+.ring { --p: 0; width: 112px; height: 112px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: conic-gradient(var(--gold) calc(var(--p) * 1%), rgba(255,255,255,.12) 0); }
+.ring > span { width: 86px; height: 86px; border-radius: 50%; background: var(--side); display: grid; place-content: center; text-align: center; line-height: 1.05; }
+.ring b { font-size: 1.9rem; } .ring small { color: var(--side-muted); font-weight: 700; }
+.meter.green span { background: var(--green-btn); }
+.review-nudge { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink); border-color: #F2B8B5; background: #FFF7F6; }
+.review-nudge span:nth-child(2) { display: grid; flex: 1; min-width: 0; }
+.review-nudge small { color: var(--muted); font-weight: 600; }
+.nudge-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--red-soft); color: var(--red); display: grid; place-items: center; font-weight: 800; font-size: 1.2rem; flex: none; }
+.practice-note { margin: 0 auto .6rem; max-width: 600px; font-weight: 800; color: var(--red); }

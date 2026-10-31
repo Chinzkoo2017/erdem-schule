@@ -475,7 +475,7 @@ async function renderStudent() {
         <div><p class="eyebrow">${esc(fmtDate(todayIso()))}${myGroups.length ? ' · ' + myGroups.map((g) => esc(g.name)).join(', ') : ''}${me.team_name ? ` · ${t('team')}: ${teamLine(me)}` : ''}</p>
         <h1 class="page-title">${t('hello')}, ${esc(me.full_name)}</h1></div>
       </div>
-      ${myGroups.length ? `<div class="mobile-only stack-sm">${myGroups.map((g) => liveCard(g, multi)).join('')}</div>` : ''}
+      ${myGroups.length ? `<div class="mobile-only"><div class="stack-sm">${myGroups.map((g) => liveCard(g, multi)).join('')}</div></div>` : ''}
       ${upcoming(anns).length ? `<section class="stack-sm"><h2>${t('tabNews')}</h2>${upcoming(anns).map((a) => annCard(a)).join('')}</section>` : ''}
       <div class="kpi-grid">
         <div class="kpi-card"><span class="kpi-label">${t('streakLabel')}</span><span class="kpi-value">${st.streak} 🔥</span><span class="kpi-note">${t('streak')}</span></div>

@@ -84,6 +84,9 @@ const dict = {
     teamTitle: 'Багаа нэрлэе!', teamLead: 'Ээж, аавтайгаа хамт багийнхаа нэр, тэмдгийг сонгоорой. Дараа нь хүссэн үедээ сольж болно.',
     teamName: 'Багийн нэр', teamIcon: 'Багийн тэмдэг', teamSave: 'Хадгалах', teamLater: 'Дараа', team: 'Баг', teamEdit: 'Баг засах',
     teamPlaceholder: 'жишээ нь: Хурдан бүргэд',
+    pwIgnoredTitle: '"Нууц үг" багана эдгээр хэрэглэгчид үйлчлэхгүй',
+    pwIgnoredLead: 'Эдгээр хэрэглэгч баазад аль хэдийн байгаа тул "Нууц үг" баганыг үл тооцно. Нууц үгийг нь солих бол утгыг "Шинэ нууц үг" баганад бичнэ үү.',
+    badLogin: 'Нэвтрэх нэр эсвэл нууц үг буруу байна. Нууц үгийн том, жижиг үсгийг шалгана уу.',
     error: 'Алдаа гарлаа', loading: 'Ачаалж байна…', file: 'Файл', days: ['Ня','Да','Мя','Лх','Пү','Ба','Бя'],
   },
   de: {
@@ -171,6 +174,9 @@ const dict = {
     teamTitle: 'Gib deinem Team einen Namen!', teamLead: 'Wähle gemeinsam mit deinen Eltern Teamnamen und Zeichen. Du kannst es später jederzeit ändern.',
     teamName: 'Teamname', teamIcon: 'Teamzeichen', teamSave: 'Speichern', teamLater: 'Später', team: 'Team', teamEdit: 'Team bearbeiten',
     teamPlaceholder: 'z. B. Schnelle Adler',
+    pwIgnoredTitle: 'Spalte „Passwort“ gilt hier nicht',
+    pwIgnoredLead: 'Diese Nutzer existieren bereits, daher wird „Passwort“ ignoriert. Zum Ändern den Wert in „Neues Passwort“ eintragen.',
+    badLogin: 'Benutzername oder Passwort falsch. Bitte Groß-/Kleinschreibung prüfen.',
     error: 'Fehler', loading: 'Lädt…', file: 'Datei', days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
   },
 };

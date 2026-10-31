@@ -356,6 +356,7 @@ details summary { cursor: pointer; font-weight: 800; }
 .rules summary { font-size: .88rem; color: var(--indigo); }
 .rules p { margin: .4rem 0 0; }
 .alert-bad { border-color: #F2B8B5; background: #FFF7F6; }
+.alert-warn { border-color: #F0D58A; background: var(--gold-soft); }
 .alert-ok { border-color: #A9DDC3; background: #F4FBF7; }
 .err-list { margin: .4rem 0 0; padding-left: 1.1rem; display: grid; gap: .25rem; font-size: .92rem; }
 .alert-ok .err-list, .alert-bad .err-list { list-style: none; padding-left: 0; }

@@ -229,7 +229,7 @@ function renderLogin(mode = 'in') {
     try {
       if (mode === 'up') { await api.signUp(d.email, d.pw, d.name); msg.textContent = t('signUpDone'); }
       else { me = await api.signIn(d.email, d.pw); route(); }
-    } catch (err) { msg.textContent = err.message; msg.classList.add('bad'); }
+    } catch (err) { msg.textContent = /invalid login credentials/i.test(err.message) ? t('badLogin') : err.message; msg.classList.add('bad'); }
   };
   $('#magic') && ($('#magic').onclick = async () => {
     const email = f.email.value;
@@ -811,6 +811,9 @@ async function adminRoster(tabs) {
       <div class="apply-bar">${plan.pending
         ? `<button class="btn btn-gold" id="rApply" ${plan.errors.length ? 'disabled' : ''}>${plan.pending} ${t('rosterApply')}</button>`
         : `<p class="muted">${t('rosterNothing')}</p>`}</div>
+      ${(() => { const w = plan.items.filter((x) => x.action !== 'create' && x.password && !x.newPassword);
+        return w.length ? `<section class="card alert-warn"><h2>${t('pwIgnoredTitle')}</h2><p class="small">${t('pwIgnoredLead')}</p>
+          <p class="small mono">${w.map((x) => esc(x.login)).join(', ')}</p></section>` : ''; })()}
       ${plan.errors.length ? `<section class="card alert-bad"><h2>${t('rosterErrors')}</h2><p class="small muted">${t('rosterErrorsD')}</p>
         <ul class="err-list">${plan.errors.map((e) => `<li><b>${t('rosterRow')} ${e.row}:</b> ${esc(e.msg)}</li>`).join('')}</ul></section>` : ''}
       ${plan.groupsToCreate.length || plan.linksAdd.length || plan.linksRemove.length ? `<section class="card">

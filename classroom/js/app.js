@@ -1,6 +1,7 @@
 import { createApi } from './api.js';
 import { t, getLang, setLang } from './i18n.js';
 import { flashcards, letters, pictures, wordBuilder, sentenceBuilder, fillSuffix } from './games.js';
+import { TEMPLATE_ROWS } from './roster-core.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -29,6 +30,9 @@ const ICONS = {
   video: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/>',
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
   clip: '<path d="M21 11l-8.5 8.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 7"/>',
+  sheet: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
+  download: '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   logout: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>',
   image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
 };
@@ -39,8 +43,23 @@ const isAudio = (p) => /\.(webm|ogg|oga|mp3|m4a|wav|aac)$/i.test(p) || /audio/i.
 const isImage = (p) => /\.(png|jpe?g|gif|webp|heic|heif)$/i.test(p);
 const filesOf = (s) => (s?.files?.length ? s.files : s?.file_path ? [s.file_path] : []);
 
+const FAMILY_IDEAS = [
+  ['Эмээ, өвөөгөөсөө ярилцлага ав', 'Эцэг эхийнхээ тусламжтайгаар эмээ эсвэл өвөөдөө залгаж 3 асуулт асуу: Хаана төрсөн бэ? Бага насандаа юугаар тоглодог байсан бэ? Хамгийн дуртай хоол нь юу вэ? Хариултыг монголоор бичих эсвэл бичлэг хийж илгээ.'],
+  ['Монгол хоол хамт хийх', 'Ээж аавтайгаа хамт монгол хоол (бууз, цуйван, хуушуур…) хий. Орц найрлагын 5 нэрийг монголоор бичээд зураг хавсарга.'],
+  ['Гэр бүлийн мод', 'Эцэг эхтэйгээ хамт гурван үеийн гэр бүлийн модоо зур. Хүн бүрийн нэр, хамаатан садны нэршлийг (эмээ, авга ах, нагац эгч…) монголоор бич.'],
+  ['Үлгэр хамт унших', 'Эцэг эх чинь монгол үлгэр уншиж өгнө. Дараа нь чи үлгэрийг 3–5 өгүүлбэрээр өөрийнхөөрөө ярьж бичлэг хий.'],
+  ['Зүйр цэцэн үг', 'Эцэг эхээсээ нэг зүйр цэцэн үг асууж, утгыг нь тайлбарлуул. Зүйр үгийг бичээд утгыг нь өөрийн үгээр 2 өгүүлбэрээр бич.'],
+  ['Гэрийн эд зүйлсийн шошго', 'Гэрийнхээ 10 эд зүйлд монгол нэрийг нь цаасан дээр бичиж наа (хаалга, цонх, ширээ…). Эцэг эхтэйгээ шалгаад зураг авч илгээ.'],
+  ['Монгол дуу хамт дуулах', 'Эцэг эхийнхээ бага насны дуртай монгол дууг сурч, хамт дуулаад бичлэг хий.'],
+  ['Зөвхөн монголоор ярих оройн хоол', 'Нэг оройн хоолны үеэр гэр бүлээрээ зөвхөн монголоор ярь. Ярилцсан 5 сэдвээ бич.'],
+  ['Дэлгүүрийн жагсаалт', 'Эцэг эхтэйгээ хамт долоо хоногийн дэлгүүрийн жагсаалтыг монголоор бич (10 зүйл). Дэлгүүрт очихдоо ашигла!'],
+  ['Баяр ёслолын уламжлал', 'Эцэг эхээсээ Цагаан сар эсвэл Наадмын нэг уламжлалыг асууж, 3–5 өгүүлбэрээр бич.'],
+];
+const isFamily = (a) => a?.kind === 'family';
+const familyTag = () => `<span class="chip chip-family">${icon('children', 13)} ${t('family')}</span>`;
+
 const app = $('#app');
-let api, me, groupsCache = [];
+let api, me, groupsCache = [], currentChecks = [];
 
 // ------------------------------------------------------------ helpers
 function toast(msg, kind = 'ok') {
@@ -76,7 +95,7 @@ function weekChart(week) {
       <small>${esc(w.label)}</small></div>`).join('')}
   </div>`;
 }
-function badgeList(st, lettersPerfect) {
+function badgeList(st, lettersPerfect, familyDone = 0) {
   return [
     { icon: '📝', name: t('bFirst'), desc: t('bFirstD'), on: st.subs >= 1 },
     { icon: '🔥', name: t('bS3'), desc: t('bS3D'), on: st.streak >= 3 },
@@ -84,6 +103,7 @@ function badgeList(st, lettersPerfect) {
     { icon: '💯', name: t('b100'), desc: t('b100D'), on: st.totalXp >= 100 },
     { icon: '🎒', name: t('b5hw'), desc: t('b5hwD'), on: st.subs >= 5 },
     { icon: '🔤', name: t('bLetters'), desc: t('bLettersD'), on: !!lettersPerfect },
+    { icon: '🏠', name: t('bFamily'), desc: t('bFamilyD'), on: familyDone >= 3 },
   ];
 }
 const groupName = (id) => groupsCache.find((g) => g.id === id)?.name || t('none');
@@ -161,7 +181,7 @@ function renderLogin(mode = 'in') {
     <form class="card login-card" id="loginForm">
       <h2>${mode === 'up' ? t('signUp') : t('signIn')}</h2>
       ${mode === 'up' ? `<label>${t('fullName')}<input name="name" required autocomplete="name"></label>` : ''}
-      <label>${t('email')}<input name="email" type="email" required autocomplete="email"></label>
+      <label>${mode === 'up' ? t('email') : t('loginOrEmail')}<input name="email" type="${mode === 'up' ? 'email' : 'text'}" required autocomplete="${mode === 'up' ? 'email' : 'username'}" autocapitalize="none" spellcheck="false"></label>
       <label>${t('password')}<input name="pw" type="password" minlength="8" ${mode === 'up' ? 'required' : ''} autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}"></label>
       <button class="btn btn-gold btn-block">${mode === 'up' ? t('signUp') : t('signIn')}</button>
       ${mode === 'in' ? `<button type="button" class="btn btn-ghost btn-block" id="magic">${t('magicLink')}</button>` : ''}
@@ -193,15 +213,17 @@ function renderLogin(mode = 'in') {
 
 // ------------------------------------------------------------ STUDENT
 async function renderStudent() {
-  const [lessons, assignments, subs, activity, lettersPerfect] = await Promise.all([
+  const [lessons, assignments, subs, activity, lettersPerfect, checks] = await Promise.all([
     api.lessons(me.group_id), api.assignments(me.group_id), api.submissions(me.id), api.activity(me.id), api.getMeta('lettersPerfect'),
+    api.familyChecks(me.id),
   ]);
+  currentChecks = checks || [];
   const group = groupsCache.find((g) => g.id === me.group_id);
   const st = stats(activity, subs);
   const subFor = (aid) => subs.find((s) => s.assignment_id === aid);
   const openHw = assignments.filter((a) => !subFor(a.id));
   const lateHw = openHw.filter((a) => a.due_date && a.due_date < todayIso());
-  const badges = badgeList(st, lettersPerfect);
+  const badges = badgeList(st, lettersPerfect, currentChecks.length);
   const badgesOn = badges.filter((b) => b.on).length;
   const nextBadge = badges.find((b) => !b.on);
   const level = Math.floor(st.totalXp / 100) + 1, toNext = 100 - (st.totalXp % 100);
@@ -308,6 +330,7 @@ function hwRow(a, sub, full = false) {
   return `<article class="hw ${sub ? 'is-' + sub.status : ''}" data-id="${esc(a.id)}">
     <div class="hw-main">
       <h3>${esc(a.title)}</h3>
+      ${isFamily(a) ? `<p class="tag-row">${familyTag()} ${currentChecks.some((c) => c.assignment_id === a.id) ? `<span class="chip chip-done">✓ ${t('familyConfirmed')}</span>` : `<span class="muted small">${t('familyWaiting')}</span>`}</p>` : ''}
       ${full && a.instructions ? `<p>${esc(a.instructions)}</p>` : ''}
       <p class="small ${late ? 'late' : 'muted'}">${t('due')}: ${esc(fmtDate(a.due_date)) || t('none')} · ${a.points ?? 10} ${t('xp')}</p>
       ${filesOf(sub).length ? `<p class="small muted">${icon('clip', 14)} ${filesOf(sub).length} ${t('attached')}</p>` : ''}
@@ -433,11 +456,12 @@ async function renderParent() {
   const ptabs = [{ id: 'children', icon: 'children', label: t('tabChildren') }];
   if (!kids.length) return shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1><p class="card muted">${t('noChildren')}</p>`);
   const data = await Promise.all(kids.map(async (k) => {
-    const [subs, act, asg] = await Promise.all([api.submissions(k.id), api.activity(k.id), api.assignments(k.group_id)]);
-    return { k, subs, asg, st: stats(act, subs) };
+    const [subs, act, asg, checks] = await Promise.all([api.submissions(k.id), api.activity(k.id), api.assignments(k.group_id), api.familyChecks(k.id)]);
+    return { k, subs, asg, checks: checks || [], st: stats(act, subs) };
   }));
   shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1>
-    <div class="stack">${data.map(({ k, subs, asg, st }) => {
+    <div class="stack">${data.map(({ k, subs, asg, checks, st }) => {
+      const fam = asg.filter(isFamily);
       const group = groupsCache.find((g) => g.id === k.group_id);
       const open = asg.filter((a) => !subs.some((s) => s.assignment_id === a.id));
       return `<section class="card child">
@@ -452,15 +476,42 @@ async function renderParent() {
           <div class="kpi"><small>${t('doneHw')}</small><span>${subs.length} / ${asg.length}</span></div>
           <div class="kpi ${open.length ? 'warn' : ''}"><small>${t('openHw')}</small><span>${open.length}</span></div>
         </div>
+        <div class="family-box">
+          <div class="family-head">${icon('children', 20)}<div><h3>${t('familyTogether')}</h3><p class="muted small">${t('familyLead')}</p></div></div>
+          ${fam.length ? fam.map((a) => {
+            const c = checks.find((x) => x.assignment_id === a.id);
+            const s = subs.find((x) => x.assignment_id === a.id);
+            return `<div class="family-task" data-aid="${esc(a.id)}" data-child="${esc(k.id)}">
+              <div class="family-task-main"><b>${esc(a.title)}</b>
+                <p class="small muted">${esc(a.instructions || '')}</p>
+                <p class="small muted">${t('due')}: ${esc(fmtDate(a.due_date)) || t('none')} · ${t('child')}: ${s ? t('submitted') : t('openHw')}</p>
+                ${c?.note ? `<div class="feedback small">${esc(c.note)}</div>` : ''}</div>
+              <div class="family-task-side">${c ? `<span class="chip chip-done">✓ ${t('familyConfirmed')}</span>` : `<button class="btn btn-sm btn-gold" data-confirm>${t('familyConfirm')}</button>`}</div>
+            </div>`;
+          }).join('') : `<p class="muted small">${t('familyNone')}</p>`}
+        </div>
         <h3 class="sub">${t('week')}</h3>${weekChart(st.week)}
         <h3 class="sub">${t('recent')}</h3>
         <div class="stack-sm">${asg.slice(0, 5).map((a) => {
           const s = subs.find((x) => x.assignment_id === a.id);
-          return `<div class="mini-row"><span>${esc(a.title)}</span>${statusChip(s)}</div>
+          return `<div class="mini-row"><span>${esc(a.title)} ${isFamily(a) ? familyTag() : ''}</span>${statusChip(s)}</div>
             ${s?.feedback ? `<div class="feedback small">${esc(s.feedback)}</div>` : ''}`;
         }).join('') || `<p class="muted">${t('noHomework')}</p>`}</div>
       </section>`;
     }).join('')}</div>`);
+  $$('[data-confirm]').forEach((b) => (b.onclick = () => {
+    const box = b.closest('.family-task');
+    if ($('.family-form', box)) return;
+    box.insertAdjacentHTML('beforeend', `<form class="family-form">
+      <label>${t('familyNote')}<textarea name="note" rows="2" maxlength="500" placeholder="Хамт хийхэд их хөгжилтэй байлаа…"></textarea></label>
+      <div class="row-gap"><button class="btn btn-gold btn-sm">${t('familyConfirm')}</button><button type="button" class="btn btn-ghost btn-sm" data-cancel>${t('cancel')}</button></div></form>`);
+    const f = $('.family-form', box);
+    $('[data-cancel]', f).onclick = () => f.remove();
+    f.onsubmit = (e) => {
+      e.preventDefault();
+      guard(async () => { await api.confirmFamily(box.dataset.aid, box.dataset.child, f.note.value.trim()); toast(t('familySaved')); route(); });
+    };
+  }));
 }
 
 // ------------------------------------------------------------ TEACHER / ADMIN
@@ -470,18 +521,25 @@ async function renderStaff() {
     { id: 'review', icon: 'review', label: t('tabReview') },
     { id: 'manage', icon: 'manage', label: t('tabManage') },
     { id: 'groups', icon: 'groups', label: t('tabGroups') },
-    ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }] : []),
+    ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }] : []),
   ];
   const tab = currentTab(tabs);
   if (tab === 'review') return staffReview(tabs);
   if (tab === 'manage') return staffManage(tabs);
   if (tab === 'groups') return staffGroups(tabs, isAdmin);
   if (tab === 'users') return adminUsers(tabs);
+  if (tab === 'roster') return adminRoster(tabs);
 }
 
 async function staffReview(tabs) {
-  const [subs, asg] = await Promise.all([api.submissions(), api.assignments()]);
+  const [subs, asg, checks] = await Promise.all([api.submissions(), api.assignments(), api.familyChecks()]);
   const title = (id) => asg.find((a) => a.id === id)?.title || '';
+  const famInfo = (s) => {
+    const a = asg.find((x) => x.id === s.assignment_id);
+    if (!isFamily(a)) return '';
+    const c = (checks || []).find((x) => x.assignment_id === s.assignment_id && x.student_id === s.student_id);
+    return `<p class="tag-row">${familyTag()} ${c ? `<span class="chip chip-done">✓ ${t('familyConfirmed')}</span>${c.note ? ` <span class="muted small">“${esc(c.note)}”</span>` : ''}` : `<span class="muted small">${t('familyWaiting')}</span>`}</p>`;
+  };
   const pending = subs.filter((s) => s.status === 'submitted');
   const done = subs.filter((s) => s.status === 'reviewed').slice(0, 10);
   const card = (s) => `<article class="card review" data-id="${esc(s.id)}">
@@ -489,6 +547,7 @@ async function staffReview(tabs) {
         ${avatar(s.student)}
         <div><strong>${esc(s.student?.full_name || '')}</strong><p class="muted small">${esc(title(s.assignment_id))} · ${esc(groupName(s.student?.group_id))} · ${esc(fmtDate(s.submitted_at))}</p></div>
       </div>
+      ${famInfo(s)}
       ${s.body ? `<blockquote class="mn">${esc(s.body)}</blockquote>` : ''}
       ${filesOf(s).length ? `<div class="media-row">${filesOf(s).map((p) => `<div class="media" data-file="${esc(p)}"><span class="file-chip">${icon(isAudio(p) ? 'mic' : isImage(p) ? 'image' : 'clip', 14)} ${esc(p.split('/').pop().replace(/^(?:.*?-)?\d{12,}-(?:\d{1,2}-)?/, ''))}</span></div>`).join('')}</div>` : ''}
       <form class="review-form">
@@ -539,6 +598,8 @@ async function staffManage(tabs) {
       </form>
       <form class="card form" id="hwForm">
         <h2>${t('newHw')}</h2>
+        <label class="check-line"><input type="checkbox" name="kind" value="family" id="hwFamily"> ${t('familyTask')}</label>
+        <label id="ideaWrap" hidden>${t('familyIdeas')}<select id="ideaSel"><option value="">—</option>${FAMILY_IDEAS.map(([ti], i) => `<option value="${i}">${esc(ti)}</option>`).join('')}</select></label>
         <label>${t('title')}<input name="title" required></label>
         <label>${t('instructions')}<textarea name="instructions" rows="3"></textarea></label>
         <label>${t('tabLessons')}<select name="lesson_id"><option value="">${t('none')}</option>${lessons.map((l) => `<option value="${esc(l.id)}">${esc(l.title)}</option>`).join('')}</select></label>
@@ -550,12 +611,14 @@ async function staffManage(tabs) {
       ${lessons.map((l) => `<div class="mini-row"><span><b>${esc(fmtDate(l.lesson_date))}</b> · ${esc(l.title)}</span><button class="btn-x" data-dl="${esc(l.id)}" aria-label="${t('del')}">✕</button></div>`).join('') || `<p class="muted">${t('noLessons')}</p>`}
     </section>
     <section class="card"><h2>${t('homework')}</h2>
-      ${asg.map((a) => `<div class="mini-row"><span><b>${esc(fmtDate(a.due_date)) || '—'}</b> · ${esc(a.title)}</span><button class="btn-x" data-da="${esc(a.id)}" aria-label="${t('del')}">✕</button></div>`).join('') || `<p class="muted">${t('noHomework')}</p>`}
+      ${asg.map((a) => `<div class="mini-row"><span><b>${esc(fmtDate(a.due_date)) || '—'}</b> · ${esc(a.title)} ${isFamily(a) ? familyTag() : ''}</span><button class="btn-x" data-da="${esc(a.id)}" aria-label="${t('del')}">✕</button></div>`).join('') || `<p class="muted">${t('noHomework')}</p>`}
     </section>`);
   $('#groupSel').onchange = (e) => { try { sessionStorage.setItem('erdemGroup', e.target.value); } catch {} route(); };
   const clean = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v === '' ? null : v]));
   $('#lessonForm').onsubmit = (e) => { e.preventDefault(); const d = clean(Object.fromEntries(new FormData(e.target))); guard(async () => { await api.saveLesson({ ...d, group_id: gid }); toast(t('saved')); route(); }); };
-  $('#hwForm').onsubmit = (e) => { e.preventDefault(); const d = clean(Object.fromEntries(new FormData(e.target))); d.points = +(d.points || 10); guard(async () => { await api.saveAssignment({ ...d, group_id: gid }); toast(t('saved')); route(); }); };
+  $('#hwFamily').onchange = (e) => { $('#ideaWrap').hidden = !e.target.checked; const p = $('#hwForm').points; if (e.target.checked && p.value === '10') p.value = '20'; };
+  $('#ideaSel').onchange = (e) => { const x = FAMILY_IDEAS[e.target.value]; if (!x) return; const f = $('#hwForm'); f.title.value = x[0]; f.instructions.value = x[1]; };
+  $('#hwForm').onsubmit = (e) => { e.preventDefault(); const d = clean(Object.fromEntries(new FormData(e.target))); d.points = +(d.points || 10); if (!d.kind) delete d.kind; guard(async () => { await api.saveAssignment({ ...d, group_id: gid }); toast(t('saved')); route(); }); };
   $$('[data-dl]').forEach((b) => (b.onclick = () => confirm(t('confirmDel')) && guard(async () => { await api.deleteLesson(b.dataset.dl); route(); })));
   $$('[data-da]').forEach((b) => (b.onclick = () => confirm(t('confirmDel')) && guard(async () => { await api.deleteAssignment(b.dataset.da); route(); })));
 }
@@ -605,7 +668,7 @@ async function adminUsers(tabs) {
     <section class="card table-wrap">
       <table class="table"><thead><tr><th>${t('fullName')}</th><th>${t('role')}</th><th>${t('group')}</th></tr></thead><tbody>
       ${sorted.map((p) => `<tr data-u="${esc(p.id)}" class="${p.role === 'pending' ? 'row-pending' : ''}">
-        <td class="user-cell">${avatar(p)} ${esc(p.full_name)}</td>
+        <td class="user-cell">${avatar(p)} <span>${esc(p.full_name)}${p.family ? ` <small class="muted">· ${esc(p.family)}</small>` : ''}</span></td>
         <td><select class="u-role" ${p.id === me.id ? 'disabled' : ''}>${roles.map((r) => `<option value="${r}" ${r === p.role ? 'selected' : ''}>${t('r' + r)}</option>`).join('')}</select></td>
         <td><select class="u-group"><option value="">${t('none')}</option>${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === p.group_id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></td>
       </tr>`).join('')}
@@ -627,6 +690,137 @@ async function adminUsers(tabs) {
   $('#linkForm').onsubmit = (e) => { e.preventDefault(); const f = e.target; if (!f.p.value || !f.c.value) return; guard(async () => { await api.linkParent(f.p.value, f.c.value); toast(t('linked')); route(); }); };
   $$('[data-unlink]').forEach((b) => (b.onclick = () => { const [p, c] = b.dataset.unlink.split('|'); guard(async () => { await api.unlinkParent(p, c); route(); }); }));
 }
+
+// ------------------------------------------------------------ ADMIN: Excel roster
+let XLSX = null;
+async function loadXlsx() {
+  if (!XLSX) XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+  return XLSX;
+}
+async function downloadXlsx(rows, filename, sheet = 'Жагсаалт') {
+  const X = await loadXlsx();
+  const ws = X.utils.json_to_sheet(rows);
+  const keys = Object.keys(rows[0] || {});
+  ws['!cols'] = keys.map((k) => ({ wch: Math.max(k.length, ...rows.map((r) => String(r[k] ?? '').length)) + 2 }));
+  const wb = X.utils.book_new();
+  X.utils.book_append_sheet(wb, ws, sheet);
+  X.writeFile(wb, filename);
+}
+let rosterRows = null;
+
+async function adminRoster(tabs) {
+  shell(tabs, `
+    <div><h1 class="page-title">${t('tabRoster')}</h1><p class="muted lead">${t('rosterLead')}</p></div>
+    <div class="steps">
+      <section class="card step">
+        <span class="step-no">1</span>
+        <div class="step-body"><h2>${t('rosterStep1')}</h2><p class="muted small">${t('rosterStep1D')}</p>
+          <div class="row-gap">
+            <button class="btn btn-ghost btn-sm" id="rExport">${icon('download', 18)} ${t('rosterExport')}</button>
+            <button class="btn btn-ghost btn-sm" id="rTemplate">${icon('sheet', 18)} ${t('rosterTemplate')}</button>
+          </div>
+          <details class="rules"><summary>${t('rosterRules')}</summary><p class="small">${t('rosterRulesD')}</p><p class="small muted">${t('rosterRulesD2')}</p></details>
+        </div>
+      </section>
+      <section class="card step">
+        <span class="step-no">2</span>
+        <div class="step-body"><h2>${t('rosterStep2')}</h2><p class="muted small">${t('rosterStep2D')}</p>
+          <div class="row-gap">
+            <label class="btn btn-gold btn-sm file-btn">${icon('upload', 18)} ${t('rosterUpload')}<input type="file" id="rFile" accept=".xlsx,.xls,.csv,.ods"></label>
+            <label class="check-line small"><input type="checkbox" id="rDeact" checked> ${t('rosterDeactivate')}</label>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div id="rosterOut" aria-live="polite"></div>`);
+  const out = $('#rosterOut');
+  $('#rExport').onclick = () => guard(async () => {
+    const { rows } = await api.roster('export');
+    await downloadXlsx(rows.length ? rows : TEMPLATE_HEAD(), `erdem-jagsaalt-${todayIso()}.xlsx`);
+  });
+  $('#rTemplate').onclick = () => guard(() => downloadXlsx(TEMPLATE_HEAD(true), 'erdem-jagsaalt-zagvar.xlsx'));
+  const runPlan = async () => {
+    if (!rosterRows) return;
+    out.innerHTML = `<p class="card muted">${t('loading')}</p>`;
+    const res = await guard(() => api.roster('plan', rosterRows, $('#rDeact').checked));
+    if (res?.plan) renderPlan(res.plan);
+    else out.innerHTML = '';
+  };
+  $('#rDeact').onchange = runPlan;
+  $('#rFile').onchange = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    out.innerHTML = `<p class="card muted">${t('rosterLoading')}</p>`;
+    await guard(async () => {
+      const X = await loadXlsx();
+      const wb = X.read(await file.arrayBuffer());
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      rosterRows = X.utils.sheet_to_json(ws, { defval: '', raw: false });
+      await runPlan();
+    });
+  };
+
+  function renderPlan(plan) {
+    const actChip = { create: `<span class="chip chip-new">${t('rosterNew')}</span>`, update: `<span class="chip chip-sent">${t('rosterChanged')}</span>`, same: `<span class="chip chip-muted">${t('rosterSame')}</span>` };
+    const rows = [...plan.items.filter((x) => x.action !== 'same'), ...plan.items.filter((x) => x.action === 'same')];
+    out.innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card"><span class="kpi-label">${t('rosterNew')}</span><span class="kpi-value">${plan.counts.create}</span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('rosterChanged')}</span><span class="kpi-value">${plan.counts.update}</span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('rosterOff')}</span><span class="kpi-value">${plan.counts.deactivate}</span></div>
+        <div class="kpi-card"><span class="kpi-label">${t('rosterSame')}</span><span class="kpi-value">${plan.counts.same}</span></div>
+      </div>
+      <div class="apply-bar">${plan.pending
+        ? `<button class="btn btn-gold" id="rApply" ${plan.errors.length ? 'disabled' : ''}>${plan.pending} ${t('rosterApply')}</button>`
+        : `<p class="muted">${t('rosterNothing')}</p>`}</div>
+      ${plan.errors.length ? `<section class="card alert-bad"><h2>${t('rosterErrors')}</h2><p class="small muted">${t('rosterErrorsD')}</p>
+        <ul class="err-list">${plan.errors.map((e) => `<li><b>${t('rosterRow')} ${e.row}:</b> ${esc(e.msg)}</li>`).join('')}</ul></section>` : ''}
+      ${plan.groupsToCreate.length || plan.linksAdd.length || plan.linksRemove.length ? `<section class="card">
+        ${plan.groupsToCreate.length ? `<h3>${t('rosterGroupsNew')}</h3><p>${plan.groupsToCreate.map((g) => `<span class="chip chip-new">${esc(g)}</span>`).join(' ')}</p>` : ''}
+        ${plan.linksAdd.length || plan.linksRemove.length ? `<h3>${t('rosterLinks')}</h3><div class="stack-sm">
+          ${plan.linksAdd.map((l) => `<div class="mini-row"><span>${esc(l.parentName)} → ${esc(l.childName)}</span><span class="chip chip-new">${t('rosterLinkAdd')}</span></div>`).join('')}
+          ${plan.linksRemove.map((l) => `<div class="mini-row"><span>${esc(l.parentName)} → ${esc(l.childName)}</span><span class="chip chip-open">${t('rosterLinkRemove')}</span></div>`).join('')}</div>` : ''}
+      </section>` : ''}
+      <section class="card table-wrap">
+        <table class="table"><thead><tr><th>${t('fullName')}</th><th>${t('loginOrEmail')}</th><th>${t('role')}</th><th>${t('group')}</th><th>${t('familyCol')}</th><th>${t('rosterAction')}</th></tr></thead><tbody>
+        ${rows.map((x) => `<tr class="${x.action === 'same' ? 'row-dim' : ''}"><td>${esc(x.name)}</td><td class="mono">${esc(x.login)}</td><td>${t('r' + x.role)}</td><td>${esc(x.group || '—')}</td><td>${esc(x.family || '—')}</td>
+          <td>${actChip[x.action]}${x.changes.length ? `<div class="small muted">${x.changes.map(esc).join('<br>')}</div>` : ''}</td></tr>`).join('')}
+        ${plan.deactivate.map((d) => `<tr><td>${esc(d.name)}</td><td class="mono">${esc(d.login)}</td><td>${t('r' + d.role)}</td><td>—</td><td>—</td><td><span class="chip chip-open">${t('rosterOff')}</span></td></tr>`).join('')}
+        </tbody></table>
+      </section>`;
+    const ap = $('#rApply');
+    if (ap) ap.onclick = () => {
+      ap.disabled = true; ap.textContent = t('loading');
+      guard(async () => {
+        const res = await api.roster('apply', rosterRows, $('#rDeact').checked);
+        if (res?.failed) { renderPlan(res.plan); return; }
+        renderResult(res);
+      }).finally(() => { if (ap.isConnected) ap.disabled = false; });
+    };
+  }
+
+  function renderResult(res) {
+    rosterRows = null;
+    const bad = res.log.filter((l) => !l.ok);
+    out.innerHTML = `
+      <section class="card ${bad.length ? 'alert-bad' : 'alert-ok'}"><h2>${bad.length ? t('error') : '✓ ' + t('rosterDone')}</h2>
+        <ul class="err-list">${res.log.map((l) => `<li class="${l.ok ? '' : 'late'}">${l.ok ? '✓' : '✕'} ${esc(l.msg)}</li>`).join('')}</ul></section>
+      ${res.credentials?.length ? `<section class="card">
+        <h2>${t('rosterCreds')}</h2><p class="small muted">${t('rosterCredsLead')}</p>
+        <div class="table-wrap"><table class="table"><thead><tr><th>${t('fullName')}</th><th>${t('loginOrEmail')}</th><th>${t('password')}</th><th>${t('role')}</th></tr></thead><tbody>
+        ${res.credentials.map((c) => `<tr><td>${esc(c.name)}</td><td class="mono">${esc(c.login)}</td><td class="mono">${esc(c.password)}</td><td>${esc(c.role)}</td></tr>`).join('')}
+        </tbody></table></div>
+        <button class="btn btn-gold mt" id="rCreds">${icon('download', 18)} ${t('rosterCredsDl')}</button>
+      </section>` : ''}`;
+    const c = $('#rCreds');
+    if (c) c.onclick = () => guard(() => downloadXlsx(res.credentials.map((x) => ({
+      'Овог нэр': x.name, 'Нэвтрэх нэр': x.login, 'Нууц үг': x.password, 'Эрх': x.role, 'Анги': x.group || '', 'Гэр бүл': x.family || '',
+      'Хаяг': 'https://erdem-schule.de/classroom/',
+    })), `erdem-nevtreh-${todayIso()}.xlsx`, 'Нэвтрэх'));
+  }
+}
+const TEMPLATE_HEAD = (examples = false) => (examples ? TEMPLATE_ROWS : [{ 'Овог нэр': '', 'Имэйл / нэвтрэх нэр': '', 'Эрх': '', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '' }]);
 
 // ------------------------------------------------------------ router
 async function route() {

@@ -1,5 +1,6 @@
 // Нэг интерфейс, хоёр хэрэгжилт: Supabase (жинхэнэ) ба Demo (localStorage).
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { planRoster, applyPlan, exportRows, toEmail } from './roster-core.js';
 
 const iso = (d) => d.toISOString().slice(0, 10);
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
@@ -15,13 +16,13 @@ function seed() {
       { id: 'g2', name: 'Монгол хэл · 2-р бүлэг', level: 'A2', schedule: 'Бямба 12:00', live_url: '' },
     ],
     profiles: [
-      { id: 's1', full_name: 'Тэмүүлэн', role: 'student', group_id: 'g1', avatar: '🐎' },
-      { id: 's2', full_name: 'Номин', role: 'student', group_id: 'g1', avatar: '🦅' },
-      { id: 's3', full_name: 'Анужин', role: 'student', group_id: 'g2', avatar: '🐫' },
-      { id: 'p1', full_name: 'Сарнай (ээж)', role: 'parent', group_id: null, avatar: '🌸' },
-      { id: 't1', full_name: 'Мөнх-Эрдэнэ багш', role: 'teacher', group_id: null, avatar: '📚' },
-      { id: 'a1', full_name: 'Админ', role: 'admin', group_id: null, avatar: '🛡️' },
-      { id: 'n1', full_name: 'Шинэ хэрэглэгч', role: 'pending', group_id: null, avatar: '🙂' },
+      { id: 's1', full_name: 'Тэмүүлэн', role: 'student', group_id: 'g1', family: 'BAT', email: 'temuulen@student.erdem-schule.de' },
+      { id: 's2', full_name: 'Номин', role: 'student', group_id: 'g1', family: 'DORJ', email: 'nomin@student.erdem-schule.de' },
+      { id: 's3', full_name: 'Анужин', role: 'student', group_id: 'g2', family: 'BAT', email: 'anujin@student.erdem-schule.de' },
+      { id: 'p1', full_name: 'Сарнай (ээж)', role: 'parent', group_id: null, family: 'BAT', email: 'sarnai@example.com' },
+      { id: 't1', full_name: 'Мөнх-Эрдэнэ багш', role: 'teacher', group_id: null, email: 'monkherdene@example.com' },
+      { id: 'a1', full_name: 'Админ', role: 'admin', group_id: null, email: 'admin@example.com' },
+      { id: 'n1', full_name: 'Шинэ хэрэглэгч', role: 'pending', group_id: null, email: 'new@example.com' },
     ],
     parent_children: [{ parent_id: 'p1', child_id: 's1' }, { parent_id: 'p1', child_id: 's3' }],
     lessons: [
@@ -35,6 +36,8 @@ function seed() {
       { id: 'h2', group_id: 'g1', lesson_id: 'l2', title: 'Гэр бүлээ танилцуул', instructions: 'Гэр бүлийн гишүүдээ 3–5 өгүүлбэрээр танилцуул.', due_date: daysAgo(1), points: 10 },
       { id: 'h3', group_id: 'g1', lesson_id: 'l3', title: 'Ө, Ү үсэгтэй 5 үг', instructions: 'Ө эсвэл Ү үсэг орсон 5 үг бичээрэй.', due_date: daysAgo(-6), points: 10 },
       { id: 'h4', group_id: 'g2', lesson_id: 'l4', title: 'Өөрийгөө танилцуул', instructions: 'Аудио бичлэг хавсаргана уу.', due_date: daysAgo(-4), points: 10 },
+      { id: 'h5', group_id: 'g1', lesson_id: 'l2', kind: 'family', title: 'Эмээ, өвөөгөөсөө ярилцлага ав', instructions: 'Эцэг эхийнхээ тусламжтайгаар эмээ эсвэл өвөөдөө утсаар залгаж 3 асуулт асуу: Хаана төрсөн бэ? Бага насандаа юугаар тоглодог байсан бэ? Хамгийн дуртай хоол? Хариултыг монголоор бичээд эсвэл бичлэг хийгээд илгээ.', due_date: daysAgo(-5), points: 20 },
+      { id: 'h6', group_id: 'g2', lesson_id: 'l4', kind: 'family', title: 'Монгол хоол хамт хийх', instructions: 'Ээж аавтайгаа хамт монгол хоол (бууз, цуйван…) хийж, орц найрлагын 5 нэрийг монголоор бич. Зураг хавсаргаарай.', due_date: daysAgo(-3), points: 20 },
     ],
     submissions: [
       { id: 'x1', assignment_id: 'h1', student_id: 's1', body: 'морь, үхэр, тэмээ, хонь, ямаа', file_path: 'mal.jpg', status: 'reviewed', score: 10, feedback: 'Маш сайн! Зураг чинь гоё байна 🌟', submitted_at: daysAgo(9) },
@@ -52,14 +55,16 @@ function seed() {
       { student_id: 's1', day: daysAgo(1), xp: 30 }, { student_id: 's2', day: daysAgo(1), xp: 10 },
       { student_id: 's3', day: daysAgo(5), xp: 20 }, { student_id: 's3', day: daysAgo(2), xp: 10 },
     ],
+    family_checks: [],
     meta: {},
   };
 }
 
 function demoApi() {
-  const KEY = 'erdemDemo_v1';
+  const KEY = 'erdemDemo_v2';
   let db;
   try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
+  db.family_checks ||= [];
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {} };
   let meId = null;
   const demoFiles = new Map();
@@ -118,6 +123,33 @@ function demoApi() {
       if (g.id) Object.assign(db.groups.find((x) => x.id === g.id), g); else db.groups.push({ ...g, id: uid() });
       persist();
     },
+    async familyChecks(studentId) { return db.family_checks.filter((c) => !studentId || c.student_id === studentId); },
+    async confirmFamily(aid, child, note) {
+      const ex = db.family_checks.find((c) => c.assignment_id === aid && c.student_id === child);
+      if (ex) Object.assign(ex, { note, parent_id: meId });
+      else {
+        db.family_checks.push({ assignment_id: aid, student_id: child, parent_id: meId, note, created_at: iso(new Date()) });
+        const d = iso(new Date()), r = db.activity.find((a) => a.student_id === child && a.day === d);
+        if (r) r.xp += 10; else db.activity.push({ student_id: child, day: d, xp: 10 });
+      }
+      persist();
+    },
+    async roster(action, rows = [], deactivateMissing = true) {
+      const state = { users: db.profiles, groups: db.groups, links: db.parent_children };
+      if (action === 'export') return { rows: exportRows(state) };
+      const plan = planRoster(rows, state, { callerId: meId, deactivateMissing });
+      if (action !== 'apply') return { plan };
+      const res = await applyPlan(plan, state, {
+        createGroup: async (name) => { const id = uid(); db.groups.push({ id, name, schedule: '', live_url: '' }); return id; },
+        createUser: async ({ email, name }) => { const id = uid(); db.profiles.push({ id, email, full_name: name, role: 'pending', group_id: null }); return id; },
+        updateProfile: async (id, f) => { Object.assign(db.profiles.find((p) => p.id === id), f); },
+        setPassword: async () => {},
+        addLink: async (parent_id, child_id) => { db.parent_children.push({ parent_id, child_id }); },
+        removeLink: async (pid, cid) => { db.parent_children = db.parent_children.filter((l) => !(l.parent_id === pid && l.child_id === cid)); },
+      });
+      persist();
+      return { plan, ...res };
+    },
   };
 }
 
@@ -140,7 +172,7 @@ async function liveApi() {
   return {
     mode: 'live',
     async init() { return loadMe(); },
-    async signIn(email, password) { ok(await sb.auth.signInWithPassword({ email, password })); return loadMe(); },
+    async signIn(login, password) { ok(await sb.auth.signInWithPassword({ email: toEmail(login), password })); return loadMe(); },
     async magicLink(email) { ok(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0], shouldCreateUser: false } })); },
     async signUp(email, password, full_name) { ok(await sb.auth.signUp({ email, password, options: { data: { full_name }, emailRedirectTo: location.href.split('#')[0] } })); },
     async signOut() { await sb.auth.signOut(); profile = null; },
@@ -206,6 +238,24 @@ async function liveApi() {
     async saveGroup(g) {
       if (g.id) { const { id, ...rest } = g; ok(await sb.from('groups').update(rest).eq('id', id)); }
       else ok(await sb.from('groups').insert(g));
+    },
+    async familyChecks(studentId) {
+      let q = sb.from('family_checks').select('*');
+      if (studentId) q = q.eq('student_id', studentId);
+      const { data, error } = await q;
+      if (error) { console.warn('family_checks', error.message); return []; }
+      return data;
+    },
+    async confirmFamily(aid, child, note) { ok(await sb.rpc('confirm_family', { aid, child, note: note || '' })); },
+    async roster(action, rows = [], deactivateMissing = true) {
+      const { data, error } = await sb.functions.invoke('roster-sync', { body: { action, rows, deactivateMissing } });
+      if (error) {
+        let msg = error.message;
+        try { const b = await error.context?.json?.(); if (b?.error) msg = b.error; if (b?.plan) return { ...b, failed: true }; } catch {}
+        if (/not found|404|Failed to send/i.test(msg)) msg = 'roster-sync функц суугаагүй байна (README → "Excel жагсаалт")';
+        throw new Error(msg);
+      }
+      return data;
     },
   };
 }

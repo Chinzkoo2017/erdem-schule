@@ -146,6 +146,58 @@ const FAMILY_IDEAS = [
   ['Баяр ёслолын уламжлал', 'Эцэг эхээсээ Цагаан сар эсвэл Наадмын нэг уламжлалыг асууж, 3–5 өгүүлбэрээр бич.'],
 ];
 const isFamily = (a) => a?.kind === 'family';
+
+// ------------------------------------------------------------ WhatsApp (өөрийн WhatsApp-аас, үнэгүй)
+const SITE_URL = () => location.origin + location.pathname;
+const mnDate = (d) => { if (!d) return ''; const x = new Date(d.length === 10 ? d + 'T12:00' : d); return `${x.getMonth() + 1}-р сарын ${x.getDate()}`; };
+const clip = (txt, n) => { const v = String(txt || '').trim(); return v.length > n ? v.slice(0, n - 1) + '…' : v; };
+const waHref = (text) => 'https://wa.me/?text=' + encodeURIComponent(text);
+const waBtn = (text, label, cls = 'btn-sm') => `<a class="btn btn-wa ${cls}" href="${esc(waHref(text))}" target="_blank" rel="noopener">${WA_ICON} ${esc(label)}</a>`;
+const WA_ICON = '<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.2Z"/></svg>';
+const gName = (g) => (g?.name ? ` · ${g.name}` : '');
+const msgAssignment = (a, g) => [
+  `📚 *Шинэ даалгавар*${gName(g)}`,
+  `*${a.title}*`,
+  isFamily(a) ? '👨‍👩‍👧 _Эцэг эхтэйгээ хамт хийх даалгавар_' : '',
+  a.instructions ? clip(a.instructions, 350) : '',
+  a.due_date ? `📅 Хугацаа: ${mnDate(a.due_date)}` : '',
+  `👉 ${SITE_URL()}`,
+].filter(Boolean).join('\n');
+const msgLesson = (l, g) => [
+  `📖 *Шинэ хичээл*${gName(g)}`,
+  `*${l.title}*`,
+  l.description ? clip(l.description, 300) : '',
+  /^https?:/i.test(l.video_url || '') ? `▶️ Видео: ${l.video_url}` : '',
+  `👉 ${SITE_URL()}`,
+].filter(Boolean).join('\n');
+function msgWeekly(g, lessons, asg) {
+  const today = todayIso();
+  const weekAgo = (() => { const d = new Date(); d.setDate(d.getDate() - 7); return iso(d); })();
+  const ls = lessons.filter((l) => l.group_id === g.id && l.lesson_date >= weekAgo && l.lesson_date <= today).sort((x, y) => x.lesson_date.localeCompare(y.lesson_date));
+  const due = asg.filter((a) => a.group_id === g.id && (!a.due_date || a.due_date >= today))
+    .sort((a, b) => (a.due_date || '9').localeCompare(b.due_date || '9'));
+  return [
+    `🗓 *7 хоногийн тойм* · ${g.name}`,
+    ls.length ? `\n*Энэ 7 хоногийн хичээл:*\n${ls.map((l) => `• ${mnDate(l.lesson_date)} – ${l.title}`).join('\n')}` : '',
+    due.length ? `\n*Хийх даалгавар:*\n${due.map((a) => `• ${a.title}${isFamily(a) ? ' 👨‍👩‍👧' : ''}${a.due_date ? ` — ${mnDate(a.due_date)}` : ''}`).join('\n')}` : '\nХийх даалгавар алга 🎉',
+    g.schedule ? `\n🎥 Шууд хичээл: ${g.schedule}` : '',
+    /^https?:/i.test(g.live_url || '') ? g.live_url : '',
+    `\n👉 ${SITE_URL()}`,
+  ].filter(Boolean).join('\n');
+}
+const msgLive = (g) => [
+  `⏰ *Сануулга* · ${g.name}`,
+  `Шууд хичээл: *${g.schedule || '—'}*`,
+  /^https?:/i.test(g.live_url || '') ? `🎥 ${g.live_url}` : '',
+  'Цагтаа ороорой! 🙂',
+].filter(Boolean).join('\n');
+const msgStudent = (s, open) => [
+  'Сайн байна уу! 🙂',
+  `*${s.full_name}*-ийн дараах даалгавар хараахан илгээгдээгүй байна:`,
+  ...open.map((a) => `• ${a.title}${a.due_date ? ` (хугацаа ${mnDate(a.due_date)})` : ''}`),
+  `Онлайн анги: ${SITE_URL()}`,
+  'Баярлалаа!',
+].join('\n');
 const familyTag = () => `<span class="chip chip-family">${icon('children', 13)} ${t('family')}</span>`;
 
 const app = $('#app');
@@ -679,6 +731,12 @@ async function staffManage(tabs) {
   gid = gid || groupsCache[0]?.id;
   if (!groupsCache.some((g) => g.id === gid)) gid = groupsCache[0]?.id;
   const [lessons, asg] = gid ? await Promise.all([api.lessons(gid), api.assignments(gid)]) : [[], []];
+  const curGroup = groupsCache.find((g) => g.id === gid);
+  let justSaved = null; try { justSaved = JSON.parse(sessionStorage.getItem('erdemJustSaved') || 'null'); sessionStorage.removeItem('erdemJustSaved'); } catch {}
+  const savedBanner = justSaved ? `<section class="card share-banner">
+      <div><b>✓ ${t('saved')}: ${esc(justSaved.item.title)}</b><p class="small muted">${t('waLead')}</p></div>
+      ${waBtn(justSaved.kind === 'lesson' ? msgLesson(justSaved.item, curGroup) : msgAssignment(justSaved.item, curGroup), t('waSend'), '')}
+    </section>` : '';
   shell(tabs, `
     <div class="page-head">
       <h1 class="page-title">${t('tabManage')}</h1>
@@ -686,6 +744,7 @@ async function staffManage(tabs) {
         <select id="groupSel">${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === gid ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select>
       </label>
     </div>
+    ${savedBanner}
     <div class="grid-2">
       <form class="card form" id="lessonForm">
         <h2>${t('newLesson')}</h2>
@@ -708,38 +767,43 @@ async function staffManage(tabs) {
       </form>
     </div>
     <section class="card"><h2>${t('lessons')}</h2>
-      ${lessons.map((l) => `<div class="mini-row"><span><b>${esc(fmtDate(l.lesson_date))}</b> · ${esc(l.title)}</span><button class="btn-x" data-dl="${esc(l.id)}" aria-label="${t('del')}">✕</button></div>`).join('') || `<p class="muted">${t('noLessons')}</p>`}
+      ${lessons.map((l) => `<div class="mini-row"><span><b>${esc(fmtDate(l.lesson_date))}</b> · ${esc(l.title)}</span><span class="row-actions">${waBtn(msgLesson(l, curGroup), 'WhatsApp', 'btn-xs')}<button class="btn-x" data-dl="${esc(l.id)}" aria-label="${t('del')}">✕</button></span></div>`).join('') || `<p class="muted">${t('noLessons')}</p>`}
     </section>
     <section class="card"><h2>${t('homework')}</h2>
-      ${asg.map((a) => `<div class="mini-row"><span><b>${esc(fmtDate(a.due_date)) || '—'}</b> · ${esc(a.title)} ${isFamily(a) ? familyTag() : ''}</span><button class="btn-x" data-da="${esc(a.id)}" aria-label="${t('del')}">✕</button></div>`).join('') || `<p class="muted">${t('noHomework')}</p>`}
+      ${asg.map((a) => `<div class="mini-row"><span><b>${esc(fmtDate(a.due_date)) || '—'}</b> · ${esc(a.title)} ${isFamily(a) ? familyTag() : ''}</span><span class="row-actions">${waBtn(msgAssignment(a, curGroup), 'WhatsApp', 'btn-xs')}<button class="btn-x" data-da="${esc(a.id)}" aria-label="${t('del')}">✕</button></span></div>`).join('') || `<p class="muted">${t('noHomework')}</p>`}
     </section>`);
   $('#groupSel').onchange = (e) => { try { sessionStorage.setItem('erdemGroup', e.target.value); } catch {} route(); };
   const clean = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v === '' ? null : v]));
-  $('#lessonForm').onsubmit = (e) => { e.preventDefault(); const d = clean(Object.fromEntries(new FormData(e.target))); guard(async () => { await api.saveLesson({ ...d, group_id: gid }); toast(t('saved')); route(); }); };
+  $('#lessonForm').onsubmit = (e) => { e.preventDefault(); const d = clean(Object.fromEntries(new FormData(e.target))); guard(async () => { await api.saveLesson({ ...d, group_id: gid }); try { sessionStorage.setItem('erdemJustSaved', JSON.stringify({ kind: 'lesson', item: d })); } catch {} toast(t('saved')); route(); }); };
   $('#hwFamily').onchange = (e) => { $('#ideaWrap').hidden = !e.target.checked; const p = $('#hwForm').points; if (e.target.checked && p.value === '10') p.value = '20'; };
   $('#ideaSel').onchange = (e) => { const x = FAMILY_IDEAS[e.target.value]; if (!x) return; const f = $('#hwForm'); f.title.value = x[0]; f.instructions.value = x[1]; };
-  $('#hwForm').onsubmit = (e) => { e.preventDefault(); const d = clean(Object.fromEntries(new FormData(e.target))); d.points = +(d.points || 10); if (!d.kind) delete d.kind; guard(async () => { await api.saveAssignment({ ...d, group_id: gid }); toast(t('saved')); route(); }); };
+  $('#hwForm').onsubmit = (e) => { e.preventDefault(); const d = clean(Object.fromEntries(new FormData(e.target))); d.points = +(d.points || 10); if (!d.kind) delete d.kind; guard(async () => { await api.saveAssignment({ ...d, group_id: gid }); try { sessionStorage.setItem('erdemJustSaved', JSON.stringify({ kind: 'hw', item: d })); } catch {} toast(t('saved')); route(); }); };
   $$('[data-dl]').forEach((b) => (b.onclick = () => confirm(t('confirmDel')) && guard(async () => { await api.deleteLesson(b.dataset.dl); route(); })));
   $$('[data-da]').forEach((b) => (b.onclick = () => confirm(t('confirmDel')) && guard(async () => { await api.deleteAssignment(b.dataset.da); route(); })));
 }
 
 async function staffGroups(tabs, isAdmin) {
-  const [profiles, subs, asg] = await Promise.all([api.profiles(), api.submissions(), api.assignments()]);
+  const [profiles, subs, asg, lessonsAll] = await Promise.all([api.profiles(), api.submissions(), api.assignments(), api.lessons()]);
   const students = profiles.filter((p) => p.role === 'student');
+  const openFor = (s) => asg.filter((a) => a.group_id === s.group_id && !subs.some((x) => x.assignment_id === a.id && x.student_id === s.id) && (!a.due_date || a.due_date <= iso(new Date(Date.now() + 2 * 864e5))));
   const rows = await Promise.all(students.map(async (s) => ({ s, st: stats(await api.activity(s.id), subs.filter((x) => x.student_id === s.id)) })));
   shell(tabs, `<h1 class="page-title">${t('tabGroups')}</h1>
     <div class="stack">${groupsCache.map((g) => {
       const mine = rows.filter((r) => r.s.group_id === g.id);
       const total = asg.filter((a) => a.group_id === g.id).length;
       return `<section class="card">
+        <div class="wa-bar"><span class="small muted">${t('waGroupLead')}</span>
+          ${waBtn(msgWeekly(g, lessonsAll, asg), t('waWeekly'))}
+          ${waBtn(msgLive(g), t('waLive'))}
+        </div>
         <form class="group-form" data-g="${esc(g.id)}">
           <label class="grow">${t('groupName')}<input name="name" value="${esc(g.name)}" ${isAdmin ? '' : 'readonly'}></label>
           <label>${t('schedule')}<input name="schedule" value="${esc(g.schedule || '')}"></label>
           <label class="grow">${t('liveUrl')}<input name="live_url" type="url" value="${esc(g.live_url || '')}" placeholder="https://meet.google.com/…"></label>
           <button class="btn btn-gold btn-sm">${t('save')}</button>
         </form>
-        <table class="table"><thead><tr><th>${t('student')}</th><th>${t('streak')}</th><th>${t('totalXp')}</th><th>${t('doneHw')}</th></tr></thead>
-        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}${s.team_name ? ` <small class="muted">· ${esc(s.team_name)}</small>` : ''}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td></tr>`).join('') || `<tr><td colspan="4" class="muted">${t('none')}</td></tr>`}</tbody></table>
+        <table class="table"><thead><tr><th>${t('student')}</th><th>${t('streak')}</th><th>${t('totalXp')}</th><th>${t('doneHw')}</th><th></th></tr></thead>
+        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}${s.team_name ? ` <small class="muted">· ${esc(s.team_name)}</small>` : ''}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td><td class="right">${(() => { const o = openFor(s); return o.length ? waBtn(msgStudent(s, o), `${t('waRemind')} (${o.length})`, 'btn-xs') : ''; })()}</td></tr>`).join('') || `<tr><td colspan="5" class="muted">${t('none')}</td></tr>`}</tbody></table>
       </section>`;
     }).join('')}
     ${isAdmin ? `<form class="card group-form" data-g="">

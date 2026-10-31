@@ -89,6 +89,8 @@ const dict = {
     badLogin: 'Нэвтрэх нэр эсвэл нууц үг буруу байна. Нууц үгийн том, жижиг үсгийг шалгана уу.',
     teamUpload: 'Өөрийн зураг оруулах', teamUploadHint: 'Сүүлийн нүдийг дарж өөрийн зургаа (жишээ нь хүүхдийн зурсан багийн лого) оруулж болно. Зургийг зөвхөн хүүхэд, эцэг эх, багш нар харна.',
     teamNotReady: 'Багийн тохиргоо сургууль дээр хараахан идэвхжээгүй байна. Дараа дахин оролдоорой.',
+    waLead: 'Ангийн WhatsApp бүлэгтээ мэдэгдэх үү? Товч дарахад бэлэн мессеж нээгдэнэ, бүлгээ сонгоод илгээнэ.', waSend: 'WhatsApp-аар илгээх',
+    waGroupLead: 'WhatsApp:', waWeekly: '7 хоногийн тойм', waLive: 'Хичээлийн сануулга', waRemind: 'Сануулах',
     error: 'Алдаа гарлаа', loading: 'Ачаалж байна…', file: 'Файл', days: ['Ня','Да','Мя','Лх','Пү','Ба','Бя'],
   },
   de: {
@@ -181,6 +183,8 @@ const dict = {
     badLogin: 'Benutzername oder Passwort falsch. Bitte Groß-/Kleinschreibung prüfen.',
     teamUpload: 'Eigenes Bild hochladen', teamUploadHint: 'Mit dem letzten Feld kannst du ein eigenes Bild hochladen (z. B. ein selbst gemaltes Teamlogo). Nur Kind, Eltern und Lehrkräfte sehen es.',
     teamNotReady: 'Teams sind von der Schule noch nicht aktiviert. Bitte später erneut versuchen.',
+    waLead: 'In der WhatsApp-Gruppe ankündigen? Die Nachricht ist vorbereitet – Gruppe wählen und senden.', waSend: 'Per WhatsApp senden',
+    waGroupLead: 'WhatsApp:', waWeekly: 'Wochenübersicht', waLive: 'Unterrichts-Erinnerung', waRemind: 'Erinnern',
     error: 'Fehler', loading: 'Lädt…', file: 'Datei', days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
   },
 };

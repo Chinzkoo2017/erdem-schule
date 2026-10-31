@@ -35,6 +35,7 @@ const ICONS = {
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   download: '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
   person: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   chart: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
   logout: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>',
@@ -190,6 +191,53 @@ function msgWeekly(g, lessons, asg) {
     `\n👉 ${SITE_URL()}`,
   ].filter(Boolean).join('\n');
 }
+// ---- Мэдэгдэл (хурал, арга хэмжээ)
+const ANN_KIND = { meeting: ['👥', 'annMeeting'], event: ['🎉', 'annEvent'], info: ['📣', 'annInfo'] };
+const MN_WD = ['Ням', 'Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба'];
+const annWhen = (iso) => { if (!iso) return ''; const d = new Date(iso); return `${d.getMonth() + 1}-р сарын ${d.getDate()}, ${MN_WD[d.getDay()]} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const gcalUrl = (a) => {
+  if (!a.starts_at) return '';
+  const f = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const s0 = new Date(a.starts_at), e0 = new Date(s0.getTime() + 90 * 60000);
+  const q = new URLSearchParams({ action: 'TEMPLATE', text: a.title, dates: `${f(s0)}/${f(e0)}`, details: [a.body, a.link].filter(Boolean).join('\n'), location: a.place || a.link || '' });
+  return 'https://calendar.google.com/calendar/render?' + q.toString();
+};
+const msgAnnouncement = (a) => {
+  const [em, key] = ANN_KIND[a.kind] || ANN_KIND.info;
+  const g = groupsCache.find((x) => x.id === a.group_id);
+  return [
+    `${em} *${t(key)}*${g ? ` · ${g.name}` : ''}`,
+    `*${a.title}*`,
+    a.starts_at ? `🗓 ${annWhen(a.starts_at)}` : '',
+    a.place ? `📍 ${a.place}` : '',
+    /^https?:/i.test(a.link || '') ? `🎥 ${a.link}` : '',
+    a.body ? `\n${clip(a.body, 500)}` : '',
+    a.starts_at ? `\n📅 Календарьт нэмэх: ${gcalUrl(a)}` : '',
+    '— Эрдэм сургууль',
+  ].filter(Boolean).join('\n');
+};
+function annCard(a, { staff = false } = {}) {
+  const [em, key] = ANN_KIND[a.kind] || ANN_KIND.info;
+  const d = a.starts_at ? new Date(a.starts_at) : null;
+  const g = groupsCache.find((x) => x.id === a.group_id);
+  return `<article class="ann ann-${esc(a.kind)}">
+    <div class="ann-date">${d ? `<b>${d.getDate()}</b><small>${d.getMonth() + 1}-р сар</small>` : `<b>${em}</b>`}</div>
+    <div class="ann-body">
+      <p class="ann-kind">${em} ${t(key)}${g ? ` · ${esc(g.name)}` : ''}${staff ? ` · ${t('aud_' + a.audience)}` : ''}</p>
+      <h3>${esc(a.title)}</h3>
+      ${d ? `<p class="small"><b>${esc(annWhen(a.starts_at))}</b></p>` : ''}
+      ${a.place ? `<p class="small muted">📍 ${esc(a.place)}</p>` : ''}
+      ${a.body ? `<p class="small">${esc(a.body)}</p>` : ''}
+      <div class="row-gap">
+        ${safeUrl(a.link) ? `<a class="btn btn-live btn-xs" href="${safeUrl(a.link)}" target="_blank" rel="noopener">${icon('video', 15)} ${t('annJoin')}</a>` : ''}
+        ${a.starts_at ? `<a class="btn btn-ghost btn-xs" href="${esc(gcalUrl(a))}" target="_blank" rel="noopener">📅 ${t('annCal')}</a>` : ''}
+        ${staff ? `${waBtn(msgAnnouncement(a), 'WhatsApp', 'btn-xs')}<button class="btn-x" data-dann="${esc(a.id)}" aria-label="${t('del')}">✕</button>` : ''}
+      </div>
+    </div>
+  </article>`;
+}
+const upcoming = (list) => list.filter((a) => !a.starts_at || Date.parse(a.starts_at) > Date.now() - 6 * 36e5).slice(0, 3);
+
 const msgLive = (g) => [
   `⏰ *Сануулга* · ${g.name}`,
   `Шууд хичээл: *${g.schedule || '—'}*`,
@@ -364,7 +412,7 @@ async function renderStudent() {
     api.lessons(me.group_id), api.assignments(me.group_id), api.submissions(me.id), api.activity(me.id), api.getMeta('lettersPerfect'),
     api.familyChecks(me.id),
   ]);
-  const [learn, vocabList] = await Promise.all([api.learning([me.id]).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => [])]);
+  const [learn, vocabList, anns] = await Promise.all([api.learning([me.id]).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => []), api.announcements().catch(() => [])]);
   const prog = summarize(me.id, learn, vocabList, subs, assignments);
   const newWeek = prog.wordsMastered.filter((w) => w.last_at && Date.parse(w.last_at) > Date.now() - 7 * 864e5);
   const toReview = [...prog.wordsWeak, ...prog.wordsLearning.filter((w) => w.wrong > 0 && !prog.wordsWeak.includes(w))].slice(0, 12);
@@ -419,6 +467,7 @@ async function renderStudent() {
         <h1 class="page-title">${t('hello')}, ${esc(me.full_name)}</h1></div>
       </div>
       ${group ? `<div class="mobile-only">${liveCard(group)}</div>` : ''}
+      ${upcoming(anns).length ? `<section class="stack-sm"><h2>${t('tabNews')}</h2>${upcoming(anns).map((a) => annCard(a)).join('')}</section>` : ''}
       <div class="kpi-grid">
         <div class="kpi-card"><span class="kpi-label">${t('streakLabel')}</span><span class="kpi-value">${st.streak} 🔥</span><span class="kpi-note">${t('streak')}</span></div>
         <div class="kpi-card"><span class="kpi-label">${t('totalXp')}</span><span class="kpi-value">${st.totalXp}</span><span class="kpi-note accent">${t('level')} ${level} · ${toNext} ${t('toNext')}</span>
@@ -670,12 +719,14 @@ async function renderParent() {
   const kids = await api.children();
   const ptabs = [{ id: 'children', icon: 'children', label: t('tabChildren') }];
   if (!kids.length) return shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1><p class="card muted">${t('noChildren')}</p>`);
+  const anns = await api.announcements().catch(() => []);
   const [learn, vocabList] = await Promise.all([api.learning(kids.map((k) => k.id)).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => [])]);
   const data = await Promise.all(kids.map(async (k) => {
     const [subs, act, asg, checks] = await Promise.all([api.submissions(k.id), api.activity(k.id), api.assignments(k.group_id), api.familyChecks(k.id)]);
     return { k, subs, asg, checks: checks || [], st: stats(act, subs) };
   }));
   shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1>
+    ${upcoming(anns).length ? `<section class="stack-sm"><h2>${t('tabNews')}</h2>${upcoming(anns).map((a) => annCard(a)).join('')}</section>` : ''}
     <div class="stack">${data.map(({ k, subs, asg, checks, st }) => {
       const fam = asg.filter(isFamily);
       const group = groupsCache.find((g) => g.id === k.group_id);
@@ -750,6 +801,7 @@ async function renderStaff() {
     { id: 'manage', icon: 'manage', label: t('tabManage') },
     { id: 'groups', icon: 'groups', label: t('tabGroups') },
     { id: 'insights', icon: 'chart', label: t('tabInsights') },
+    { id: 'news', icon: 'bell', label: t('tabNews') },
     ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }, { id: 'reports', icon: 'mail', label: t('tabReports') }] : []),
   ];
   const tab = currentTab(tabs);
@@ -757,6 +809,7 @@ async function renderStaff() {
   if (tab === 'manage') return staffManage(tabs);
   if (tab === 'groups') return staffGroups(tabs, isAdmin);
   if (tab === 'insights') return staffInsights(tabs);
+  if (tab === 'news') return staffNews(tabs);
   if (tab === 'users') return adminUsers(tabs);
   if (tab === 'roster') return adminRoster(tabs);
   if (tab === 'reports') return adminReports(tabs);
@@ -1073,6 +1126,47 @@ async function adminRoster(tabs) {
   }
 }
 const TEMPLATE_HEAD = (examples = false) => (examples ? TEMPLATE_ROWS : [{ 'Овог нэр': '', 'Имэйл / нэвтрэх нэр': '', 'Эрх': '', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' }]);
+
+// ------------------------------------------------------------ STAFF: announcements
+async function staffNews(tabs) {
+  const list = await api.announcements();
+  let just = null; try { just = JSON.parse(sessionStorage.getItem('erdemJustAnn') || 'null'); sessionStorage.removeItem('erdemJustAnn'); } catch {}
+  const now = Date.now();
+  const future = list.filter((a) => !a.starts_at || Date.parse(a.starts_at) > now - 6 * 36e5);
+  const past = list.filter((a) => a.starts_at && Date.parse(a.starts_at) <= now - 6 * 36e5).reverse().slice(0, 10);
+  shell(tabs, `
+    <div><h1 class="page-title">${t('tabNews')}</h1><p class="muted lead">${t('annLead')}</p></div>
+    ${just ? `<section class="card share-banner"><div><b>✓ ${t('saved')}: ${esc(just.title)}</b><p class="small muted">${t('waLead')}</p></div>${waBtn(msgAnnouncement(just), t('waSend'), '')}</section>` : ''}
+    <div class="report-grid">
+      <form class="card form" id="annForm">
+        <h2>${t('annNew')}</h2>
+        <div class="row-gap">
+          <label class="grow">${t('annKind')}<select name="kind"><option value="meeting">👥 ${t('annMeeting')}</option><option value="event">🎉 ${t('annEvent')}</option><option value="info">📣 ${t('annInfo')}</option></select></label>
+          <label class="grow">${t('annAudience')}<select name="audience">${['parents', 'families', 'students', 'teachers', 'all'].map((x) => `<option value="${x}">${t('aud_' + x)}</option>`).join('')}</select></label>
+        </div>
+        <label>${t('group')}<select name="group_id"><option value="">${t('annAllGroups')}</option>${groupsCache.map((g) => `<option value="${esc(g.id)}">${esc(g.name)}</option>`).join('')}</select></label>
+        <label>${t('title')}<input name="title" required placeholder="${t('annTitlePh')}"></label>
+        <div class="row-gap"><label class="grow">${t('date')}<input name="date" type="date"></label><label class="grow">${t('annTime')}<input name="time" type="time" value="14:00"></label></div>
+        <label>${t('annPlace')}<input name="place" placeholder="${t('annPlacePh')}"></label>
+        <label>${t('liveUrl')}<input name="link" type="url" placeholder="https://meet.google.com/…"></label>
+        <label>${t('desc')}<textarea name="body" rows="3"></textarea></label>
+        <button class="btn btn-gold">${t('save')}</button>
+      </form>
+      <section class="stack">
+        <h2>${t('annUpcoming')}</h2>
+        ${future.map((a) => annCard(a, { staff: true })).join('') || `<p class="card muted">${t('annNone')}</p>`}
+        ${past.length ? `<details><summary>${t('annPast')} (${past.length})</summary><div class="stack mt">${past.map((a) => annCard(a, { staff: true })).join('')}</div></details>` : ''}
+      </section>
+    </div>`);
+  $('#annForm').onsubmit = (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(e.target));
+    const row = { kind: d.kind, audience: d.audience, group_id: d.group_id || null, title: d.title.trim(), place: d.place.trim() || null, link: d.link.trim() || null, body: d.body.trim() || null,
+      starts_at: d.date ? new Date(`${d.date}T${d.time || '12:00'}`).toISOString() : null };
+    guard(async () => { await api.saveAnnouncement(row); try { sessionStorage.setItem('erdemJustAnn', JSON.stringify(row)); } catch {} toast(t('saved')); route(); });
+  };
+  $$('[data-dann]').forEach((b) => (b.onclick = () => guard(async () => { await api.deleteAnnouncement(b.dataset.dann); route(); })));
+}
 
 // ------------------------------------------------------------ STAFF: learning insights
 async function staffInsights(tabs) {

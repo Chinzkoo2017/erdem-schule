@@ -58,6 +58,10 @@ function seed() {
       { student_id: 's3', day: daysAgo(5), xp: 20 }, { student_id: 's3', day: daysAgo(2), xp: 10 },
     ],
     family_checks: [],
+    announcements: [
+      { id: 'an1', kind: 'meeting', audience: 'parents', group_id: null, title: 'Эцэг эхийн хурал: онлайн ангийн танилцуулга', starts_at: (() => { const d = new Date(); d.setDate(d.getDate() + ((13 - d.getDay()) % 7 || 7)); d.setHours(14, 0, 0, 0); return d.toISOString(); })(), place: 'Нюрнберг, сургуулийн танхим', link: 'https://meet.google.com/', body: 'Онлайн анги, хичээлийн хуваарь, 15 жилийн ойн арга хэмжээний талаар ярилцана.', created_at: new Date().toISOString() },
+      { id: 'an2', kind: 'event', audience: 'families', group_id: 'g1', title: 'Монгол хоолны өдөр', starts_at: (() => { const d = new Date(); d.setDate(d.getDate() + 16); d.setHours(12, 0, 0, 0); return d.toISOString(); })(), place: 'Сургуулийн заал', link: '', body: 'Гэр бүл бүр нэг монгол хоол авчирна.', created_at: new Date().toISOString() },
+    ],
     ...demoLearning(),
     meta: {},
   };
@@ -90,7 +94,7 @@ function demoLearning() {
 }
 
 function demoApi() {
-  const KEY = 'erdemDemo_v4';
+  const KEY = 'erdemDemo_v5';
   let db;
   try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
   db.family_checks ||= [];
@@ -152,6 +156,15 @@ function demoApi() {
       if (g.id) Object.assign(db.groups.find((x) => x.id === g.id), g); else db.groups.push({ ...g, id: uid() });
       persist();
     },
+    async announcements() {
+      const p = me(); if (!p) return [];
+      const staff = ['teacher', 'admin'].includes(p.role);
+      const myGroups = p.role === 'parent' ? db.parent_children.filter((l) => l.parent_id === meId).map((l) => db.profiles.find((k) => k.id === l.child_id)?.group_id) : [p.group_id];
+      return (db.announcements || []).filter((a) => staff || ((a.audience === 'all' || (['parents', 'families'].includes(a.audience) && p.role === 'parent') || (['students', 'families'].includes(a.audience) && p.role === 'student'))
+        && (!a.group_id || myGroups.includes(a.group_id)))).sort((a, b) => (a.starts_at || '9').localeCompare(b.starts_at || '9'));
+    },
+    async saveAnnouncement(a) { const row = { id: uid(), created_at: new Date().toISOString(), ...a }; db.announcements.push(row); persist(); return row; },
+    async deleteAnnouncement(id) { db.announcements = db.announcements.filter((a) => a.id !== id); persist(); },
     async recordAnswers(game, score, total, items) {
       {
         db.game_sessions.push({ student_id: meId, game, score, total, played_at: new Date().toISOString() });
@@ -318,6 +331,13 @@ async function liveApi() {
       return data;
     },
     async confirmFamily(aid, child, note) { ok(await sb.rpc('confirm_family', { aid, child, note: note || '' })); },
+    async announcements() {
+      const { data, error } = await sb.from('announcements').select('*').order('starts_at', { ascending: true, nullsFirst: false }).limit(100);
+      if (error) { console.warn('announcements', error.message); return []; }
+      return data;
+    },
+    async saveAnnouncement(a) { return ok(await sb.from('announcements').insert({ ...a, created_by: profile.id }).select().single()); },
+    async deleteAnnouncement(id) { ok(await sb.from('announcements').delete().eq('id', id)); },
     async recordAnswers(game, score, total, items) {
       const r = await sb.rpc('record_answers', { game, score, total, items });
       if (r.error) console.warn('record_answers', r.error.message);

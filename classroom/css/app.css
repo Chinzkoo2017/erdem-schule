@@ -496,3 +496,14 @@ h3.sub .chip { text-transform: none; letter-spacing: 0; margin-left: .4rem; }
 .review-nudge small { color: var(--muted); font-weight: 600; }
 .nudge-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--red-soft); color: var(--red); display: grid; place-items: center; font-weight: 800; font-size: 1.2rem; flex: none; }
 .practice-note { margin: 0 auto .6rem; max-width: 600px; font-weight: 800; color: var(--red); }
+
+/* ---------- announcements ---------- */
+.ann { display: flex; gap: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+.ann-date { flex: none; width: 58px; height: 62px; border-radius: 12px; background: var(--indigo-soft); color: var(--indigo); display: grid; place-content: center; text-align: center; line-height: 1.05; }
+.ann-date b { font-size: 1.5rem; } .ann-date small { font-size: .7rem; font-weight: 700; }
+.ann-meeting .ann-date { background: var(--gold-soft); color: var(--gold-d); }
+.ann-event .ann-date { background: var(--rose-soft); color: var(--rose); }
+.ann-body { min-width: 0; flex: 1; display: grid; gap: .25rem; }
+.ann-body h3, .ann-body p { margin: 0; }
+.ann-kind { font-size: .78rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.ann .row-gap { margin-top: .35rem; }

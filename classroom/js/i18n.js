@@ -112,6 +112,11 @@ const dict = {
     myProgNew: 'Энэ 7 хоногт цээжилсэн', myReview: 'Давтах үгс', myReviewLead: 'Эдгээрт чи алдаа гаргасан. Давтаж тоглоод цээжлээрэй!',
     myReviewNone: 'Давтах үг алга. Шинэ үг сурахын тулд тоглоорой!', myPracticeWords: 'Үгсээ давтах', myPracticeLetters: 'Үсгээ давтах',
     myMasterRule: 'Нэг үгийг 3 удаа дараалан зөв хариулбал цээжилсэнд тооцогдоно.', myPracticeMode: 'Давтлага: зөвхөн алдсан үгс',
+    tabNews: 'Мэдэгдэл', annLead: 'Эцэг эхийн хурал, арга хэмжээ, мэдээллээ энд үүсгэнэ. Сонгосон хүмүүсийн самбарт харагдаж, WhatsApp-аар нэг товчоор илгээнэ.',
+    annNew: 'Шинэ мэдэгдэл', annKind: 'Төрөл', annMeeting: 'Эцэг эхийн хурал', annEvent: 'Арга хэмжээ', annInfo: 'Мэдээлэл', annAudience: 'Хэнд',
+    aud_parents: 'Эцэг эхчүүд', aud_families: 'Эцэг эх + сурагчид', aud_students: 'Сурагчид', aud_teachers: 'Багш нар', aud_all: 'Бүгд',
+    annAllGroups: 'Бүх анги', annTitlePh: 'жишээ нь: Эцэг эхийн хурал', annTime: 'Цаг', annPlace: 'Хаана', annPlacePh: 'жишээ нь: сургуулийн танхим эсвэл онлайн',
+    annUpcoming: 'Удахгүй болох', annNone: 'Мэдэгдэл алга.', annPast: 'Өнгөрсөн', annJoin: 'Онлайнаар орох', annCal: 'Календарьт нэмэх',
     error: 'Алдаа гарлаа', loading: 'Ачаалж байна…', file: 'Файл', days: ['Ня','Да','Мя','Лх','Пү','Ба','Бя'],
   },
   de: {
@@ -227,6 +232,11 @@ const dict = {
     myProgNew: 'Diese Woche gelernt', myReview: 'Zum Wiederholen', myReviewLead: 'Hier hast du Fehler gemacht. Übe sie noch einmal!',
     myReviewNone: 'Nichts zu wiederholen. Spiel weiter, um neue Wörter zu lernen!', myPracticeWords: 'Wörter üben', myPracticeLetters: 'Buchstaben üben',
     myMasterRule: 'Ein Wort gilt als gelernt, wenn du es 3-mal hintereinander richtig beantwortest.', myPracticeMode: 'Wiederholung: nur deine Fehlerwörter',
+    tabNews: 'Mitteilungen', annLead: 'Elternabende, Veranstaltungen und Infos hier anlegen. Sie erscheinen bei den gewählten Personen und lassen sich per WhatsApp senden.',
+    annNew: 'Neue Mitteilung', annKind: 'Art', annMeeting: 'Elternabend', annEvent: 'Veranstaltung', annInfo: 'Information', annAudience: 'Für',
+    aud_parents: 'Eltern', aud_families: 'Eltern + Schüler', aud_students: 'Schüler', aud_teachers: 'Lehrkräfte', aud_all: 'Alle',
+    annAllGroups: 'Alle Klassen', annTitlePh: 'z. B. Elternabend', annTime: 'Uhrzeit', annPlace: 'Ort', annPlacePh: 'z. B. Schulraum oder online',
+    annUpcoming: 'Demnächst', annNone: 'Keine Mitteilungen.', annPast: 'Vergangen', annJoin: 'Online teilnehmen', annCal: 'Zum Kalender',
     error: 'Fehler', loading: 'Lädt…', file: 'Datei', days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
   },
 };

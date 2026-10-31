@@ -185,11 +185,11 @@ async function applyPlan(plan, state, io) {
         const password = it.password || makePassword();
         const id = await io.createUser({ email: it.email, password, name: it.name });
         idByEmail.set(it.email, id);
-        await io.updateProfile(id, fields);
+        await io.updateProfile(id, { ...fields, must_change_password: true });
         credentials.push({ name: it.name, login: it.login, password, role: ROLE_LABEL[it.role], group: it.group, family: it.family });
         log.push({ ok: true, msg: `Нэмэгдлээ: ${it.name}` });
       } else {
-        await io.updateProfile(it.id, fields);
+        await io.updateProfile(it.id, it.newPassword ? { ...fields, must_change_password: true } : fields);
         if (it.newPassword) {
           await io.setPassword(it.id, it.newPassword);
           credentials.push({ name: it.name, login: it.login, password: it.newPassword, role: ROLE_LABEL[it.role], group: it.group, family: it.family });
@@ -307,7 +307,14 @@ Deno.serve(async (req) => {
       createGroup: async (name: string) => ok(await db.from('groups').insert({ name }).select('id').single()).id,
       createUser: async ({ email, password, name }: any) =>
         ok(await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: name } })).user.id,
-      updateProfile: async (id: string, fields: any) => { ok(await db.from('profiles').upsert({ id, ...fields })); },
+      updateProfile: async (id: string, fields: any) => {
+        let r = await db.from('profiles').upsert({ id, ...fields });
+        if (r.error && 'must_change_password' in fields && /must_change_password/.test(r.error.message)) {
+          const { must_change_password: _skip, ...rest } = fields; // 003 migration ажиллаагүй бол
+          r = await db.from('profiles').upsert({ id, ...rest });
+        }
+        ok(r);
+      },
       setPassword: async (id: string, password: string) => { ok(await db.auth.admin.updateUserById(id, { password })); },
       addLink: async (parent_id: string, child_id: string) => { ok(await db.from('parent_children').upsert({ parent_id, child_id })); },
       removeLink: async (parent_id: string, child_id: string) => { ok(await db.from('parent_children').delete().match({ parent_id, child_id })); },

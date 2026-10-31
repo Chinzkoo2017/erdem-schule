@@ -183,11 +183,11 @@ export async function applyPlan(plan, state, io) {
         const password = it.password || makePassword();
         const id = await io.createUser({ email: it.email, password, name: it.name });
         idByEmail.set(it.email, id);
-        await io.updateProfile(id, fields);
+        await io.updateProfile(id, { ...fields, must_change_password: true });
         credentials.push({ name: it.name, login: it.login, password, role: ROLE_LABEL[it.role], group: it.group, family: it.family });
         log.push({ ok: true, msg: `Нэмэгдлээ: ${it.name}` });
       } else {
-        await io.updateProfile(it.id, fields);
+        await io.updateProfile(it.id, it.newPassword ? { ...fields, must_change_password: true } : fields);
         if (it.newPassword) {
           await io.setPassword(it.id, it.newPassword);
           credentials.push({ name: it.name, login: it.login, password: it.newPassword, role: ROLE_LABEL[it.role], group: it.group, family: it.family });

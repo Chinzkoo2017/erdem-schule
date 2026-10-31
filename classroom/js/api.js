@@ -123,6 +123,8 @@ function demoApi() {
       if (g.id) Object.assign(db.groups.find((x) => x.id === g.id), g); else db.groups.push({ ...g, id: uid() });
       persist();
     },
+    async changePassword() { const p = me(); if (p) p.must_change_password = false; persist(); },
+    async setTeam(id, team_name, avatar) { Object.assign(db.profiles.find((p) => p.id === id), { team_name, avatar }); persist(); },
     async familyChecks(studentId) { return db.family_checks.filter((c) => !studentId || c.student_id === studentId); },
     async confirmFamily(aid, child, note) {
       const ex = db.family_checks.find((c) => c.assignment_id === aid && c.student_id === child);
@@ -247,6 +249,16 @@ async function liveApi() {
       return data;
     },
     async confirmFamily(aid, child, note) { ok(await sb.rpc('confirm_family', { aid, child, note: note || '' })); },
+    async changePassword(password) {
+      ok(await sb.auth.updateUser({ password }));
+      const r = await sb.rpc('password_changed');
+      if (r.error) console.warn(r.error.message);
+      if (profile) profile.must_change_password = false;
+    },
+    async setTeam(target, name, icon) {
+      ok(await sb.rpc('set_team', { target, name, icon }));
+      if (profile && profile.id === target) Object.assign(profile, { team_name: name, avatar: icon });
+    },
     async roster(action, rows = [], deactivateMissing = true) {
       const { data, error } = await sb.functions.invoke('roster-sync', { body: { action, rows, deactivateMissing } });
       if (error) {

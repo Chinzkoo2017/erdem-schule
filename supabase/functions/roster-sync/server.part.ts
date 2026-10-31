@@ -68,7 +68,14 @@ Deno.serve(async (req) => {
       createGroup: async (name: string) => ok(await db.from('groups').insert({ name }).select('id').single()).id,
       createUser: async ({ email, password, name }: any) =>
         ok(await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: name } })).user.id,
-      updateProfile: async (id: string, fields: any) => { ok(await db.from('profiles').upsert({ id, ...fields })); },
+      updateProfile: async (id: string, fields: any) => {
+        let r = await db.from('profiles').upsert({ id, ...fields });
+        if (r.error && 'must_change_password' in fields && /must_change_password/.test(r.error.message)) {
+          const { must_change_password: _skip, ...rest } = fields; // 003 migration ажиллаагүй бол
+          r = await db.from('profiles').upsert({ id, ...rest });
+        }
+        ok(r);
+      },
       setPassword: async (id: string, password: string) => { ok(await db.auth.admin.updateUserById(id, { password })); },
       addLink: async (parent_id: string, child_id: string) => { ok(await db.from('parent_children').upsert({ parent_id, child_id })); },
       removeLink: async (parent_id: string, child_id: string) => { ok(await db.from('parent_children').delete().match({ parent_id, child_id })); },

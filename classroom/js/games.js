@@ -158,12 +158,15 @@ function build(root, rounds, prompt, onDone, replay, { joiner = '', tileClass = 
     checkBtn.onclick = () => {
       const guess = picked.map((n) => tiles[n].p).join(joiner);
       const right = r.parts.join(joiner);
-      const ok = guess === right;
+      const low = (x) => x.toLocaleLowerCase('mn');
+      const alts = r.alts || [];
+      const ok = low(guess) === low(right) || alts.some((a) => low(a) === low(guess));
       if (ok) score++;
       const fb = root.querySelector('.quiz-feedback');
       fb.className = 'quiz-feedback ' + (ok ? 'ok' : 'bad');
-      fb.innerHTML = ok ? `✅ ${t('correct')} <span class="mn">${esc(r.show || right)}</span>`
-        : `❌ ${t('answerWas')}: <span class="mn">${esc(r.show || right)}</span>`;
+      const also = alts.length ? `<br><small>${t('alsoRight')}: ${[right, ...alts].filter((x) => low(x) !== low(guess)).map((x) => `<span class="mn">${esc(x)}.</span>`).join(' · ')}</small>` : '';
+      fb.innerHTML = (ok ? `✅ ${t('correct')} <span class="mn">${esc(ok && joiner ? guess + '.' : r.show || right)}</span>`
+        : `❌ ${t('answerWas')}: <span class="mn">${esc(r.show || right)}</span>`) + also;
       ans.classList.add(ok ? 'is-right' : 'is-wrong');
       root.querySelectorAll('button').forEach((b) => (b.disabled = true));
       setTimeout(() => { i++; render(); }, ok ? 1200 : 2200);
@@ -186,19 +189,19 @@ export function wordBuilder(root, vocab, onDone) {
 export const SENTENCES = [
   ['Би ном уншиж байна', 'Ich lese ein Buch.'],
   ['Миний ээж хоол хийж байна', 'Meine Mutter kocht.'],
-  ['Бид Бямба гарагт монгол хэл сурдаг', 'Samstags lernen wir Mongolisch.'],
-  ['Морь талд давхиж байна', 'Das Pferd galoppiert in der Steppe.'],
+  ['Бид Бямба гарагт монгол хэл сурдаг', 'Samstags lernen wir Mongolisch.', ['Бямба гарагт бид монгол хэл сурдаг']],
+  ['Морь талд давхиж байна', 'Das Pferd galoppiert in der Steppe.', ['Талд морь давхиж байна']],
   ['Аав маань машин жолоодно', 'Mein Vater fährt Auto.'],
-  ['Өнөөдөр цас орж байна', 'Heute schneit es.'],
+  ['Өнөөдөр цас орж байна', 'Heute schneit es.', ['Цас өнөөдөр орж байна']],
   ['Манай гэр Нюрнбергт байдаг', 'Unser Zuhause ist in Nürnberg.'],
   ['Эгч маань дуу дуулж байна', 'Meine Schwester singt ein Lied.'],
-  ['Би өглөө сүү уудаг', 'Morgens trinke ich Milch.'],
+  ['Би өглөө сүү уудаг', 'Morgens trinke ich Milch.', ['Өглөө би сүү уудаг']],
   ['Өвөө маань Улаанбаатарт амьдардаг', 'Mein Opa lebt in Ulaanbaatar.'],
-  ['Бид зун Монгол руу явна', 'Im Sommer fahren wir in die Mongolei.'],
-  ['Миний дуртай амьтан бол морь', 'Mein Lieblingstier ist das Pferd.'],
+  ['Бид зун Монгол руу явна', 'Im Sommer fahren wir in die Mongolei.', ['Бид Монгол руу зун явна', 'Зун бид Монгол руу явна']],
+  ['Миний дуртай амьтан бол морь', 'Mein Lieblingstier ist das Pferd.', ['Морь бол миний дуртай амьтан']],
 ];
 export function sentenceBuilder(root, onDone) {
-  const rounds = shuffle(SENTENCES).slice(0, 6).map(([mn, de]) => ({ parts: mn.split(' '), hint: esc(de), show: mn + '.' }));
+  const rounds = shuffle(SENTENCES).slice(0, 6).map(([mn, de, alts]) => ({ parts: mn.split(' '), alts: alts || [], hint: esc(de), show: mn + '.' }));
   build(root, rounds, t('buildSent'), onDone, () => sentenceBuilder(root, onDone), { joiner: ' ', tileClass: 'words' });
 }
 

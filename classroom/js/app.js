@@ -38,7 +38,34 @@ const ICONS = {
 };
 const icon = (k, size = 20) => `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k] || ''}</svg>`;
 const initials = (n) => esc(([...(String(n || '?').trim())][0] || '?').toUpperCase());
-const avatar = (p, cls = '') => `<span class="avatar ${cls}">${initials(p?.full_name)}</span>`;
+const TEAM_ICONS = ['🐎', '🐫', '🦅', '🐺', '🐆', '🦌', '🐑', '🐐', '🐻', '🦉', '🏹', '⛰️', '🌙', '☀️', '🔥', '⭐', '🌊', '🌲'];
+const avatar = (p, cls = '') => (p?.team_name && p?.avatar
+  ? `<span class="avatar team ${cls}" title="${esc(p.team_name)}">${esc(p.avatar)}</span>`
+  : `<span class="avatar ${cls}">${initials(p?.full_name)}</span>`);
+const teamLine = (p) => (p?.team_name ? `${esc(p.avatar || '')} ${esc(p.team_name)}` : '');
+
+function teamEditorHtml(p, { first = false } = {}) {
+  const cur = p.team_name ? p.avatar : TEAM_ICONS[0];
+  return `<form class="team-form" data-target="${esc(p.id)}">
+    <label>${t('teamName')}<input name="team" maxlength="40" required value="${esc(p.team_name || '')}" placeholder="${t('teamPlaceholder')}"></label>
+    <fieldset class="icon-pick"><legend>${t('teamIcon')}</legend>
+      ${TEAM_ICONS.map((ic) => `<label class="icon-opt"><input type="radio" name="icon" value="${ic}" ${ic === cur ? 'checked' : ''}><span>${ic}</span></label>`).join('')}
+    </fieldset>
+    <div class="team-preview" aria-live="polite"></div>
+    <div class="row-gap"><button class="btn btn-gold">${t('teamSave')}</button>${first ? `<button type="button" class="btn btn-ghost" data-later>${t('teamLater')}</button>` : `<button type="button" class="btn btn-ghost" data-cancel>${t('cancel')}</button>`}</div>
+  </form>`;
+}
+function bindTeamEditor(f, done) {
+  const prev = $('.team-preview', f);
+  const draw = () => { prev.innerHTML = `<span class="avatar team xl">${esc(f.icon.value)}</span><b>${esc(f.team.value || t('teamPlaceholder'))}</b>`; };
+  f.oninput = draw; draw();
+  f.onsubmit = (e) => {
+    e.preventDefault();
+    const name = f.team.value.trim();
+    if (!name) return f.team.focus();
+    guard(async () => { await api.setTeam(f.dataset.target, name, f.icon.value); toast(t('saved')); done(); });
+  };
+}
 const isAudio = (p) => /\.(webm|ogg|oga|mp3|m4a|wav|aac)$/i.test(p) || /audio/i.test(p);
 const isImage = (p) => /\.(png|jpe?g|gif|webp|heic|heif)$/i.test(p);
 const filesOf = (s) => (s?.files?.length ? s.files : s?.file_path ? [s.file_path] : []);
@@ -138,7 +165,7 @@ function shell(tabs, body, opts = {}) {
         </div>` : ''}
         <div class="side-user">
           ${avatar(me)}
-          <span class="side-user-text"><strong>${esc(me.full_name)}</strong><small>${t('r' + me.role)}</small></span>
+          <a class="side-user-text" href="#me" title="${t('myProfile')}"><strong>${esc(me.full_name)}</strong><small>${me.role === 'student' && me.team_name ? teamLine(me) : t('r' + me.role)}</small></a>
           ${langBtn}
           <button class="icon-btn" id="logout" aria-label="${t('logout')}" title="${t('logout')}">${icon('logout')}</button>
         </div>
@@ -255,7 +282,7 @@ async function renderStudent() {
   const views = {
     home: () => `
       <div class="page-head">
-        <div><p class="eyebrow">${esc(fmtDate(todayIso()))}${group ? ' · ' + esc(group.name) : ''}</p>
+        <div><p class="eyebrow">${esc(fmtDate(todayIso()))}${group ? ' · ' + esc(group.name) : ''}${me.team_name ? ` · ${t('team')}: ${teamLine(me)}` : ''}</p>
         <h1 class="page-title">${t('hello')}, ${esc(me.full_name)}</h1></div>
       </div>
       ${group ? `<div class="mobile-only">${liveCard(group)}</div>` : ''}
@@ -467,7 +494,8 @@ async function renderParent() {
       return `<section class="card child">
         <div class="child-head">
           ${avatar(k, 'xl')}
-          <div><h2>${esc(k.full_name)}</h2><p class="muted">${esc(group?.name || t('none'))}${group?.schedule ? ' · ' + esc(group.schedule) : ''}</p></div>
+          <div><h2>${esc(k.full_name)}</h2><p class="muted">${esc(group?.name || t('none'))}${group?.schedule ? ' · ' + esc(group.schedule) : ''}</p>
+            <p class="small">${k.team_name ? `${t('team')}: <b>${teamLine(k)}</b> · ` : ''}<button class="link" data-team="${esc(k.id)}">${t('teamEdit')}</button></p></div>
           ${safeUrl(group?.live_url) ? `<a class="btn btn-live btn-sm push" href="${safeUrl(group.live_url)}" target="_blank" rel="noopener">${icon('video', 16)} ${t('joinLive')}</a>` : ''}
         </div>
         <div class="kpis">
@@ -499,6 +527,15 @@ async function renderParent() {
         }).join('') || `<p class="muted">${t('noHomework')}</p>`}</div>
       </section>`;
     }).join('')}</div>`);
+  $$('[data-team]').forEach((b) => (b.onclick = () => {
+    const card = b.closest('.child');
+    if ($('.team-form', card)) return;
+    const kid = kids.find((x) => x.id === b.dataset.team);
+    $('.child-head', card).insertAdjacentHTML('afterend', `<div class="team-box">${teamEditorHtml(kid)}</div>`);
+    const f = $('.team-form', card);
+    $('[data-cancel]', f).onclick = () => f.parentElement.remove();
+    bindTeamEditor(f, () => route());
+  }));
   $$('[data-confirm]').forEach((b) => (b.onclick = () => {
     const box = b.closest('.family-task');
     if ($('.family-form', box)) return;
@@ -639,7 +676,7 @@ async function staffGroups(tabs, isAdmin) {
           <button class="btn btn-gold btn-sm">${t('save')}</button>
         </form>
         <table class="table"><thead><tr><th>${t('student')}</th><th>${t('streak')}</th><th>${t('totalXp')}</th><th>${t('doneHw')}</th></tr></thead>
-        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td></tr>`).join('') || `<tr><td colspan="4" class="muted">${t('none')}</td></tr>`}</tbody></table>
+        <tbody>${mine.map(({ s, st }) => `<tr><td>${avatar(s)} ${esc(s.full_name)}${s.team_name ? ` <small class="muted">· ${esc(s.team_name)}</small>` : ''}</td><td>${st.streak}</td><td>${st.totalXp}</td><td>${st.subs}/${total}</td></tr>`).join('') || `<tr><td colspan="4" class="muted">${t('none')}</td></tr>`}</tbody></table>
       </section>`;
     }).join('')}
     ${isAdmin ? `<form class="card group-form" data-g="">
@@ -822,10 +859,67 @@ async function adminRoster(tabs) {
 }
 const TEMPLATE_HEAD = (examples = false) => (examples ? TEMPLATE_ROWS : [{ 'Овог нэр': '', 'Имэйл / нэвтрэх нэр': '', 'Эрх': '', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '' }]);
 
+// ------------------------------------------------------------ account
+const teamSkipped = () => { try { return sessionStorage.getItem('erdemTeamLater') === '1'; } catch { return false; } };
+function pwFormHtml(id) {
+  return `<form class="form" id="${id}">
+    <label>${t('newPw')}<input name="pw" type="password" minlength="8" required autocomplete="new-password"></label>
+    <label>${t('newPw2')}<input name="pw2" type="password" minlength="8" required autocomplete="new-password"></label>
+    <p class="form-msg bad" aria-live="polite"></p>
+    <button class="btn btn-gold">${t('changePw')}</button>
+  </form>`;
+}
+function bindPwForm(f, done) {
+  f.onsubmit = (e) => {
+    e.preventDefault();
+    const msg = $('.form-msg', f);
+    if (f.pw.value.length < 8) return (msg.textContent = t('pwShort'));
+    if (f.pw.value !== f.pw2.value) return (msg.textContent = t('pwMismatch'));
+    msg.textContent = '';
+    $('button', f).disabled = true;
+    guard(async () => { await api.changePassword(f.pw.value); toast(t('pwSaved')); done(); })
+      .finally(() => { const b = $('button', f); if (b) b.disabled = false; });
+  };
+}
+function renderFirstPassword() {
+  shell([], `<section class="onboard card">
+    <p class="eyebrow">${t('hello')}, ${esc(me.full_name)}</p>
+    <h1 class="page-title">${t('firstPwTitle')}</h1>
+    <p class="muted">${t('firstPwLead')}</p>
+    ${pwFormHtml('firstPw')}
+  </section>`);
+  bindPwForm($('#firstPw'), () => route());
+}
+function renderTeamOnboarding() {
+  shell([], `<section class="onboard card">
+    <h1 class="page-title">${t('teamTitle')}</h1>
+    <p class="muted">${t('teamLead')}</p>
+    ${teamEditorHtml(me, { first: true })}
+  </section>`);
+  const f = $('.team-form');
+  $('[data-later]', f).onclick = () => { try { sessionStorage.setItem('erdemTeamLater', '1'); } catch {} route(); };
+  bindTeamEditor(f, () => route());
+}
+async function renderMe() {
+  groupsCache = groupsCache.length ? groupsCache : await api.groups().catch(() => []);
+  const back = me.role === 'student' ? '#home' : me.role === 'parent' ? '#children' : '#review';
+  shell([], `<div class="page-head"><h1 class="page-title">${t('myProfile')}</h1><a class="link" href="${back}">← ${t('back')}</a></div>
+    <div class="grid-2">
+      ${me.role === 'student' ? `<section class="card"><h2>${t('team')}</h2>${teamEditorHtml(me)}</section>` : ''}
+      <section class="card"><h2>${t('changePw')}</h2>${pwFormHtml('mePw')}</section>
+    </div>`);
+  bindPwForm($('#mePw'), () => { location.hash = back; });
+  const f = $('.team-form');
+  if (f) { $('[data-cancel]', f).onclick = () => { location.hash = back; }; bindTeamEditor(f, () => { location.hash = back; }); }
+}
+
 // ------------------------------------------------------------ router
 async function route() {
   document.documentElement.lang = getLang() === 'de' ? 'de' : 'mn';
   if (!me) return renderLogin();
+  if (me.must_change_password) return renderFirstPassword();
+  if (me.role === 'student' && !me.team_name && !teamSkipped()) return renderTeamOnboarding();
+  if (location.hash === '#me') return renderMe();
   if (me.role === 'pending') return shell([], `<section class="card pending center"><h1>${t('pendingTitle')}</h1><p class="muted">${t('pendingLead')}</p></section>`);
   await guard(async () => {
     groupsCache = await api.groups();

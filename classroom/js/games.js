@@ -3,6 +3,11 @@ import { t } from './i18n.js';
 const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// Хариулт бүрийг тэмдэглэж (анализд) тоглоом дуусахад onDone-д дамжуулна
+let LOG = { game: '', items: [] };
+const begin = (game) => { LOG = { game, items: [] }; };
+const note = (key, ok) => { if (key) LOG.items.push({ kind: key.kind, item: key.item, ok: !!ok }); };
+
 // Монгол кирилл үсэг → дуудлага (латин) → жишээ үг
 export const LETTERS = [
   ['А','a','аав'],['Б','b','бар'],['В','v','ваар'],['Г','g','гэр'],['Д','d','дээл'],['Е','ye','ес'],['Ё','yo','ёотон'],
@@ -26,11 +31,12 @@ function finish(root, score, total, xp, onDone, replay) {
     </div>`;
   root.querySelector('[data-a=again]').onclick = replay;
   root.querySelector('[data-a=back]').onclick = () => onDone(null);
-  onDone({ xp, score, total });
+  onDone({ xp, score, total, game: LOG.game, items: LOG.items });
 }
 
 // ------------------------------------------------------------ Flashcards
 export function flashcards(root, vocab, lang, onDone) {
+  begin('flash');
   const deck = shuffle(vocab).slice(0, 10);
   let i = 0, known = 0;
   const again = [];
@@ -56,8 +62,8 @@ export function flashcards(root, vocab, lang, onDone) {
       </div>`;
     const card = root.querySelector('.flashcard');
     card.onclick = () => card.classList.toggle('flipped');
-    root.querySelector('[data-a=know]').onclick = () => { known++; i++; render(); };
-    root.querySelector('[data-a=again]').onclick = () => { again.push(c); i++; render(); };
+    root.querySelector('[data-a=know]').onclick = () => { known++; note({ kind: 'vocab', item: c.mn }, true); i++; render(); };
+    root.querySelector('[data-a=again]').onclick = () => { again.push(c); note({ kind: 'vocab', item: c.mn }, false); i++; render(); };
   }
   render();
 }
@@ -84,6 +90,7 @@ function quiz(root, rounds, onDone, replay, { bonusPerfect = 0 } = {}) {
       b.onclick = () => {
         const k = +b.dataset.k;
         root.querySelectorAll('.quiz-opt').forEach((x) => { x.disabled = true; if (r.options[+x.dataset.k].correct) x.classList.add('right'); });
+        note(r.key, r.options[k].correct);
         if (r.options[k].correct) { score++; fb.innerHTML = `✅ ${t('correct')} ${r.after || ''}`; fb.className = 'quiz-feedback ok'; }
         else { b.classList.add('wrongpick'); fb.innerHTML = `❌ ${t('wrong')} ${r.after || ''}`; fb.className = 'quiz-feedback bad'; }
         setTimeout(() => { i++; render(); }, 1300);
@@ -95,10 +102,12 @@ function quiz(root, rounds, onDone, replay, { bonusPerfect = 0 } = {}) {
 
 // ------------------------------------------------------------ Cyrillic letters
 export function letters(root, onDone) {
+  begin('letters');
   const picks = shuffle(LETTERS).slice(0, 10);
   const rounds = picks.map(([L, s, ex]) => {
     const wrong = shuffle(LETTERS.filter((x) => x[1] !== s)).slice(0, 3).map((x) => ({ label: esc(x[1]), correct: false }));
     return {
+      key: { kind: 'letter', item: L },
       prompt: t('whichSound'),
       big: `${L}<small>${L.toLowerCase()}</small>`, bigClass: 'letter',
       options: shuffle([{ label: esc(s), correct: true }, ...wrong]),
@@ -110,9 +119,11 @@ export function letters(root, onDone) {
 
 // ------------------------------------------------------------ Picture match
 export function pictures(root, vocab, onDone) {
+  begin('pics');
   const withEmoji = vocab.filter((v) => v.emoji);
   const picks = shuffle(withEmoji).slice(0, 10);
   const rounds = picks.map((v) => ({
+    key: { kind: 'vocab', item: v.mn },
     prompt: t('findPic'),
     big: `<span class="mn">${esc(v.mn)}</span>`, bigClass: 'word',
     optClass: 'emoji-opts',
@@ -162,6 +173,7 @@ function build(root, rounds, prompt, onDone, replay, { joiner = '', tileClass = 
       const alts = r.alts || [];
       const ok = low(guess) === low(right) || alts.some((a) => low(a) === low(guess));
       if (ok) score++;
+      note(r.key, ok);
       const fb = root.querySelector('.quiz-feedback');
       fb.className = 'quiz-feedback ' + (ok ? 'ok' : 'bad');
       const also = alts.length ? `<br><small>${t('alsoRight')}: ${[right, ...alts].filter((x) => low(x) !== low(guess)).map((x) => `<span class="mn">${esc(x)}.</span>`).join(' · ')}</small>` : '';
@@ -178,9 +190,10 @@ function build(root, rounds, prompt, onDone, replay, { joiner = '', tileClass = 
 
 // ------------------------------------------------------------ Word builder
 export function wordBuilder(root, vocab, onDone) {
+  begin('word');
   const pool = vocab.filter((v) => [...v.mn].length >= 3 && [...v.mn].length <= 7 && !v.mn.includes(' '));
   const rounds = shuffle(pool).slice(0, 8).map((v) => ({
-    parts: [...v.mn], hint: `${esc(v.emoji || '')} ${esc(v.de)}`,
+    key: { kind: 'vocab', item: v.mn }, parts: [...v.mn], hint: `${esc(v.emoji || '')} ${esc(v.de)}`,
   }));
   build(root, rounds, t('buildWord'), onDone, () => wordBuilder(root, vocab, onDone), { tileClass: 'letters' });
 }
@@ -201,7 +214,8 @@ export const SENTENCES = [
   ['Миний дуртай амьтан бол морь', 'Mein Lieblingstier ist das Pferd.', ['Морь бол миний дуртай амьтан']],
 ];
 export function sentenceBuilder(root, onDone) {
-  const rounds = shuffle(SENTENCES).slice(0, 6).map(([mn, de, alts]) => ({ parts: mn.split(' '), alts: alts || [], hint: esc(de), show: mn + '.' }));
+  begin('sent');
+  const rounds = shuffle(SENTENCES).slice(0, 6).map(([mn, de, alts]) => ({ key: { kind: 'sentence', item: mn }, parts: mn.split(' '), alts: alts || [], hint: esc(de), show: mn + '.' }));
   build(root, rounds, t('buildSent'), onDone, () => sentenceBuilder(root, onDone), { joiner: ' ', tileClass: 'words' });
 }
 
@@ -219,10 +233,12 @@ export const SUFFIXES = [
   { s: 'Тэр гэр_ гарлаа.', ok: 'ээс', opts: ['аас', 'оос', 'т'], de: 'Er ging aus dem Haus.' },
 ];
 export function fillSuffix(root, onDone) {
+  begin('fill');
   const rounds = shuffle(SUFFIXES).slice(0, 8).map((q) => {
     const word = q.s.split(' ').find((w) => w.includes('_'));
     const full = word.replace('_', q.ok).replace('.', '');
     return {
+      key: { kind: 'suffix', item: q.s },
       prompt: t('fillQ'),
       big: `<span class="mn">${esc(q.s).replace('_', '<span class="blank">___</span>')}</span>`, bigClass: 'sentence',
       options: shuffle([{ label: '-' + esc(q.ok), correct: true }, ...q.opts.map((o) => ({ label: '-' + esc(o), correct: false }))]),

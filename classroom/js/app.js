@@ -2,6 +2,7 @@ import { createApi } from './api.js';
 import { t, getLang, setLang } from './i18n.js';
 import { flashcards, letters, pictures, wordBuilder, sentenceBuilder, fillSuffix } from './games.js';
 import { TEMPLATE_ROWS } from './roster-core.js';
+import { summarize, insightsHtml } from './insights.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -34,6 +35,7 @@ const ICONS = {
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   download: '<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
   logout: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/>',
   image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
 };
@@ -576,6 +578,7 @@ function bindGames() {
   const onDone = async (res) => {
     if (!res) return route();
     if (res.xp > 0) await guard(() => api.addXp(res.xp));
+    if (res.items?.length) api.recordAnswers(res.game, res.score, res.total, res.items).catch(() => {});
     if (res.total === 10 && res.score === 10 && area.dataset.g === 'letters') await api.setMeta('lettersPerfect', true);
   };
   $$('.game-tile', area).forEach((b) => (b.onclick = async () => {
@@ -599,6 +602,7 @@ async function renderParent() {
   const kids = await api.children();
   const ptabs = [{ id: 'children', icon: 'children', label: t('tabChildren') }];
   if (!kids.length) return shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1><p class="card muted">${t('noChildren')}</p>`);
+  const [learn, vocabList] = await Promise.all([api.learning(kids.map((k) => k.id)).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => [])]);
   const data = await Promise.all(kids.map(async (k) => {
     const [subs, act, asg, checks] = await Promise.all([api.submissions(k.id), api.activity(k.id), api.assignments(k.group_id), api.familyChecks(k.id)]);
     return { k, subs, asg, checks: checks || [], st: stats(act, subs) };
@@ -635,6 +639,8 @@ async function renderParent() {
             </div>`;
           }).join('') : `<p class="muted small">${t('familyNone')}</p>`}
         </div>
+        <h3 class="sub">${t('insTitle')} <span class="chip chip-muted">${t('insPrivate')}</span></h3>
+        ${insightsHtml(summarize(k.id, learn, vocabList, subs, asg), vocabList, { forParent: true })}
         <h3 class="sub">${t('week')}</h3>${weekChart(st.week)}
         <h3 class="sub">${t('recent')}</h3>
         <div class="stack-sm">${asg.slice(0, 5).map((a) => {
@@ -675,12 +681,14 @@ async function renderStaff() {
     { id: 'review', icon: 'review', label: t('tabReview') },
     { id: 'manage', icon: 'manage', label: t('tabManage') },
     { id: 'groups', icon: 'groups', label: t('tabGroups') },
+    { id: 'insights', icon: 'chart', label: t('tabInsights') },
     ...(isAdmin ? [{ id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }, { id: 'reports', icon: 'mail', label: t('tabReports') }] : []),
   ];
   const tab = currentTab(tabs);
   if (tab === 'review') return staffReview(tabs);
   if (tab === 'manage') return staffManage(tabs);
   if (tab === 'groups') return staffGroups(tabs, isAdmin);
+  if (tab === 'insights') return staffInsights(tabs);
   if (tab === 'users') return adminUsers(tabs);
   if (tab === 'roster') return adminRoster(tabs);
   if (tab === 'reports') return adminReports(tabs);
@@ -997,6 +1005,64 @@ async function adminRoster(tabs) {
   }
 }
 const TEMPLATE_HEAD = (examples = false) => (examples ? TEMPLATE_ROWS : [{ 'Овог нэр': '', 'Имэйл / нэвтрэх нэр': '', 'Эрх': '', 'Анги': '', 'Гэр бүл': '', 'Нууц үг': '', 'Шинэ нууц үг': '', 'Утас': '', 'Холбоо барих имэйл': '' }]);
+
+// ------------------------------------------------------------ STAFF: learning insights
+async function staffInsights(tabs) {
+  let gid; try { gid = sessionStorage.getItem('erdemGroup'); } catch {}
+  if (!groupsCache.some((g) => g.id === gid)) gid = groupsCache[0]?.id;
+  const [profiles, subs, asg, vocabList] = await Promise.all([api.profiles(), api.submissions(), api.assignments(gid), api.vocab()]);
+  const kids = profiles.filter((p) => p.role === 'student' && p.group_id === gid);
+  const learn = await api.learning(kids.map((k) => k.id));
+  const rows = kids.map((k) => ({ k, s: summarize(k.id, learn, vocabList, subs.filter((x) => x.student_id === k.id), asg) }));
+  const avg = (f) => (rows.length ? Math.round(rows.reduce((a, r) => a + f(r.s), 0) / rows.length) : 0);
+  // Ангийн хэмжээнд хамгийн их алддаг үгс/үсэг (дор хаяж 3 оролдлого)
+  const agg = new Map();
+  for (const w of learn.stats.filter((x) => kids.some((k) => k.id === x.student_id) && (x.kind === 'vocab' || x.kind === 'letter'))) {
+    const key = w.kind + '|' + w.item, a = agg.get(key) || { item: w.item, kind: w.kind, c: 0, x: 0, kids: 0 };
+    a.c += w.correct; a.x += w.wrong; a.kids += 1; agg.set(key, a);
+  }
+  const hard = [...agg.values()].filter((a) => a.c + a.x >= 3 && a.x > 0).map((a) => ({ ...a, err: Math.round((a.x / (a.c + a.x)) * 100) }))
+    .sort((a, b) => b.err - a.err).slice(0, 10);
+  const de = (mn) => vocabList.find((v) => v.mn === mn)?.de || '';
+  const rel = (iso) => { if (!iso) return '—'; const d = Math.floor((Date.now() - Date.parse(iso)) / 864e5); return d <= 0 ? t('today') : `${d} ${t('daysAgo')}`; };
+  shell(tabs, `
+    <div class="page-head">
+      <div><h1 class="page-title">${t('tabInsights')}</h1><p class="muted small">${t('insStaffLead')}</p></div>
+      <label class="inline">${t('group')}<select id="groupSel">${groupsCache.map((g) => `<option value="${esc(g.id)}" ${g.id === gid ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></label>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><span class="kpi-label">${t('insAvgWords')}</span><span class="kpi-value">${avg((s) => s.wordsMastered.length)}<small> / ${vocabList.length}</small></span></div>
+      <div class="kpi-card"><span class="kpi-label">${t('insAvgLetters')}</span><span class="kpi-value">${avg((s) => s.lettersMastered.length)}<small> / 32</small></span></div>
+      <div class="kpi-card"><span class="kpi-label">${t('insAvgAcc')}</span><span class="kpi-value">${avg((s) => s.accAll.pct)}%</span></div>
+      <div class="kpi-card"><span class="kpi-label">${t('insActiveWeek')}</span><span class="kpi-value">${rows.filter((r) => r.s.sessionsWeek > 0).length}<small> / ${rows.length}</small></span></div>
+    </div>
+    <section class="card table-wrap">
+      <h2>${t('students')}</h2>
+      <table class="table ins-table"><thead><tr><th>${t('student')}</th><th>${t('insWords')}</th><th>${t('insLetters')}</th><th>${t('insAccuracy')}</th><th>${t('insGames7')}</th><th>${t('insOnTime')}</th><th>${t('insLast')}</th></tr></thead><tbody>
+      ${rows.map(({ k, s }) => `<tr class="ins-row" data-k="${esc(k.id)}" tabindex="0">
+        <td class="user-cell">${avatar(k)} <span>${esc(k.full_name)}</span></td>
+        <td><b>${s.wordsMastered.length}</b><span class="muted">/${s.vocabTotal}</span> <span class="mini-meter"><span style="width:${s.vocabTotal ? (s.wordsMastered.length / s.vocabTotal) * 100 : 0}%"></span></span></td>
+        <td><b>${s.lettersMastered.length}</b><span class="muted">/32</span></td>
+        <td class="${s.accAll.n && s.accAll.pct < 60 ? 'late' : ''}">${s.accAll.n ? s.accAll.pct + '%' : '—'}</td>
+        <td>${s.sessionsWeek}</td>
+        <td>${s.dueCount ? `${s.onTime}/${s.dueCount}` : '—'}</td>
+        <td class="muted">${rel(s.lastPlayed)}</td></tr>
+        <tr class="ins-detail" data-for="${esc(k.id)}" hidden><td colspan="7">${insightsHtml(s, vocabList)}</td></tr>`).join('') || `<tr><td colspan="7" class="muted">${t('none')}</td></tr>`}
+      </tbody></table>
+      <p class="small muted">${t('insClickRow')}</p>
+    </section>
+    <section class="card">
+      <h2>${t('insHardest')}</h2>
+      <p class="small muted">${t('insHardestLead')}</p>
+      <div class="hard-list">${hard.map((a) => `<div class="hard-item"><span class="hard-word">${esc(a.item)}</span><span class="muted small">${esc(de(a.item) || (a.kind === 'letter' ? t('insLetterLbl') : ''))}</span>
+        <span class="acc-track bad"><span style="width:${a.err}%"></span></span><b>${a.err}%</b><span class="muted small">${a.kids} ${t('insKids')}</span></div>`).join('') || `<p class="muted">${t('insNoData')}</p>`}</div>
+    </section>`);
+  $('#groupSel').onchange = (e) => { try { sessionStorage.setItem('erdemGroup', e.target.value); } catch {} route(); };
+  $$('.ins-row').forEach((tr) => {
+    const toggle = () => { const d = $(`.ins-detail[data-for="${tr.dataset.k}"]`); d.hidden = !d.hidden; tr.classList.toggle('open', !d.hidden); };
+    tr.onclick = toggle; tr.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } };
+  });
+}
 
 // ------------------------------------------------------------ ADMIN: weekly email reports
 async function adminReports(tabs) {

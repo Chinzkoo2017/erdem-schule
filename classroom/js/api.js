@@ -58,12 +58,39 @@ function seed() {
       { student_id: 's3', day: daysAgo(5), xp: 20 }, { student_id: 's3', day: daysAgo(2), xp: 10 },
     ],
     family_checks: [],
+    ...demoLearning(),
     meta: {},
   };
 }
 
+// Демо: сурагч бүрийн үг/үсгийн явц (тогтмол, санамсаргүй биш)
+function demoLearning() {
+  const words = ['морь','тэмээ','хонь','ямаа','үхэр','нохой','муур','гэр','ээж','аав','нар','сар','ус','уул','ном','алим','сүү','талх'];
+  const letters = ['А','Б','В','Г','Д','Е','Ё','Ж','З','И','Й','К','Л','М','Н','О','Ө','П','Р','С','Т','У','Ү','Ф','Х','Ц','Ч','Ш','Ы','Э','Ю','Я'];
+  const prof = { s1: [13, 22, 0.82], s2: [7, 15, 0.68], s3: [4, 9, 0.6] };
+  const word_stats = [], game_sessions = [];
+  const now = Date.now();
+  for (const [sid, [nw, nl, acc]] of Object.entries(prof)) {
+    words.slice(0, nw).forEach((w, i) => {
+      const hard = i % 5 === 3;
+      word_stats.push({ student_id: sid, kind: 'vocab', item: w, correct: hard ? 2 : 3 + (i % 3), wrong: hard ? 3 : i % 2, streak: hard ? 0 : (i < nw - 3 ? 3 + (i % 2) : 1), last_at: new Date(now - i * 864e5).toISOString() });
+    });
+    letters.slice(0, nl).forEach((l, i) => {
+      const hard = ['Ө', 'Ү', 'Ы', 'Ц', 'Х'].includes(l);
+      word_stats.push({ student_id: sid, kind: 'letter', item: l, correct: hard ? 1 : 3, wrong: hard ? 2 : 0, streak: hard ? 0 : 3, last_at: new Date(now - i * 36e5).toISOString() });
+    });
+    for (let k = 0; k < 14; k++) {
+      if ((k + sid.length) % (sid === 's1' ? 2 : 3)) continue;
+      const games = ['letters', 'word', 'flash', 'sent', 'fill', 'pics'];
+      const total = 10, score = Math.round(total * Math.min(1, acc - 0.15 + (k / 14) * 0.2));
+      game_sessions.push({ student_id: sid, game: games[k % 6], score, total, played_at: new Date(now - (41 - k * 3) * 864e5).toISOString() });
+    }
+  }
+  return { word_stats, game_sessions };
+}
+
 function demoApi() {
-  const KEY = 'erdemDemo_v3';
+  const KEY = 'erdemDemo_v4';
   let db;
   try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
   db.family_checks ||= [];
@@ -124,6 +151,21 @@ function demoApi() {
     async saveGroup(g) {
       if (g.id) Object.assign(db.groups.find((x) => x.id === g.id), g); else db.groups.push({ ...g, id: uid() });
       persist();
+    },
+    async recordAnswers(game, score, total, items) {
+      {
+        db.game_sessions.push({ student_id: meId, game, score, total, played_at: new Date().toISOString() });
+        for (const it of items) {
+          let w = db.word_stats.find((x) => x.student_id === meId && x.kind === it.kind && x.item === it.item);
+          if (!w) { w = { student_id: meId, kind: it.kind, item: it.item, correct: 0, wrong: 0, streak: 0 }; db.word_stats.push(w); }
+          if (it.ok) { w.correct++; w.streak++; } else { w.wrong++; w.streak = 0; }
+          w.last_at = new Date().toISOString();
+        }
+      }
+      persist();
+    },
+    async learning(ids) {
+      return { stats: db.word_stats.filter((w) => ids.includes(w.student_id)), sessions: db.game_sessions.filter((g) => ids.includes(g.student_id)) };
     },
     async setContact(email, phone, reports) { Object.assign(me(), { contact_email: email || null, phone: phone || null, email_reports: reports }); persist(); },
     async report(action, parentId) {
@@ -276,6 +318,20 @@ async function liveApi() {
       return data;
     },
     async confirmFamily(aid, child, note) { ok(await sb.rpc('confirm_family', { aid, child, note: note || '' })); },
+    async recordAnswers(game, score, total, items) {
+      const r = await sb.rpc('record_answers', { game, score, total, items });
+      if (r.error) console.warn('record_answers', r.error.message);
+    },
+    async learning(ids) {
+      if (!ids.length) return { stats: [], sessions: [] };
+      const since = new Date(Date.now() - 120 * 864e5).toISOString();
+      const [a, b] = await Promise.all([
+        sb.from('word_stats').select('*').in('student_id', ids),
+        sb.from('game_sessions').select('*').in('student_id', ids).gte('played_at', since),
+      ]);
+      if (a.error) console.warn('word_stats', a.error.message);
+      return { stats: a.data || [], sessions: b.data || [] };
+    },
     async setContact(email, phone, reports) {
       ok(await sb.rpc('set_contact', { email: email || '', phone: phone || '', reports }));
       Object.assign(profile, { contact_email: email || null, phone: phone || null, email_reports: reports });

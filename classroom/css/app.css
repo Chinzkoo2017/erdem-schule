@@ -401,6 +401,47 @@ td.right { text-align: right; }
 @media (max-width: 1200px) { .report-grid { grid-template-columns: minmax(0, 1fr); } }
 .mail-frame { width: 100%; height: 640px; border: 1px solid var(--line); border-radius: 12px; background: #F4F6FB; }
 
+/* ---------- insights ---------- */
+.insights { display: grid; gap: 14px; }
+.ins-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ins-card { background: var(--bg); border-radius: 14px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.ins-card .kpi-value { font-size: 1.6rem; }
+.stack-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--line-2); }
+.stack-bar span { min-width: 0; }
+.b-ok { background: var(--green-btn); } .b-mid { background: var(--gold); } .b-none { background: var(--line); }
+.legend { display: flex; flex-wrap: wrap; gap: .2rem .6rem; font-size: .72rem; color: var(--muted); font-weight: 600; align-items: center; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 2px; }
+.acc-row { display: grid; grid-template-columns: 5.2rem minmax(0, 1fr) 2.6rem; align-items: center; gap: .4rem; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.acc-row b { text-align: right; }
+.acc-track { display: block; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.acc-track span { display: block; height: 100%; background: var(--indigo); border-radius: 999px; }
+.acc-track.bad span { background: var(--red); }
+.mini-bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; height: 70px; align-items: end; }
+.mb-col { display: grid; grid-template-rows: auto 1fr auto; height: 100%; text-align: center; font-size: .66rem; color: var(--muted); }
+.mb-col .mb-bar { align-self: end; background: var(--indigo); border-radius: 4px 4px 0 0; min-height: 2px; }
+.mb-n { font-weight: 800; color: var(--ink); }
+.ins-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ins-lists h4 { margin: 0 0 .4rem; font-size: .85rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; }
+.wchip { display: inline-flex; align-items: baseline; gap: .3rem; padding: .2rem .55rem; border-radius: 8px; font-weight: 700; font-size: .88rem; }
+.wchip.ok { background: var(--green-soft); color: var(--green); }
+.wchip.weak { background: var(--red-soft); color: var(--red); }
+.wchip small { font-weight: 600; color: var(--muted); font-size: .72rem; }
+.ins-row { cursor: pointer; }
+.ins-row:hover td, .ins-row.open td { background: var(--bg); }
+.ins-detail td { background: #FBFCFE; padding: 14px; }
+.mini-meter { display: inline-block; width: 50px; height: 6px; border-radius: 999px; background: var(--line); vertical-align: middle; margin-left: .3rem; overflow: hidden; }
+.mini-meter span { display: block; height: 100%; background: var(--green-btn); }
+.hard-list { display: grid; gap: .45rem; }
+.hard-item { display: grid; grid-template-columns: 7rem 7rem minmax(0, 1fr) 3rem 4.5rem; align-items: center; gap: .6rem; font-variant-numeric: tabular-nums; }
+.hard-word { font-weight: 800; font-size: 1.05rem; }
+@media (max-width: 1000px) { .ins-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  .ins-grid, .ins-lists { grid-template-columns: minmax(0, 1fr); }
+  .hard-item { grid-template-columns: 5.5rem minmax(0, 1fr) 2.6rem; }
+  .hard-item > :nth-child(2), .hard-item > :nth-child(5) { display: none; }
+}
+
 /* ---------- toast ---------- */
 .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; background: var(--side); color: #fff; padding: .8rem 1.2rem; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.2); transition: .25s; z-index: 50; max-width: calc(100% - 32px); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -437,3 +478,4 @@ td.right { text-align: right; }
   .quiz-big.sentence { font-size: 1.35rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+h3.sub .chip { text-transform: none; letter-spacing: 0; margin-left: .4rem; }

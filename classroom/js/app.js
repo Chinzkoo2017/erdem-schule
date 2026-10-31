@@ -732,9 +732,9 @@ function bindGames() {
 }
 
 // ------------------------------------------------------------ PARENT
-async function renderParent() {
+async function renderParent(tabsIn) {
   const kids = await api.children();
-  const ptabs = [{ id: 'children', icon: 'children', label: t('tabChildren') }];
+  const ptabs = tabsIn || [{ id: 'children', icon: 'children', label: t('tabChildren') }];
   if (!kids.length) return shell(ptabs, `<h1 class="page-title">${t('myChildren')}</h1><p class="card muted">${t('noChildren')}</p>`);
   const anns = await api.announcements().catch(() => []);
   const [learn, vocabList] = await Promise.all([api.learning(kids.map((k) => k.id)).catch(() => ({ stats: [], sessions: [] })), api.vocab().catch(() => [])]);
@@ -813,15 +813,18 @@ async function renderParent() {
 // ------------------------------------------------------------ TEACHER / ADMIN
 async function renderStaff() {
   const isAdmin = me.role === 'admin';
+  const myKids = await api.children().catch(() => []);
   const tabs = [
     { id: 'review', icon: 'review', label: t('tabReview') },
     { id: 'manage', icon: 'manage', label: t('tabManage') },
     { id: 'groups', icon: 'groups', label: t('tabGroups') },
     { id: 'insights', icon: 'chart', label: t('tabInsights') },
     { id: 'news', icon: 'bell', label: t('tabNews') },
+    ...(myKids.length ? [{ id: 'children', icon: 'children', label: t('myChildren') }] : []),
     ...(isAdmin ? [{ id: 'classes', icon: 'children', label: t('tabClasses') }, { id: 'users', icon: 'users', label: t('tabUsers') }, { id: 'roster', icon: 'sheet', label: t('tabRoster') }, { id: 'reports', icon: 'mail', label: t('tabReports') }] : []),
   ];
   const tab = currentTab(tabs);
+  if (tab === 'children' && myKids.length) return renderParent(tabs);
   if (tab === 'review') return staffReview(tabs);
   if (tab === 'manage') return staffManage(tabs);
   if (tab === 'groups') return staffGroups(tabs, isAdmin);
@@ -1068,7 +1071,7 @@ async function adminUsers(tabs) {
   const [profiles, links] = await Promise.all([api.profiles(), api.links()]);
   const roles = ['pending', 'student', 'parent', 'teacher', 'admin'];
   const name = (id) => esc(profiles.find((p) => p.id === id)?.full_name || id);
-  const parents = profiles.filter((p) => p.role === 'parent'), kids = profiles.filter((p) => p.role === 'student');
+  const parents = profiles.filter((p) => ['parent', 'teacher', 'admin'].includes(p.role)), kids = profiles.filter((p) => p.role === 'student');
   const sorted = [...profiles].sort((a, b) => (a.role === 'pending' ? -1 : 0) - (b.role === 'pending' ? -1 : 0));
   shell(tabs, `<h1 class="page-title">${t('tabUsers')}</h1>
     <section class="card table-wrap">
@@ -1085,7 +1088,7 @@ async function adminUsers(tabs) {
     <section class="card">
       <h2>${t('linkParent')}</h2>
       <form class="row-gap" id="linkForm">
-        <label class="grow">${t('parent')}<select name="p">${parents.map((p) => `<option value="${esc(p.id)}">${esc(p.full_name)}</option>`).join('')}</select></label>
+        <label class="grow">${t('parent')}<select name="p">${parents.map((p) => `<option value="${esc(p.id)}">${esc(p.full_name)}${p.role !== 'parent' ? ` (${t('r' + p.role)})` : ''}</option>`).join('')}</select></label>
         <label class="grow">${t('child')}<select name="c">${kids.map((p) => `<option value="${esc(p.id)}">${esc(p.full_name)}</option>`).join('')}</select></label>
         <button class="btn btn-gold btn-sm align-end">${t('link')}</button>
       </form>
@@ -1440,7 +1443,7 @@ async function renderMe() {
     <div class="grid-2">
       ${me.role === 'student' ? `<section class="card"><h2>${t('team')}</h2>${teamEditorHtml(me)}</section>` : ''}
       <section class="card"><h2>${t('changePw')}</h2>${pwFormHtml('mePw')}</section>
-      ${me.role === 'parent' ? `<section class="card"><h2>${t('contactTitle')}</h2>
+      ${me.role !== 'student' ? `<section class="card"><h2>${t('contactTitle')}</h2>
         <form class="form" id="contactForm">
           <label>${t('contactEmail')}<input name="email" type="email" value="${esc(me.contact_email || '')}" autocomplete="email"></label>
           <label>${t('contactPhone')}<input name="phone" type="tel" value="${esc(me.phone || '')}" placeholder="+49 176 …" autocomplete="tel"></label>

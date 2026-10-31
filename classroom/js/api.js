@@ -166,7 +166,7 @@ function demoApi() {
     async announcements() {
       const p = me(); if (!p) return [];
       const staff = ['teacher', 'admin'].includes(p.role);
-      const myGroups = p.role === 'parent' ? db.parent_children.filter((l) => l.parent_id === meId).flatMap((l) => groupsOf(db.profiles.find((k) => k.id === l.child_id))) : groupsOf(p);
+      const myGroups = p.role !== 'student' ? db.parent_children.filter((l) => l.parent_id === meId).flatMap((l) => groupsOf(db.profiles.find((k) => k.id === l.child_id))) : groupsOf(p);
       return (db.announcements || []).filter((a) => staff || ((a.audience === 'all' || (['parents', 'families'].includes(a.audience) && p.role === 'parent') || (['students', 'families'].includes(a.audience) && p.role === 'student'))
         && (!a.group_id || myGroups.includes(a.group_id)))).sort((a, b) => (a.starts_at || '9').localeCompare(b.starts_at || '9'));
     },
@@ -189,7 +189,7 @@ function demoApi() {
     },
     async setContact(email, phone, reports) { Object.assign(me(), { contact_email: email || null, phone: phone || null, email_reports: reports }); persist(); },
     async report(action, parentId) {
-      const parents = db.profiles.filter((p) => p.role === 'parent');
+      const parents = db.profiles.filter((p) => !['pending', 'student'].includes(p.role) && db.parent_children.some((l) => l.parent_id === p.id));
       const emailOf = (p) => p.contact_email || (p.email && !p.email.endsWith('@student.erdem-schule.de') ? p.email : '');
       const build = (p) => {
         const kids = db.parent_children.filter((l) => l.parent_id === p.id).map((l) => db.profiles.find((k) => k.id === l.child_id)).filter(Boolean).map((k) => {

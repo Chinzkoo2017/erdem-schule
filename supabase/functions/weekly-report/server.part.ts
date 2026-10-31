@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
       const e = loginEmail.get(p.id) || '';
       return e && !e.endsWith('@' + STUDENT_DOMAIN) ? e : '';
     };
-    const parents = profiles.filter((p: any) => p.role === 'parent');
+    const parents = profiles.filter((p: any) => p.role !== 'pending' && p.role !== 'student' && links.some((l: any) => l.parent_id === p.id));
     const reportFor = (p: any) => {
       const kidIds = links.filter((l: any) => l.parent_id === p.id).map((l: any) => l.child_id);
       const kids = profiles.filter((k: any) => kidIds.includes(k.id) && k.role === 'student').map((k: any) => {

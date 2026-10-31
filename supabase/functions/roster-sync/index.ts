@@ -177,7 +177,7 @@ function planRoster(rows, state, opts = {}) {
     if (!it.family) continue;
     const k = norm(it.family);
     if (!fam.has(k)) fam.set(k, { parents: [], kids: [] });
-    if (it.role === 'parent') fam.get(k).parents.push(it);
+    if (['parent', 'teacher', 'admin'].includes(it.role)) fam.get(k).parents.push(it);
     if (it.role === 'student') fam.get(k).kids.push(it);
   }
   const desired = [];
